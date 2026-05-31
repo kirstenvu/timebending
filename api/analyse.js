@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'x-api-key': (process.env.ANTHROPIC_API_KEY || '').trim(),
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
@@ -40,6 +40,4 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('API fout:', error.message || error);
-    return res.status(500).json({ error: 'Er ging iets mis met de analyse', detail: error.message });
-  }
-}
+    return res.status(500).json({ error: 'Er ging iets mis met de analyse', detail: error.mes
