@@ -354,29 +354,33 @@ function drawWheel(id, d1, d2) {
   if(!canvas) return;
   var ctx = canvas.getContext('2d');
   var W=canvas.width, H=canvas.height, cx=W/2, cy=H/2;
-  var outerR = Math.min(W,H)/2-22, ringW=8, maxR=outerR-ringW;
+  var outerR = Math.min(W,H)/2 - 6;
+  var ringW = 26;
+  var maxR = outerR - ringW;
   var n=AREAS.length, slice=(2*Math.PI)/n, start=-Math.PI/2;
   ctx.clearRect(0,0,W,H);
 
-  // Ring
-  ctx.beginPath(); ctx.arc(cx,cy,outerR,0,Math.PI*2); ctx.fillStyle='#EDE4F5'; ctx.fill();
+  // Brede paarse ring
+  ctx.beginPath(); ctx.arc(cx,cy,outerR,0,Math.PI*2); ctx.fillStyle='#9B74C0'; ctx.fill();
   ctx.beginPath(); ctx.arc(cx,cy,maxR,0,Math.PI*2); ctx.fillStyle='#FFFFFF'; ctx.fill();
+
+  // Segmentlijnen in ring
   AREAS.forEach(function(_,i){
     var a=start+i*slice;
     ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*maxR,cy+Math.sin(a)*maxR);
     ctx.lineTo(cx+Math.cos(a)*outerR,cy+Math.sin(a)*outerR);
-    ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1; ctx.stroke();
   });
 
-  // Grid
+  // Grid — 10 cirkels
   for(var r=10;r>=1;r--){
     ctx.beginPath(); ctx.arc(cx,cy,(r/10)*maxR,0,Math.PI*2);
-    ctx.strokeStyle=r%2===0?'rgba(180,180,180,.45)':'rgba(180,180,180,.22)'; ctx.lineWidth=.5; ctx.stroke();
+    ctx.strokeStyle=r%2===0?'rgba(150,120,180,.45)':'rgba(150,120,180,.2)'; ctx.lineWidth=.5; ctx.stroke();
   }
   AREAS.forEach(function(_,i){
     var a=start+i*slice;
     ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(a)*maxR,cy+Math.sin(a)*maxR);
-    ctx.strokeStyle='rgba(180,180,180,.25)'; ctx.lineWidth=.5; ctx.stroke();
+    ctx.strokeStyle='rgba(150,120,180,.25)'; ctx.lineWidth=.5; ctx.stroke();
   });
 
   if(d1) {
@@ -414,14 +418,19 @@ function drawWheel(id, d1, d2) {
     });
   }
 
+  // Labels in ring, gedraaid langs de boog
   AREAS.forEach(function(area,i){
-    var a=start+(i+.5)*slice, lr=outerR+16;
-    var cosA=Math.cos(a), sinA=Math.sin(a);
-    var yOff = sinA < -0.5 ? (cosA > 0 ? 7 : -7) : 0;
-    ctx.font='500 8.5px Raleway,sans-serif'; ctx.fillStyle='#2A2438';
-    ctx.textAlign= cosA>0.3 ? 'right' : cosA<-0.3 ? 'left' : 'center';
-    ctx.textBaseline='middle';
-    ctx.fillText(area.short, cx+cosA*lr, cy+sinA*lr+yOff);
+    var a=start+(i+.5)*slice;
+    var lr=maxR+ringW/2;
+    ctx.save();
+    ctx.translate(cx+Math.cos(a)*lr, cy+Math.sin(a)*lr);
+    var rot=a+Math.PI/2;
+    if(Math.sin(a)>0.05) rot+=Math.PI;
+    ctx.rotate(rot);
+    ctx.font='600 7.5px Raleway,sans-serif'; ctx.fillStyle='#FFFFFF';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(area.short, 0, 0);
+    ctx.restore();
   });
 
   ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2); ctx.fillStyle='#EDE4F5'; ctx.fill();
