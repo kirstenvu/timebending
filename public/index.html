@@ -418,7 +418,7 @@ function drawWheel(id, d1, d2) {
     var a=start+(i+.5)*slice, lr=outerR+16;
     var cosA=Math.cos(a);
     ctx.font='500 9px Raleway,sans-serif'; ctx.fillStyle='#2A2438';
-    ctx.textAlign= cosA>0.3 ? 'left' : cosA<-0.3 ? 'right' : 'center';
+    ctx.textAlign= cosA>0.3 ? 'right' : cosA<-0.3 ? 'left' : 'center';
     ctx.textBaseline='middle';
     ctx.fillText(area.short, cx+cosA*lr, cy+Math.sin(a)*lr);
   });
