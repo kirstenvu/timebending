@@ -1,43 +1,80 @@
-module.exports = async function handler(req, res) {
-  // CORS-headers altijd instellen (ook voor OPTIONS preflight)
+const https = require('https');
+
+module.exports = function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // OPTIONS preflight afhandelen
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    res.statusCode = 200;
+    res.end();
+    return;
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.statusCode = 405;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ error: 'Method not allowed' }));
+    return;
   }
 
-  const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-  const { prompt } = body || {};
+  let rawBody = '';
+  req.on('data', chunk => { rawBody += chunk; });
+  req.on('end', () => {
+    let prompt;
+    try {
+      const body = JSON.parse(rawBody);
+      prompt = body.prompt;
+    } catch (e) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      return;
+    }
 
-  if (!prompt) {
-    return res.status(400).json({ error: 'Geen prompt meegestuurd' });
-  }
+    if (!prompt) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Geen prompt meegestuurd' }));
+      return;
+    }
 
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const apiKey = (process.env.ANTHROPIC_API_KEY || '').trim();
+    const payload = JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const options = {
+      hostname: 'api.anthropic.com',
+      path: '/v1/messages',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': (process.env.ANTHROPIC_API_KEY || '').trim(),
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Length': Buffer.byteLength(payload)
+      }
+    };
+
+    const apiReq = https.request(options, (apiRes) => {
+      let data = '';
+      apiRes.on('data', chunk => { data += chunk; });
+      apiRes.on('end', () => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(data);
+      });
     });
 
-    const data = await response.json();
-    return res.status(200).json(data);
+    apiReq.on('error', (e) => {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'API request failed', detail: e.message }));
+    });
 
-  } catch (error) {
-    console.error('API fout:', error.message || error);
-    return res.status(500).json({ error: 'Er ging iets mis met de analyse', detail: error.mes
+    apiReq.write(payload);
+    apiReq.end();
+  });
+};
