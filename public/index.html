@@ -18,9 +18,9 @@ body { background:var(--cream); font-family:'Raleway',sans-serif; color:var(--de
 
 /* Header */
 .logo-line { font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; }
-h1 { font-family:'Lora',serif; font-weight:400; font-size:clamp(36px,7vw,54px); line-height:1.05; margin-bottom:14px; color:var(--deep); }
+h1 { font-family:Lora,serif; font-weight:400; font-size:clamp(36px,7vw,54px); line-height:1.05; margin-bottom:14px; color:var(--deep); }
 h1 em { font-style:italic; color:var(--gold); }
-.subtitle { font-size:13.5px; font-weight:300; color:var(--muted); line-height:1.75; margin-bottom:40px; font-family:'Lora',serif; }
+.subtitle { font-size:13.5px; font-weight:300; color:var(--muted); line-height:1.75; margin-bottom:40px; font-family:Lora,serif; }
 
 /* Gold divider */
 .gold-line { width:40px; height:2px; background:var(--gold); margin:0 auto 32px; }
@@ -40,18 +40,18 @@ h1 em { font-style:italic; color:var(--gold); }
 
 /* Cards */
 .intro-card { background:var(--warm-white); border:1.5px solid var(--sand); border-left:3px solid var(--sage); border-radius:0 2px 2px 0; padding:20px 22px; margin-bottom:28px; box-shadow:0 4px 32px rgba(61,46,82,0.08); }
-.intro-text { font-size:13px; line-height:1.8; color:var(--brown); font-family:'Lora',serif; }
+.intro-text { font-size:13px; line-height:1.8; color:var(--brown); font-family:Lora,serif; }
 .intro-text strong { font-weight:600; color:var(--deep); }
 .pendel-card { background:var(--warm-white); border-left:3px solid var(--sage); padding:16px 20px; margin-bottom:28px; border-radius:0 2px 2px 0; box-shadow:0 4px 32px rgba(61,46,82,0.08); }
-.pendel-card-title { font-family:'Lora',serif; font-size:16px; font-weight:600; color:var(--purple); margin-bottom:5px; }
-.pendel-card-text { font-size:13px; font-family:'Lora',serif; color:var(--brown); line-height:1.75; }
+.pendel-card-title { font-family:Lora,serif; font-size:16px; font-weight:600; color:var(--purple); margin-bottom:5px; }
+.pendel-card-text { font-size:13px; font-family:Lora,serif; color:var(--brown); line-height:1.75; }
 
 /* Area rows */
 .areas-wrap { display:flex; flex-direction:column; gap:18px; margin-bottom:32px; }
 .area-row { display:flex; flex-direction:column; gap:5px; }
 .area-header { display:flex; justify-content:space-between; align-items:baseline; }
-.area-name { font-family:'Lora',serif; font-size:15px; font-weight:600; color:var(--purple); }
-.area-score { font-family:'Lora',serif; font-size:20px; font-weight:400; color:var(--plum); }
+.area-name { font-family:Lora,serif; font-size:15px; font-weight:600; color:var(--purple); }
+.area-score { font-family:Lora,serif; font-size:20px; font-weight:400; color:var(--plum); }
 .area-desc { font-size:11px; color:var(--muted); font-family:'Raleway',sans-serif; font-weight:300; line-height:1.55; }
 .slider-outer { padding: 10px 0; margin: 2px 0; }
 input[type=range] { -webkit-appearance:none; width:70%; margin-left:15%; height:3px; background:var(--sand); border-radius:2px; outline:none; cursor:pointer; display:block; }
@@ -85,13 +85,13 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
 .gebied-kaarten { display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
 .gebied-kaart { background:var(--warm-white); border:1.5px solid var(--sand); border-radius:2px; padding:16px 18px; border-left:3px solid var(--sand); box-shadow:0 4px 32px rgba(61,46,82,0.06); }
 .gebied-kaart-header { margin-bottom:8px; }
-.gebied-kaart-naam { font-family:'Lora',serif; font-size:17px; font-weight:600; color:var(--purple); }
+.gebied-kaart-naam { font-family:Lora,serif; font-size:17px; font-weight:600; color:var(--purple); }
 .badge { font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:3px 9px; border-radius:10px; white-space:nowrap; }
 .badge-groen { background:rgba(138,158,130,.18); color:#5a7a5e; }
 .badge-paars { background:rgba(123,63,160,.18); color:#7B3FA0; }
 .badge-gelijk { background:rgba(200,154,60,.2); color:#8a6e1a; }
 .gebied-kaart-scores { font-size:12px; color:var(--muted); font-weight:300; margin-bottom:6px; font-family:'Raleway',sans-serif; }
-.gebied-kaart-score-val { font-family:'Lora',serif; font-size:16px; font-weight:400; }
+.gebied-kaart-score-val { font-family:Lora,serif; font-size:16px; font-weight:400; }
 .gebied-kaart-score-val.groen { color:#5a7a5e; }
 .gebied-kaart-score-val.paars { color:var(--purple); }
 
@@ -102,8 +102,8 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
 
 /* Analyse */
 .analyse-wrap { display:none; margin-top:36px; background:var(--warm-white); border:1.5px solid var(--sand); border-radius:2px; padding:28px 24px; box-shadow:0 4px 32px rgba(61,46,82,0.08); }
-.analyse-title { font-family:'Lora',serif; font-size:22px; font-weight:400; color:var(--purple); margin-bottom:16px; }
-.analyse-body { font-size:13.5px; line-height:1.85; color:var(--brown); font-family:'Lora',serif; font-weight:400; }
+.analyse-title { font-family:Lora,serif; font-size:22px; font-weight:400; color:var(--purple); margin-bottom:16px; }
+.analyse-body { font-size:13.5px; line-height:1.85; color:var(--brown); font-family:Lora,serif; font-weight:400; }
 .analyse-body p { margin-bottom:14px; }
 .analyse-loading { text-align:center; padding:28px 0; display:none; }
 .spiraal-spin {
@@ -168,7 +168,7 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
     </div>
     <div class="intro-text">Geef elk gebied een score van <strong>1 tot 10</strong>. Snel, vanuit je eerste ingeving. Wat komt er als eerste in je op?</div>
     <div id="uitlegExtra1" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--sand);">
-      <p style="font-size:13px;font-family:'Lora',serif;color:var(--brown);line-height:1.75;margin:0;"><strong>1</strong> je zit helemaal aan de grond. <strong>10</strong> je kunt je niks beters voorstellen.</p>
+      <p style="font-size:13px;font-family:Lora,serif;color:var(--brown);line-height:1.75;margin:0;"><strong>1</strong> je zit helemaal aan de grond. <strong>10</strong> je kunt je niks beters voorstellen.</p>
     </div>
   </div>
   <div class="areas-wrap" id="slidersWrap"></div>
@@ -194,9 +194,9 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
     </div>
     <div class="pendel-card-text">Gebruik je pendel, biotensor of lichaamspendel. IJk voor je begint en kijk wat jouw lichaam je vertelt.</div>
     <div id="uitlegExtra" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--sand);">
-      <p style="font-size:13px;font-family:'Lora',serif;color:var(--brown);line-height:1.75;margin:0;">Bepaal voordat je begint wat voor jou een ja, een nee en een neutraal antwoord is. Start daarna met de cijfers van de gebieden te ontdekken. Start bij 5 en werk met ja en nee omhoog of omlaag tot je bij het juiste getal bent.</p>
+      <p style="font-size:13px;font-family:Lora,serif;color:var(--brown);line-height:1.75;margin:0;">Bepaal voordat je begint wat voor jou een ja, een nee en een neutraal antwoord is. Start daarna met de cijfers van de gebieden te ontdekken. Start bij 5 en werk met ja en nee omhoog of omlaag tot je bij het juiste getal bent.</p>
     </div>
-    <button onclick="openOptin()" style="background:none;border:none;padding:0;margin-top:14px;cursor:pointer;font-family:'Lora',serif;font-size:12px;font-weight:400;color:var(--gold);font-style:italic;display:flex;align-items:center;gap:6px;">Heb je nog nooit met een pendel of lichaamspendel gewerkt? Stuur mij een bericht en ik stuur je meer info. <span style="font-size:14px;font-style:normal;">→</span></button>
+    <button onclick="openOptin()" style="background:none;border:none;padding:0;margin-top:14px;cursor:pointer;font-family:Lora,serif;font-size:12px;font-weight:400;color:var(--gold);font-style:italic;display:flex;align-items:center;gap:6px;">Heb je nog nooit met een pendel of lichaamspendel gewerkt? Stuur mij een bericht en ik stuur je meer info. <span style="font-size:14px;font-style:normal;">→</span></button>
   </div>
   <div class="areas-wrap" id="pendelWrap"></div>
   <div class="wheel-wrap">
@@ -221,9 +221,9 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
     </div>
     <div class="pendel-card-text">Dit is jouw wiel. Kijk er even rustig naar. Wat vraagt je aandacht? Waar zit verschil tussen je eerste indruk en je afstemming, en wat zegt je dat?</div>
     <div id="uitlegExtra3" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--sand);">
-      <p style="font-size:13px;font-family:'Lora',serif;color:var(--brown);line-height:1.75;margin:0;">De groene lijn is je eerste indruk, de paarse je afstemming. Hoe dichter de twee bij elkaar liggen, hoe meer hoofd en systeem in lijn zijn. Een groot verschil is geen probleem, het is informatie.</p>
+      <p style="font-size:13px;font-family:Lora,serif;color:var(--brown);line-height:1.75;margin:0;">De groene lijn is je eerste indruk, de paarse je afstemming. Hoe dichter de twee bij elkaar liggen, hoe meer hoofd en systeem in lijn zijn. Een groot verschil is geen probleem, het is informatie.</p>
     </div>
-    <p style="font-size:12px;font-family:'Lora',serif;color:var(--muted);font-style:italic;margin-top:14px;">Maak de analyse en druk hem af. Dan heb je een mooie vergelijking voor de volgende keer.</p>
+    <p style="font-size:12px;font-family:Lora,serif;color:var(--muted);font-style:italic;margin-top:14px;">Maak de analyse en druk hem af. Dan heb je een mooie vergelijking voor de volgende keer.</p>
     <div id="wiel3Melding"></div>
   </div>
   <div class="wheel-wrap">
@@ -253,9 +253,9 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
 
   <!-- DEEL MET KIRSTEN -->
   <div id="deelKaart" style="display:none;margin-top:28px;background:var(--warm-white);border:1.5px solid var(--sand);border-left:3px solid var(--purple);border-radius:0 2px 2px 0;padding:20px 22px;box-shadow:0 4px 32px rgba(61,46,82,0.08);">
-    <p style="font-family:'Lora',serif;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Timebending</p>
-    <p style="font-family:'Lora',serif;font-size:17px;font-weight:600;color:var(--purple);margin-bottom:6px;">Deel je resultaat met Kirsten</p>
-    <p style="font-size:13px;font-family:'Lora',serif;color:var(--brown);line-height:1.75;margin-bottom:16px;">Je scores en analyse worden klaargezet in een e-mail. Vul je naam in en klik op verzenden, dan ontvang ik jouw wiel.</p>
+    <p style="font-family:Lora,serif;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Timebending</p>
+    <p style="font-family:Lora,serif;font-size:17px;font-weight:600;color:var(--purple);margin-bottom:6px;">Deel je resultaat met Kirsten</p>
+    <p style="font-size:13px;font-family:Lora,serif;color:var(--brown);line-height:1.75;margin-bottom:16px;">Je scores en analyse worden klaargezet in een e-mail. Vul je naam in en klik op verzenden, dan ontvang ik jouw wiel.</p>
     <input type="text" id="deelNaam" placeholder="Je naam" style="width:100%;padding:11px 14px;border:1.5px solid var(--sand);border-radius:2px;font-family:'Raleway',sans-serif;font-size:13px;color:var(--deep);background:var(--cream);margin-bottom:12px;box-sizing:border-box;outline:none;">
     <button class="btn-purple" onclick="deelMetKirsten()" style="width:100%;">Stuur naar Kirsten</button>
     <p id="deelFout" style="display:none;font-size:11px;color:#c0392b;margin-top:8px;font-family:'Raleway',sans-serif;">Vul eerst je naam in.</p>
@@ -271,16 +271,16 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
   <div style="background:var(--cream);max-width:420px;width:100%;border-radius:2px;padding:36px 32px;box-shadow:0 16px 60px rgba(42,36,56,.25);position:relative;">
     <button onclick="sluitOptin()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
     <p style="font-family:'Raleway',sans-serif;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Timebending</p>
-    <h2 style="font-family:'Lora',serif;font-size:22px;font-weight:400;color:var(--deep);margin-bottom:8px;">Meer info over de pendel?</h2>
-    <p style="font-family:'Lora',serif;font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:24px;">Laat je naam en e-mailadres achter en ik stuur je meer informatie toe.</p>
+    <h2 style="font-family:Lora,serif;font-size:22px;font-weight:400;color:var(--deep);margin-bottom:8px;">Meer info over de pendel?</h2>
+    <p style="font-family:Lora,serif;font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:24px;">Laat je naam en e-mailadres achter en ik stuur je meer informatie toe.</p>
     <div id="optinForm">
       <input type="text" id="optinNaam" placeholder="Je naam" style="width:100%;padding:11px 14px;border:1.5px solid var(--sand);border-radius:2px;font-family:'Raleway',sans-serif;font-size:13px;color:var(--deep);background:var(--warm-white);margin-bottom:10px;box-sizing:border-box;outline:none;">
       <input type="email" id="optinEmail" placeholder="Je e-mailadres" style="width:100%;padding:11px 14px;border:1.5px solid var(--sand);border-radius:2px;font-family:'Raleway',sans-serif;font-size:13px;color:var(--deep);background:var(--warm-white);margin-bottom:18px;box-sizing:border-box;outline:none;">
       <button onclick="verstuurOptin()" class="btn-purple" style="width:100%;padding:14px;">Stuur mijn bericht</button>
     </div>
     <div id="optinBevestiging" style="display:none;text-align:center;padding:16px 0;">
-      <p style="font-family:'Lora',serif;font-size:15px;color:var(--purple);margin-bottom:6px;">Bedankt!</p>
-      <p style="font-family:'Lora',serif;font-size:13px;color:var(--muted);">Ik neem zo snel mogelijk contact met je op.</p>
+      <p style="font-family:Lora,serif;font-size:15px;color:var(--purple);margin-bottom:6px;">Bedankt!</p>
+      <p style="font-family:Lora,serif;font-size:13px;color:var(--muted);">Ik neem zo snel mogelijk contact met je op.</p>
     </div>
   </div>
 </div>
@@ -336,8 +336,9 @@ function renderSliders() {
     row.className = 'area-row';
     var isActive = s1Active[area.key];
     var sliderColor = isActive ? area.color : '#B8AFC7';
-    var scoreDisp = isActive ? v : '<span style="color:var(--muted);font-size:14px;">–</span>';
-    row.innerHTML = '<div class="area-header"><span class="area-name" style="color:'+(isActive?'var(--purple)':'var(--muted))+"'">'+area.name+'</span><span class="area-score" id="s1-'+area.key+'">'+(isActive?v:'–')+'</span></div>'
+    var nameStyle = isActive ? 'color:var(--purple)' : 'color:var(--muted)';
+    var scoreHtml = isActive ? v : '<span style="color:var(--muted)">5</span>';
+    row.innerHTML = '<div class="area-header"><span class="area-name" style="'+nameStyle+'">'+area.name+'</span><span class="area-score" id="s1-'+area.key+'">'+scoreHtml+'</span></div>'
       + '<p class="area-desc">'+area.desc+'</p>'
       + '<div class="slider-outer"><input type="range" min="1" max="10" value="'+v+'" id="range-'+area.key+'" style="accent-color:'+sliderColor+';--area-color:'+sliderColor+'"></div>';
     wrap.appendChild(row);
@@ -551,7 +552,7 @@ function goTo(n) {
       melding = 'Vul eerst de Eerste Blik of Afstemming in.';
     }
     leg.innerHTML = legHtml;
-    if(msg3) msg3.innerHTML = melding ? '<p style="font-size:12px;font-family:'Lora',serif;color:var(--gold);font-style:italic;margin-top:12px;">'+melding+'</p>' : '';
+    if(msg3) msg3.innerHTML = melding ? '<p style="font-size:12px;font-family:Lora,serif;color:var(--gold);font-style:italic;margin-top:12px;">'+melding+'</p>' : '';
     drawWheel('wc3', d1, d2);
     buildScoresList();
   }
