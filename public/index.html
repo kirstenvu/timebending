@@ -254,7 +254,7 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
   <div id="deelKaart" style="display:none;margin-top:28px;background:var(--warm-white);border:1.5px solid var(--sand);border-left:3px solid var(--purple);border-radius:0 2px 2px 0;padding:20px 22px;box-shadow:0 4px 32px rgba(61,46,82,0.08);">
     <p style="font-family:'Lora',serif;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Timebending</p>
     <p style="font-family:'Lora',serif;font-size:17px;font-weight:600;color:var(--purple);margin-bottom:6px;">Deel je resultaat met Kirsten</p>
-    <p style="font-size:13px;font-family:'Lora',serif;color:var(--brown);line-height:1.75;margin-bottom:16px;">Je scores en analyse worden klaargezet in een e-mail. Vul je naam in en klik op verzenden — dan ontvang ik jouw wiel.</p>
+    <p style="font-size:13px;font-family:'Lora',serif;color:var(--brown);line-height:1.75;margin-bottom:16px;">Je scores en analyse worden klaargezet in een e-mail. Vul je naam in en klik op verzenden, dan ontvang ik jouw wiel.</p>
     <input type="text" id="deelNaam" placeholder="Je naam" style="width:100%;padding:11px 14px;border:1.5px solid var(--sand);border-radius:2px;font-family:'Raleway',sans-serif;font-size:13px;color:var(--deep);background:var(--cream);margin-bottom:12px;box-sizing:border-box;outline:none;">
     <button class="btn-purple" onclick="deelMetKirsten()" style="width:100%;">Stuur naar Kirsten</button>
     <p id="deelFout" style="display:none;font-size:11px;color:#c0392b;margin-top:8px;font-family:'Raleway',sans-serif;">Vul eerst je naam in.</p>
@@ -657,8 +657,8 @@ async function analyseer(metPendel) {
     html += '<div style="margin-top:36px;padding-top:24px;border-top:1px solid var(--sand);">'
       + '<p style="font-family:\'Lora\',serif;font-size:13.5px;color:var(--brown);line-height:1.8;margin-bottom:20px;">Fijn dat je de tijd hebt genomen om bij jezelf te zijn. Dit wiel is een momentopname, een spiegel. Wat je erin ziet mag er zijn. Neem het mee en kijk wat het je brengt.</p>'
       + '<p style="font-family:\'Raleway\',sans-serif;font-size:11px;font-weight:300;color:var(--muted);letter-spacing:.08em;margin-bottom:6px;">Met warme groet,</p>'
-      + '<img src="kirsten_signature.png" alt="Kirsten" style="height:52px;opacity:.85;display:block;margin-bottom:4px;">'
-      + '<p style="font-family:\'Raleway\',sans-serif;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);">Kirsten · Timebending®</p>'
+      + '<img src="kirsten_van_ulden.png" alt="Kirsten van Ulden" style="height:64px;opacity:.9;display:block;margin-bottom:4px;">'
+      + '<p style="font-family:\'Raleway\',sans-serif;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);">Timebending®</p>'
       + '</div>';
 
     body.innerHTML = html;
@@ -722,3 +722,4 @@ drawWheel('wc1',s1,null);
 </script>
 </body>
 </html>
+     
