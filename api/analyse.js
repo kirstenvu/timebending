@@ -40,4 +40,22 @@ module.exports = async function handler(req, res) {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Content-Type'
+        'Content-Type': 'application/json',
+        'x-api-key': (process.env.ANTHROPIC_API_KEY || '').trim(),
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: volledigePrompt }]
+      })
+    });
+
+    const data = await response.json();
+    return res.status(200).json(data);
+
+  } catch (error) {
+    console.error('API fout:', error.message || error);
+    return res.status(500).json({ error: 'Er ging iets mis met de analyse', detail: error.message });
+  }
+}
