@@ -707,4 +707,18 @@ function deelMetKirsten() {
   var analyseTekst = (tmp.textContent || tmp.innerText || '').replace(/\s+/g,' ').trim();
 
   var body = 'Naam: ' + naam + '\nDatum: ' + datum + '\n\n'
-    + 
+    + scoresTekst
+    + '\nANALYSE\n' + analyseTekst;
+
+  var mailto = 'mailto:kirsten@vanulden.nl'
+    + '?subject=' + encodeURIComponent('Wheel of Life resultaat van ' + naam)
+    + '&body=' + encodeURIComponent(body);
+
+  window.location.href = mailto;
+}
+
+renderSliders();
+drawWheel('wc1',s1,null);
+</script>
+</body>
+</html>
