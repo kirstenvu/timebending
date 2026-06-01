@@ -224,6 +224,7 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
       <p style="font-size:13px;font-family:'Lora',serif;color:var(--brown);line-height:1.75;margin:0;">De groene lijn is je eerste indruk, de paarse je afstemming. Hoe dichter de twee bij elkaar liggen, hoe meer hoofd en systeem in lijn zijn. Een groot verschil is geen probleem, het is informatie.</p>
     </div>
     <p style="font-size:12px;font-family:'Lora',serif;color:var(--muted);font-style:italic;margin-top:14px;">Maak de analyse en druk hem af. Dan heb je een mooie vergelijking voor de volgende keer.</p>
+    <div id="wiel3Melding"></div>
   </div>
   <div class="wheel-wrap">
     <canvas id="wc3" width="560" height="560"></canvas>
@@ -323,8 +324,8 @@ function toggleUitleg(extraId, btnId) {
   if (btn) btn.textContent = open ? '?' : '×';
 }
 
-var s1 = {}, s2 = {}, pendelDone = false;
-AREAS.forEach(function(a){ s1[a.key]=5; s2[a.key]=null; });
+var s1 = {}, s2 = {}, pendelDone = false, s1Active = {};
+AREAS.forEach(function(a){ s1[a.key]=5; s2[a.key]=null; s1Active[a.key]=false; });
 
 function renderSliders() {
   var wrap = document.getElementById('slidersWrap');
@@ -333,9 +334,12 @@ function renderSliders() {
     var v = s1[area.key];
     var row = document.createElement('div');
     row.className = 'area-row';
-    row.innerHTML = '<div class="area-header"><span class="area-name">'+area.name+'</span><span class="area-score" id="s1-'+area.key+'">'+v+'</span></div>'
+    var isActive = s1Active[area.key];
+    var sliderColor = isActive ? area.color : '#B8AFC7';
+    var scoreDisp = isActive ? v : '<span style="color:var(--muted);font-size:14px;">–</span>';
+    row.innerHTML = '<div class="area-header"><span class="area-name" style="color:'+(isActive?'var(--purple)':'var(--muted))+"'">'+area.name+'</span><span class="area-score" id="s1-'+area.key+'">'+(isActive?v:'–')+'</span></div>'
       + '<p class="area-desc">'+area.desc+'</p>'
-      + '<div class="slider-outer"><input type="range" min="1" max="10" value="'+v+'" id="range-'+area.key+'" style="accent-color:'+area.color+';--area-color:'+area.color+'"></div>';
+      + '<div class="slider-outer"><input type="range" min="1" max="10" value="'+v+'" id="range-'+area.key+'" style="accent-color:'+sliderColor+';--area-color:'+sliderColor+'"></div>';
     wrap.appendChild(row);
 
     var input = document.getElementById('range-'+area.key);
@@ -357,6 +361,7 @@ function renderSliders() {
 
 function updateS1(key, val) {
   s1[key] = parseInt(val);
+  s1Active[key] = true;
   var el = document.getElementById('s1-'+key);
   if(el) el.textContent = val;
   renderSliders();
@@ -526,14 +531,28 @@ function goTo(n) {
   }
   if(n===3) {
     var leg=document.getElementById('legend3');
-    if(pendelDone){
-      leg.innerHTML='<div class="legend-item"><div class="legend-line" style="background:#8A9E82;"></div><span>Eerste indruk</span></div>'
+    var hasEB = AREAS.some(function(a){ return s1Active[a.key]; });
+    var hasPendel = pendelDone && AREAS.some(function(a){ return s2[a.key]!==null; });
+    var d1 = hasEB ? s1 : null;
+    var d2 = hasPendel ? s2 : null;
+    var legHtml = '';
+    var msg3 = document.getElementById('wiel3Melding');
+    var melding = '';
+    if(hasEB && hasPendel) {
+      legHtml = '<div class="legend-item"><div class="legend-line" style="background:#8A9E82;"></div><span>Eerste indruk</span></div>'
         +'<div class="legend-item"><div class="legend-line" style="background:#7B3FA0;"></div><span>Pendel</span></div>';
-      drawWheel('wc3',s1,s2);
+    } else if(hasEB) {
+      legHtml = '<div class="legend-item"><div class="legend-line" style="background:#8A9E82;"></div><span>Eerste indruk</span></div>';
+      melding = 'Je hebt de eerste blik ingevuld. Probeer ook de Afstemming-tab voor extra diepgang.';
+    } else if(hasPendel) {
+      legHtml = '<div class="legend-item"><div class="legend-line" style="background:#7B3FA0;"></div><span>Pendel</span></div>';
+      melding = 'Je hebt de pendel ingevuld. Voeg ook je eerste blik toe via de Eerste Blik-tab.';
     } else {
-      leg.innerHTML='<div class="legend-item"><div class="legend-line" style="background:#8A9E82;"></div><span>Eerste indruk</span></div>';
-      drawWheel('wc3',s1,null);
+      melding = 'Vul eerst de Eerste Blik of Afstemming in.';
     }
+    leg.innerHTML = legHtml;
+    if(msg3) msg3.innerHTML = melding ? '<p style="font-size:12px;font-family:'Lora',serif;color:var(--gold);font-style:italic;margin-top:12px;">'+melding+'</p>' : '';
+    drawWheel('wc3', d1, d2);
     buildScoresList();
   }
   document.querySelectorAll('.phase').forEach(function(p,i){ p.classList.toggle('active',i+1===n); });
@@ -546,7 +565,7 @@ function goTo(n) {
 }
 
 function resetAll() {
-  AREAS.forEach(function(a){ s1[a.key]=5; s2[a.key]=null; });
+  AREAS.forEach(function(a){ s1[a.key]=5; s2[a.key]=null; s1Active[a.key]=false; });
   pendelDone=false;
   document.getElementById('analyseWrap').style.display='none';
   document.getElementById('deelKaart').style.display='none';
@@ -572,12 +591,17 @@ async function analyseer(metPendel) {
   wrap.scrollIntoView({behavior:'smooth', block:'start'});
 
   var regels = [];
+  var heeftEersteBlik = AREAS.some(function(a){ return s1Active[a.key]; });
+  var heeftPendel = metPendel && pendelDone && AREAS.some(function(a){ return s2[a.key]!==null; });
   AREAS.forEach(function(a){
-    var s1v = s1[a.key];
-    var s2v = (metPendel && pendelDone) ? s2[a.key] : null;
+    var s1v = s1Active[a.key] ? s1[a.key] : null;
+    var s2v = heeftPendel ? s2[a.key] : null;
+    if(s1v===null && s2v===null) return;
     var type;
     if(s2v === null) {
       type = 'score '+s1v;
+    } else if(s1v === null) {
+      type = 'pendel '+s2v+' (alleen pendel ingevuld)';
     } else {
       var diff = s2v - s1v;
       if(diff > 1) type = 'eerste indruk '+s1v+', pendel '+s2v+' (pendel hoger)';
@@ -587,9 +611,9 @@ async function analyseer(metPendel) {
     regels.push(a.name+': '+type);
   });
 
-  var metPendelZin = (metPendel && pendelDone)
-    ? 'De persoon heeft zowel eerste indruk als pendel ingevuld.'
-    : 'De persoon heeft alleen een eerste indruk ingevuld (geen pendel). Voeg in het veld "afsluiting" na je aanmoedigende zin een tweede zin toe die haar warm uitnodigt om ook de Afstemming-tab te proberen met pendel, biotensor of lichaamspendel, voor extra diepgang. Houd het kort en nieuwsgierig makend, geen druk.';
+  var metPendelZin = heeftPendel
+    ? (heeftEersteBlik ? 'De persoon heeft zowel eerste indruk als pendel ingevuld.' : 'De persoon heeft alleen de pendel/afstemming ingevuld. Voeg aan het einde van de afsluiting een korte uitnodiging toe om ook de Eerste Blik tab te proberen.')
+    : (heeftEersteBlik ? 'De persoon heeft alleen een eerste indruk ingevuld. Voeg aan het einde van de afsluiting een korte uitnodiging toe om ook de Afstemming-tab met pendel te proberen.' : 'Geen scores ingevuld.');
 
   var prompt = 'Je bent Kirsten van Timebending. Schrijf een analyse in warme, directe Nederlandse jij-vorm. Geen gedachtestreepjes of liggende streepjes. Markeer 2-3 losse woorden per tekst met **woord**, max 2 woorden per markering, met emotionele lading. ' + metPendelZin + ' Scores: ' + regels.join(', ') + ' Schrijf een intro van 2-3 zinnen over het geheel. Geef voor elk van de 9 gebieden: 2 zinnen analyse (tekst), een badge (Sterk als scores in lijn, Pendel hoger, Eerste indruk hoger, of leeg), EN een groeipunt van 1-2 zinnen. Sluit af met 1 aanmoedigende zin (en bij alleen eerste indruk: ook de uitnodiging voor afstemming). Gebruik dit exacte JSON formaat en niks anders: {"intro":"...","gebieden":[{"naam":"Gezondheid","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Financien","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Relaties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Mindset","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Emoties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Doel en Missie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Passie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Zingeving","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Spiritualiteit en Verbondenheid","badge":"...","tekst":"...","groeipunt":"..."}],"afsluiting":"..."} Bij Spiritualiteit en Verbondenheid: schrijf nuchter en aards, geen zweverige taal.';
 
