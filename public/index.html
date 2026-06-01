@@ -581,7 +581,7 @@ async function analyseer(metPendel) {
   var body = document.getElementById('analyseBody');
   var btns = document.getElementById('analyseBtns');
 
-  var analyseKnoppen = document.querySelectorAll('.btn-green');
+  var analyseKnoppen = document.querySelectorAll('button[onclick^="analyseer"]');
   analyseKnoppen.forEach(function(b){ b.disabled=true; b.textContent='Bezig...'; });
 
   wrap.style.display = 'block';
@@ -615,7 +615,7 @@ async function analyseer(metPendel) {
     ? (heeftEersteBlik ? 'De persoon heeft zowel eerste indruk als pendel ingevuld.' : 'De persoon heeft alleen de pendel/afstemming ingevuld. Voeg aan het einde van de afsluiting een korte uitnodiging toe om ook de Eerste Blik tab te proberen.')
     : (heeftEersteBlik ? 'De persoon heeft alleen een eerste indruk ingevuld. Voeg aan het einde van de afsluiting een korte uitnodiging toe om ook de Afstemming-tab met pendel te proberen.' : 'Geen scores ingevuld.');
 
-  var prompt = 'Je bent Kirsten van Timebending. Schrijf een analyse in warme, directe Nederlandse jij-vorm. Geen gedachtestreepjes of liggende streepjes. Markeer 2-3 losse woorden per tekst met **woord**, max 2 woorden per markering, met emotionele lading. ' + metPendelZin + ' Scores: ' + regels.join(', ') + ' Schrijf een intro van 2-3 zinnen over het geheel. Geef voor elk van de 9 gebieden: 2 zinnen analyse (tekst), een badge (Sterk als scores in lijn, Pendel hoger, Eerste indruk hoger, of leeg), EN een groeipunt van 1-2 zinnen. Sluit af met 1 aanmoedigende zin (en bij alleen eerste indruk: ook de uitnodiging voor afstemming). Gebruik dit exacte JSON formaat en niks anders: {"intro":"...","gebieden":[{"naam":"Gezondheid","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Financien","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Relaties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Mindset","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Emoties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Doel en Missie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Passie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Zingeving","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Spiritualiteit en Verbondenheid","badge":"...","tekst":"...","groeipunt":"..."}],"afsluiting":"..."} Bij Spiritualiteit en Verbondenheid: schrijf nuchter en aards, geen zweverige taal.';
+  var prompt = 'Je bent Kirsten van Timebending. Schrijf een analyse in warme, directe Nederlandse jij-vorm. Geen gedachtestreepjes of liggende streepjes. Markeer 2-3 losse woorden per tekst met **woord**, max 2 woorden per markering, met emotionele lading. ' + metPendelZin + ' Scores: ' + regels.join(', ') + ' Schrijf een intro van 2-3 zinnen over het geheel. Geef voor elk van de 9 gebieden: 2 zinnen analyse (tekst), een badge (Sterk als scores in lijn, Pendel hoger, Eerste indruk hoger, of leeg), EN een groeipunt van 1-2 zinnen. Sluit af met 1 aanmoedigende zin (en bij alleen eerste indruk: ook de uitnodiging voor afstemming). Gebruik ALLEEN een badge (Sterk, Pendel hoger, Eerste indruk hoger) als er voor dat gebied ZOWEL een eerste indruk ALS een pendel score is. Als er maar een van de twee is, laat badge dan altijd leeg. Gebruik dit exacte JSON formaat en niks anders: {"intro":"...","gebieden":[{"naam":"Gezondheid","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Financien","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Relaties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Mindset","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Emoties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Doel en Missie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Passie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Zingeving","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Spiritualiteit en Verbondenheid","badge":"...","tekst":"...","groeipunt":"..."}],"afsluiting":"..."} Bij Spiritualiteit en Verbondenheid: schrijf nuchter en aards, geen zweverige taal.';
 
   try {
     var resp = await fetch('/api/analyse', {
@@ -651,7 +651,9 @@ async function analyseer(metPendel) {
       + '</div>';
 
     parsed.gebieden.forEach(function(g){
-      var badge = g.badge
+      // Only show badge if both eerste blik AND pendel were filled for this area
+      var showBadge = g.badge && heeftEersteBlik && heeftPendel;
+      var badge = showBadge
         ? '<span style="display:inline-block;font-size:10px;font-weight:600;letter-spacing:.05em;padding:3px 10px;border-radius:12px;margin-left:8px;vertical-align:middle;font-family:\'Raleway\',sans-serif;background:'+(g.badge==='Sterk'?'rgba(138,158,130,.2)':g.badge==='Pendel hoger'?'rgba(123,63,160,.2)':'rgba(200,154,60,.15)')+';color:'+(g.badge==='Sterk'?'#5a7a5e':g.badge==='Pendel hoger'?'#7B3FA0':'#8a6e1a')+';">'+g.badge+'</span>'
         : '';
       html += '<div style="background:var(--warm-white);border:1.5px solid var(--sand);border-radius:2px;padding:18px 20px;margin-bottom:10px;box-shadow:0 2px 16px rgba(61,46,82,0.06);">'
