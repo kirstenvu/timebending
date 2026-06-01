@@ -589,9 +589,9 @@ async function analyseer(metPendel) {
 
   var metPendelZin = (metPendel && pendelDone)
     ? 'De persoon heeft zowel eerste indruk als pendel ingevuld.'
-    : 'De persoon heeft alleen een eerste indruk ingevuld.';
+    : 'De persoon heeft alleen een eerste indruk ingevuld (geen pendel). Voeg in het veld "afsluiting" na je aanmoedigende zin een tweede zin toe die haar warm uitnodigt om ook de Afstemming-tab te proberen met pendel, biotensor of lichaamspendel, voor extra diepgang. Houd het kort en nieuwsgierig makend, geen druk.';
 
-  var prompt = 'Je bent Kirsten van Timebending. Schrijf een analyse in warme, directe Nederlandse jij-vorm. Geen gedachtestreepjes of liggende streepjes. Markeer 2-3 losse woorden per tekst met **woord**, max 2 woorden per markering, met emotionele lading. ' + metPendelZin + ' Scores: ' + regels.join(', ') + ' Schrijf een intro van 2-3 zinnen over het geheel. Geef voor elk van de 9 gebieden: 2 zinnen analyse (tekst), een badge (Sterk als scores in lijn, Pendel hoger, Eerste indruk hoger, of leeg), EN een groeipunt van 1-2 zinnen. Sluit af met 1 aanmoedigende zin. Gebruik dit exacte JSON formaat en niks anders: {"intro":"...","gebieden":[{"naam":"Gezondheid","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Financien","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Relaties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Mindset","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Emoties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Doel en Missie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Passie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Zingeving","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Spiritualiteit en Verbondenheid","badge":"...","tekst":"...","groeipunt":"..."}],"afsluiting":"..."} Bij Spiritualiteit en Verbondenheid: schrijf nuchter en aards, geen zweverige taal.';
+  var prompt = 'Je bent Kirsten van Timebending. Schrijf een analyse in warme, directe Nederlandse jij-vorm. Geen gedachtestreepjes of liggende streepjes. Markeer 2-3 losse woorden per tekst met **woord**, max 2 woorden per markering, met emotionele lading. ' + metPendelZin + ' Scores: ' + regels.join(', ') + ' Schrijf een intro van 2-3 zinnen over het geheel. Geef voor elk van de 9 gebieden: 2 zinnen analyse (tekst), een badge (Sterk als scores in lijn, Pendel hoger, Eerste indruk hoger, of leeg), EN een groeipunt van 1-2 zinnen. Sluit af met 1 aanmoedigende zin (en bij alleen eerste indruk: ook de uitnodiging voor afstemming). Gebruik dit exacte JSON formaat en niks anders: {"intro":"...","gebieden":[{"naam":"Gezondheid","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Financien","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Relaties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Mindset","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Emoties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Doel en Missie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Passie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Zingeving","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Spiritualiteit en Verbondenheid","badge":"...","tekst":"...","groeipunt":"..."}],"afsluiting":"..."} Bij Spiritualiteit en Verbondenheid: schrijf nuchter en aards, geen zweverige taal.';
 
   try {
     var resp = await fetch('/api/analyse', {
@@ -707,19 +707,4 @@ function deelMetKirsten() {
   var analyseTekst = (tmp.textContent || tmp.innerText || '').replace(/\s+/g,' ').trim();
 
   var body = 'Naam: ' + naam + '\nDatum: ' + datum + '\n\n'
-    + scoresTekst
-    + '\nANALYSE\n' + analyseTekst;
-
-  var mailto = 'mailto:kirsten@vanulden.nl'
-    + '?subject=' + encodeURIComponent('Wheel of Life resultaat van ' + naam)
-    + '&body=' + encodeURIComponent(body);
-
-  window.location.href = mailto;
-}
-
-renderSliders();
-drawWheel('wc1',s1,null);
-</script>
-</body>
-</html>
-     
+    + 
