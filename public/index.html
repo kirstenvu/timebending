@@ -18,18 +18,19 @@ body { background:var(--cream); font-family:'Raleway',sans-serif; color:var(--de
 
 /* Header */
 .logo-line { font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; }
-h1 { font-family:'Lora',serif; font-weight:400; font-size:clamp(36px,7vw,54px); line-height:1.05; margin-bottom:14px; color:var(--purple); }
-h1 em { font-style:italic; color:var(--plum); }
+h1 { font-family:'Lora',serif; font-weight:400; font-size:clamp(36px,7vw,54px); line-height:1.05; margin-bottom:14px; color:var(--deep); }
+h1 em { font-style:italic; color:var(--gold); }
 .subtitle { font-size:13.5px; font-weight:300; color:var(--muted); line-height:1.75; margin-bottom:40px; font-family:'Lora',serif; }
 
 /* Gold divider */
 .gold-line { width:40px; height:2px; background:var(--gold); margin:0 auto 32px; }
 
 /* Tabs */
-.tabs { display:flex; border:1px solid var(--sand); border-radius:24px; overflow:hidden; margin-bottom:36px; }
-.tab { flex:1; padding:10px 12px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:400; letter-spacing:.07em; text-transform:uppercase; cursor:pointer; border:none; background:transparent; color:var(--muted); transition:all .2s; }
-.tab.active { background:var(--deep); color:var(--cream); border-radius:22px; margin:2px; }
-.tab.active.p { background:var(--purple); }
+.tabs { display:flex; border:1.5px solid var(--sand); border-radius:32px; overflow:hidden; margin-bottom:36px; background:var(--warm-white); }
+.tab { flex:1; padding:12px 10px; font-family:'Raleway',sans-serif; font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; border:none; background:transparent; color:var(--muted); transition:all .2s; border-right:1.5px solid var(--sand); }
+.tab:last-child { border-right:none; }
+.tab.active { background:var(--purple); color:var(--cream); border-right-color:var(--purple); }
+.tab.active + .tab { border-left:none; }
 .tab:not(.active):hover { background:var(--sand); color:var(--deep); }
 
 /* Phases */
@@ -38,10 +39,10 @@ h1 em { font-style:italic; color:var(--plum); }
 @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
 /* Cards */
-.intro-card { background:var(--warm-white); border:1.5px solid var(--sand); border-radius:2px; padding:20px 22px; margin-bottom:28px; display:flex; gap:14px; box-shadow:0 4px 32px rgba(61,46,82,0.08); }
+.intro-card { background:var(--warm-white); border:1.5px solid var(--sand); border-left:3px solid var(--sage); border-radius:0 2px 2px 0; padding:20px 22px; margin-bottom:28px; box-shadow:0 4px 32px rgba(61,46,82,0.08); }
 .intro-text { font-size:13px; line-height:1.8; color:var(--brown); font-family:'Lora',serif; }
 .intro-text strong { font-weight:600; color:var(--deep); }
-.pendel-card { background:var(--warm-white); border-left:3px solid var(--gold); padding:16px 20px; margin-bottom:28px; border-radius:0 2px 2px 0; box-shadow:0 4px 32px rgba(61,46,82,0.08); }
+.pendel-card { background:var(--warm-white); border-left:3px solid var(--sage); padding:16px 20px; margin-bottom:28px; border-radius:0 2px 2px 0; box-shadow:0 4px 32px rgba(61,46,82,0.08); }
 .pendel-card-title { font-family:'Lora',serif; font-size:16px; font-weight:600; color:var(--purple); margin-bottom:5px; }
 .pendel-card-text { font-size:13px; font-family:'Lora',serif; color:var(--brown); line-height:1.75; }
 
@@ -59,26 +60,26 @@ input[type=range]:active::-webkit-slider-thumb { background:var(--purple); }
 
 /* Pendel dots */
 .pendel-dots { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
-.dot { width:28px; height:28px; border-radius:50%; border:1.5px solid var(--sand); background:transparent; cursor:pointer; font-size:10px; font-family:'Raleway',sans-serif; color:var(--muted); transition:all .15s; display:flex; align-items:center; justify-content:center; }
-.dot:hover { border-color:var(--gold); background:var(--sand); color:var(--deep); }
+.dot { width:28px; height:28px; border-radius:50%; border:1.5px solid var(--purple); background:transparent; cursor:pointer; font-size:10px; font-weight:600; font-family:'Raleway',sans-serif; color:var(--purple); transition:all .15s; display:flex; align-items:center; justify-content:center; }
+.dot:hover { border-color:var(--gold); background:rgba(200,154,60,.12); color:var(--deep); }
 
 /* Wheel */
 .wheel-wrap { display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:28px; }
-canvas { width:100%; max-width:280px; height:auto; display:block; filter:drop-shadow(0 4px 16px rgba(61,46,82,.12)); }
+canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px rgba(61,46,82,.15)); }
 .legend { display:flex; gap:16px; font-size:11px; color:var(--muted); font-weight:300; flex-wrap:wrap; justify-content:center; }
 .legend-item { display:flex; align-items:center; gap:6px; }
 .legend-line { width:14px; height:2px; border-radius:1px; flex-shrink:0; }
 
 /* Buttons */
 .cta-wrap { display:flex; gap:10px; flex-wrap:wrap; }
-.btn-dark { background:var(--deep); color:var(--cream); border:none; padding:12px 24px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all .2s; }
+.btn-dark { background:var(--deep); color:var(--cream); border:none; padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
 .btn-dark:hover { background:var(--plum); transform:translateY(-1px); }
-.btn-purple { background:var(--purple); color:white; border:none; padding:12px 24px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all .2s; }
+.btn-purple { background:var(--purple); color:white; border:none; padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
 .btn-purple:hover { background:var(--plum); transform:translateY(-1px); }
-.btn-green { background:var(--sage); color:white; border:none; padding:12px 24px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all .2s; }
+.btn-green { background:var(--sage); color:white; border:none; padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
 .btn-green:hover { background:#6B8A72; transform:translateY(-1px); }
-.btn-ghost { background:transparent; color:var(--brown); border:1.5px solid var(--sand); padding:12px 24px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:400; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all .2s; }
-.btn-ghost:hover { border-color:var(--gold); background:var(--warm-white); }
+.btn-ghost { background:transparent; color:var(--purple); border:1.5px solid var(--purple); padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
+.btn-ghost:hover { border-color:var(--plum); background:rgba(123,63,160,.06); }
 
 /* Gebied kaartjes fase 3 */
 .gebied-kaarten { display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
@@ -105,10 +106,15 @@ canvas { width:100%; max-width:280px; height:auto; display:block; filter:drop-sh
 .analyse-body { font-size:13.5px; line-height:1.85; color:var(--brown); font-family:'Lora',serif; font-weight:400; }
 .analyse-body p { margin-bottom:14px; }
 .analyse-loading { text-align:center; padding:28px 0; display:none; }
-.spiraal-spin { animation: spiraalDraaien 2s linear infinite; display:block; margin:0 auto; }
+.spiraal-spin {
+  width: 80px; height: 80px;
+  display: block; margin: 0 auto;
+  transform-origin: center center;
+  animation: spiraalDraaien 3s linear infinite;
+}
 @keyframes spiraalDraaien { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
 
-/* Spinner */
+/* Spinner (inline gebruik elders) */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner {
   width: 20px; height: 20px;
@@ -123,74 +129,109 @@ canvas { width:100%; max-width:280px; height:auto; display:block; filter:drop-sh
 
 .footer-note { text-align:center; font-size:11px; color:var(--muted); font-weight:300; letter-spacing:.04em; margin-top:52px; padding-top:24px; border-top:1px solid var(--sand); font-family:'Raleway',sans-serif; }
 .footer-note a { color:var(--gold); text-decoration:none; }
+
+@media print {
+  body { background:#fff; }
+  .logo-line, h1, .subtitle, .gold-line, .tabs, .phase, .footer-note { display:none !important; }
+  .page { padding:0; max-width:100%; }
+  .analyse-wrap { display:block !important; border:none; box-shadow:none; padding:0; margin:0; }
+  .analyse-title { font-size:24px; margin-bottom:20px; }
+  #analyseBtns, #deelKaart, .analyse-loading { display:none !important; }
+  .analyse-body { font-size:12pt; line-height:1.8; }
+  .analyse-body div { break-inside:avoid; }
+  @page { margin:20mm 18mm; }
+}
 </style>
 </head>
 <body>
 <div class="page">
 
 <div style="text-align:center;margin-bottom:40px;">
-  <p class="logo-line">Timebending</p>
+  <img src="logo.png" alt="Timebending" style="height:110px;width:auto;margin-bottom:18px;display:block;margin-left:auto;margin-right:auto;">
   <h1>Wheel of <em>Life</em></h1>
   <div class="gold-line"></div>
-  <p class="subtitle">Dit wiel is een momentopname. Er is geen goed of fout. Geen score die je moet halen. Wat je invult is informatie, geen oordeel.</p>
+  <p class="subtitle">Dit wiel is een momentopname. Er is geen goed of fout. Geen score die je moet halen. Wat je invult geeft informatie.</p>
 </div>
 
 <div class="tabs">
-  <button class="tab active" id="tab1" onclick="goTo(1)">Eerste indruk</button>
-  <button class="tab" id="tab2" onclick="goTo(2)">Met pendel</button>
+  <button class="tab active" id="tab1" onclick="goTo(1)">Eerste blik</button>
+  <button class="tab" id="tab2" onclick="goTo(2)">Afstemming</button>
   <button class="tab p" id="tab3" onclick="goTo(3)">Mijn wiel</button>
 </div>
 
 <!-- FASE 1 -->
 <div class="phase active" id="phase1">
   <div class="intro-card">
-    <div style="font-size:18px;flex-shrink:0;">🌿</div>
-    <div class="intro-text">Geef elk gebied een score van <strong>1 tot 10</strong>. Snel, vanuit je eerste gevoel. Laat de scores ontstaan vanuit gevoel, niet vanuit denken.</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+      <div style="display:flex;align-items:center;gap:8px;"><div style="font-size:18px;flex-shrink:0;">🌿</div><div class="pendel-card-title" style="margin-bottom:0;">Eerste blik</div></div>
+      <button onclick="toggleUitleg('uitlegExtra1','uitlegBtn1')" style="background:none;border:1.5px solid var(--purple);border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;color:var(--purple);font-weight:400;flex-shrink:0;display:flex;align-items:center;justify-content:center;" id="uitlegBtn1" title="Meer uitleg">?</button>
+    </div>
+    <div class="intro-text">Geef elk gebied een score van <strong>1 tot 10</strong>. Snel, vanuit je eerste ingeving. Wat komt er als eerste in je op?</div>
+    <div id="uitlegExtra1" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--sand);">
+      <p style="font-size:13px;font-family:'Lora',serif;color:var(--brown);line-height:1.75;margin:0;"><strong>1</strong> je zit helemaal aan de grond. <strong>10</strong> je kunt je niks beters voorstellen.</p>
+    </div>
   </div>
   <div class="areas-wrap" id="slidersWrap"></div>
   <div class="wheel-wrap">
-    <canvas id="wc1" width="280" height="280"></canvas>
+    <canvas id="wc1" width="560" height="560"></canvas>
     <div class="legend">
       <div class="legend-item"><div class="legend-line" style="background:#8A9E82;"></div><span>Eerste indruk</span></div>
     </div>
   </div>
   <div class="cta-wrap">
-    <button class="btn-dark" onclick="goTo(3)">Zie mijn wiel</button>
-    <button class="btn-purple" onclick="goTo(2)">Voeg pendel toe</button>
-    <button class="btn-green" onclick="analyseer(false)">Analyseer</button>
+    <button class="btn-purple" onclick="analyseer(false)">Analyseer</button>
+    <button class="btn-green" onclick="goTo(2)">Afstemming toevoegen</button>
+    <button class="btn-ghost" onclick="goTo(3)">Zie mijn wiel</button>
   </div>
 </div>
 
 <!-- FASE 2 -->
 <div class="phase" id="phase2">
   <div class="pendel-card">
-    <div class="pendel-card-title">Werken met je pendel</div>
-    <div class="pendel-card-text">Pak je pendel en breng hem tot rust. Vraag per gebied: <em>"Hoe tevreden ben ik hier echt?"</em> Vertrouw wat er komt en klik het getal aan. Alles start op 5 als neutraal punt.</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div style="display:flex;align-items:center;gap:8px;"><div style="font-size:18px;flex-shrink:0;">🌿</div><div class="pendel-card-title" style="margin-bottom:0;">Afstemming</div></div>
+      <button onclick="toggleUitleg('uitlegExtra','uitlegBtn')" style="background:none;border:1.5px solid var(--purple);border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;color:var(--purple);font-weight:400;flex-shrink:0;display:flex;align-items:center;justify-content:center;" id="uitlegBtn" title="Meer uitleg">?</button>
+    </div>
+    <div class="pendel-card-text">Gebruik je pendel, biotensor of lichaamspendel. IJk voor je begint en kijk wat jouw lichaam je vertelt.</div>
+    <div id="uitlegExtra" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--sand);">
+      <p style="font-size:13px;font-family:'Lora',serif;color:var(--brown);line-height:1.75;margin:0;">Bepaal voordat je begint wat voor jou een ja, een nee en een neutraal antwoord is. Start daarna met de cijfers van de gebieden te ontdekken. Start bij 5 en werk met ja en nee omhoog of omlaag tot je bij het juiste getal bent.</p>
+    </div>
+    <button onclick="openOptin()" style="background:none;border:none;padding:0;margin-top:14px;cursor:pointer;font-family:'Lora',serif;font-size:12px;font-weight:400;color:var(--gold);font-style:italic;display:flex;align-items:center;gap:6px;">Heb je nog nooit met een pendel of lichaamspendel gewerkt? Stuur mij een bericht en ik stuur je meer info. <span style="font-size:14px;font-style:normal;">→</span></button>
   </div>
   <div class="areas-wrap" id="pendelWrap"></div>
   <div class="wheel-wrap">
-    <canvas id="wc2" width="280" height="280"></canvas>
+    <canvas id="wc2" width="560" height="560"></canvas>
     <div class="legend">
-      <div class="legend-item"><div class="legend-line" style="background:#8A9E82;"></div><span>Eerste indruk</span></div>
-      <div class="legend-item"><div class="legend-line" style="background:#7B3FA0;"></div><span>Pendel</span></div>
+      <div class="legend-item"><div class="legend-line" style="background:#7B3FA0;"></div><span>Afstemming</span></div>
     </div>
   </div>
   <div class="cta-wrap">
-    <button class="btn-purple" onclick="goTo(3)">Zie mijn wiel</button>
-    <button class="btn-green" onclick="analyseer(true)">Analyseer</button>
+    <button class="btn-purple" onclick="analyseer(true)">Analyseer</button>
+    <button class="btn-ghost" onclick="goTo(3)">Zie mijn wiel</button>
     <button class="btn-ghost" onclick="goTo(1)">Terug</button>
   </div>
 </div>
 
 <!-- FASE 3 -->
 <div class="phase" id="phase3">
+  <div class="pendel-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+      <div style="display:flex;align-items:center;gap:8px;"><div style="font-size:18px;flex-shrink:0;">🌿</div><div class="pendel-card-title" style="margin-bottom:0;">Mijn wiel</div></div>
+      <button onclick="toggleUitleg('uitlegExtra3','uitlegBtn3')" style="background:none;border:1.5px solid var(--purple);border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;color:var(--purple);font-weight:400;flex-shrink:0;display:flex;align-items:center;justify-content:center;" id="uitlegBtn3" title="Meer uitleg">?</button>
+    </div>
+    <div class="pendel-card-text">Dit is jouw wiel. Kijk er even rustig naar. Wat vraagt je aandacht? Waar zit verschil tussen je eerste indruk en je afstemming, en wat zegt je dat?</div>
+    <div id="uitlegExtra3" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--sand);">
+      <p style="font-size:13px;font-family:'Lora',serif;color:var(--brown);line-height:1.75;margin:0;">De groene lijn is je eerste indruk, de paarse je afstemming. Hoe dichter de twee bij elkaar liggen, hoe meer hoofd en systeem in lijn zijn. Een groot verschil is geen probleem, het is informatie.</p>
+    </div>
+    <p style="font-size:12px;font-family:'Lora',serif;color:var(--muted);font-style:italic;margin-top:14px;">Maak de analyse en druk hem af. Dan heb je een mooie vergelijking voor de volgende keer.</p>
+  </div>
   <div class="wheel-wrap">
-    <canvas id="wc3" width="280" height="280"></canvas>
+    <canvas id="wc3" width="560" height="560"></canvas>
     <div class="legend" id="legend3"></div>
   </div>
   <div class="gebied-kaarten" id="gebiedKaarten"></div>
   <div class="cta-wrap">
-    <button class="btn-green" onclick="analyseer(pendelDone)">Analyseer</button>
+    <button class="btn-purple" onclick="analyseer(pendelDone)">Analyseer</button>
     <button class="btn-ghost" onclick="resetAll()">Opnieuw</button>
   </div>
 </div>
@@ -199,49 +240,88 @@ canvas { width:100%; max-width:280px; height:auto; display:block; filter:drop-sh
 <div class="analyse-wrap" id="analyseWrap">
   <div class="analyse-title">Jouw analyse</div>
   <div class="analyse-loading" id="analyseLoading">
-    <div class="spinner" style="width:32px;height:32px;margin:0 auto 12px;display:block;border-width:3px;"></div>
-    <p style="font-size:12px;color:var(--muted);font-weight:300;letter-spacing:.05em;margin-top:10px;font-family:'Raleway',sans-serif;">Analyse wordt opgesteld</p>
+    <img src="spiraal.png" alt="" class="spiraal-spin">
+    <p style="font-size:12px;color:var(--muted);font-weight:300;letter-spacing:.05em;margin-top:14px;font-family:'Raleway',sans-serif;">Analyse wordt opgesteld</p>
   </div>
   <div class="analyse-body" id="analyseBody"></div>
   <div id="analyseBtns" style="display:none;margin-top:20px;padding-top:16px;border-top:1px solid var(--sand);gap:10px;flex-wrap:wrap;">
-    <button class="btn-ghost" onclick="window.print()" style="font-size:10px;padding:9px 18px;">Afdrukken</button>
+    <button class="btn-ghost" onclick="window.print()" style="font-size:10px;padding:9px 18px;">Opslaan als PDF / Afdrukken</button>
+    <button class="btn-ghost" id="kopieerBtn" onclick="kopieerAnalyse()" style="font-size:10px;padding:9px 18px;">Kopiëren</button>
     <button class="btn-ghost" onclick="document.getElementById('analyseWrap').style.display='none'" style="font-size:10px;padding:9px 18px;">Sluiten</button>
+  </div>
+
+  <!-- DEEL MET KIRSTEN -->
+  <div id="deelKaart" style="display:none;margin-top:28px;background:var(--warm-white);border:1.5px solid var(--sand);border-left:3px solid var(--purple);border-radius:0 2px 2px 0;padding:20px 22px;box-shadow:0 4px 32px rgba(61,46,82,0.08);">
+    <p style="font-family:'Lora',serif;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Timebending</p>
+    <p style="font-family:'Lora',serif;font-size:17px;font-weight:600;color:var(--purple);margin-bottom:6px;">Deel je resultaat met Kirsten</p>
+    <p style="font-size:13px;font-family:'Lora',serif;color:var(--brown);line-height:1.75;margin-bottom:16px;">Je scores en analyse worden klaargezet in een e-mail. Vul je naam in en klik op verzenden — dan ontvang ik jouw wiel.</p>
+    <input type="text" id="deelNaam" placeholder="Je naam" style="width:100%;padding:11px 14px;border:1.5px solid var(--sand);border-radius:2px;font-family:'Raleway',sans-serif;font-size:13px;color:var(--deep);background:var(--cream);margin-bottom:12px;box-sizing:border-box;outline:none;">
+    <button class="btn-purple" onclick="deelMetKirsten()" style="width:100%;">Stuur naar Kirsten</button>
+    <p id="deelFout" style="display:none;font-size:11px;color:#c0392b;margin-top:8px;font-family:'Raleway',sans-serif;">Vul eerst je naam in.</p>
   </div>
 </div>
 
 <p class="footer-note">Timebending door <a href="https://meavia.nu">meavia.nu</a></p>
 
 </div>
+
+<!-- OPT-IN MODAL -->
+<div id="optinOverlay" style="display:none;position:fixed;inset:0;background:rgba(42,36,56,.55);z-index:100;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--cream);max-width:420px;width:100%;border-radius:2px;padding:36px 32px;box-shadow:0 16px 60px rgba(42,36,56,.25);position:relative;">
+    <button onclick="sluitOptin()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    <p style="font-family:'Raleway',sans-serif;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Timebending</p>
+    <h2 style="font-family:'Lora',serif;font-size:22px;font-weight:400;color:var(--deep);margin-bottom:8px;">Meer info over de pendel?</h2>
+    <p style="font-family:'Lora',serif;font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:24px;">Laat je naam en e-mailadres achter en ik stuur je meer informatie toe.</p>
+    <div id="optinForm">
+      <input type="text" id="optinNaam" placeholder="Je naam" style="width:100%;padding:11px 14px;border:1.5px solid var(--sand);border-radius:2px;font-family:'Raleway',sans-serif;font-size:13px;color:var(--deep);background:var(--warm-white);margin-bottom:10px;box-sizing:border-box;outline:none;">
+      <input type="email" id="optinEmail" placeholder="Je e-mailadres" style="width:100%;padding:11px 14px;border:1.5px solid var(--sand);border-radius:2px;font-family:'Raleway',sans-serif;font-size:13px;color:var(--deep);background:var(--warm-white);margin-bottom:18px;box-sizing:border-box;outline:none;">
+      <button onclick="verstuurOptin()" class="btn-purple" style="width:100%;padding:14px;">Stuur mijn bericht</button>
+    </div>
+    <div id="optinBevestiging" style="display:none;text-align:center;padding:16px 0;">
+      <p style="font-family:'Lora',serif;font-size:15px;color:var(--purple);margin-bottom:6px;">Bedankt!</p>
+      <p style="font-family:'Lora',serif;font-size:13px;color:var(--muted);">Ik neem zo snel mogelijk contact met je op.</p>
+    </div>
+  </div>
+</div>
+
 <script>
 var AREAS = [
-  { key:'gezondheid', name:'Gezondheid', short:'Gezondheid', color:'#7A9E82',
-    desc:'Hoe je je lichamelijk en energetisch voelt. Over energie, rust, herstel en hoe je luistert naar de signalen van je lichaam.',
+  { key:'gezondheid', name:'Gezondheid', short:'Gezondheid', color:'#3DB870',
+    desc:'Dit gaat over hoe je je lichamelijk en energetisch voelt. Over energie, rust, herstel en hoe je luistert naar de signalen van je lichaam.',
     sleutel:null, reflection:'Je lichaam is je instrument. Alles begint hier.' },
-  { key:'financien', name:'Financien', short:'Financien', color:'#C9A84C',
-    desc:'Geld en materiele zekerheid, maar ook je gevoel van veiligheid, vrijheid en de keuzes die je daarin maakt.',
-    sleutel:'Efficientie', reflection:'Financiele ruimte geeft ook innerlijke ruimte. Wat tolereert jij hier nu?' },
-  { key:'relaties', name:'Relaties', short:'Relatie', color:'#A07850',
-    desc:'Je gezin, vriendschappen, intieme relaties en werkrelaties. Hoe vrij voel je je in contact met anderen? Waar stroomt het en waar kost het energie?',
+  { key:'financien', name:'Financiën', short:'Financiën', color:'#C89A3C',
+    desc:'Dit gaat over geld en materiële zekerheid, maar ook over je gevoel van veiligheid, vrijheid en de keuzes die je daarin maakt.',
+    sleutel:'Efficientie', reflection:'Financiële ruimte geeft ook innerlijke ruimte. Wat tolereert jij hier nu?' },
+  { key:'relaties', name:'Relaties', short:'Relatie', color:'#D93838',
+    desc:'Dit omvat je gezin, vriendschappen, intieme relaties en werkrelaties. Hoe vrij voel je je in contact met anderen? Waar stroomt het en waar kost het energie?',
     sleutel:'Integer', reflection:'Ben jij jezelf in je relaties, of pas jij je aan om te passen?' },
-  { key:'mindset', name:'Mindset', short:'Mindset', color:'#7A9BB0',
+  { key:'mindset', name:'Mindset', short:'Mindset', color:'#3878D4',
     desc:'De manier waarop je denkt en betekenis geeft aan wat je meemaakt. Welke overtuigingen richting geven aan je keuzes en hoe je met jezelf omgaat.',
     sleutel:'Mindset', reflection:'De lens bepaalt wat je ziet. Wat wil jij anders zien?' },
-  { key:'emoties', name:'Emoties', short:'Emotie', color:'#B88A6A',
+  { key:'emoties', name:'Emoties', short:'Emotie', color:'#E07030',
     desc:'Hoe ga je om met wat je voelt? Is er ruimte voor emoties zoals ze zich aandienen, of houd je ze liever onder controle of op afstand?',
     sleutel:'Aanpassen', reflection:'VOEL. Wat vraagt jouw emotionele wereld nu van je?' },
-  { key:'doel', name:'Doel en Missie', short:'Doel/missie', color:'#9B6B8E',
+  { key:'doel', name:'Doel en Missie', short:'Doel/missie', color:'#28A890',
     desc:'Dit gaat over richting. Waar wil je heen in je leven? Waar maak jij je hard voor, en wat verwacht je van het leven en van jezelf?',
     sleutel:'Visueel', reflection:'Jouw toekomst fluistert al. Hoor jij haar?' },
-  { key:'passie', name:'Passie', short:'Passie', color:'#6B9E6E',
+  { key:'passie', name:'Passie', short:'Passie', color:'#D43090',
     desc:'Wat geeft je energie? Waar word je blij van of voel je enthousiasme? En is daar nu ruimte voor in je leven?',
     sleutel:'Actie', reflection:'Wat geeft jou energie? Krijgt dat voldoende ruimte?' },
-  { key:'zingeving', name:'Zingeving', short:'Zingeving', color:'#C4A882',
-    desc:'Het gevoel dat wat je doet ergens aan bijdraagt. Dat je leven, je keuzes of je aanwezigheid betekenis hebben voor jezelf, voor anderen of voor het geheel.',
+  { key:'zingeving', name:'Zingeving', short:'Zingeving', color:'#A8C020',
+    desc:'Dit gaat over het gevoel dat wat je doet ergens aan bijdraagt. Dat je leven, je keuzes of je aanwezigheid betekenis hebben voor jezelf, voor anderen of voor het geheel.',
     sleutel:'Integer', reflection:'Wat jij te geven hebt aan de wereld. Mag dat er volledig zijn?' },
-  { key:'verbondenheid', name:'Spiritualiteit en Verbondenheid', short:'Verbondenheid', color:'#8A7AAE',
-    desc:'Verbondenheid met jezelf en het leven. Met iets dat groter voelt dan jij, op een manier die voor jou klopt.',
+  { key:'verbondenheid', name:'Spiritualiteit en Verbondenheid', short:'Verbondenheid', color:'#7B3FA0',
+    desc:'Dit gaat over verbondenheid met jezelf en het leven. Met iets dat groter voelt dan jij, op een manier die voor jou klopt.',
     sleutel:'Mindset', reflection:'Verbondenheid met jezelf is de basis van alles. Begin hier.' }
 ];
+
+function toggleUitleg(extraId, btnId) {
+  var el = document.getElementById(extraId);
+  var btn = document.getElementById(btnId);
+  var open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (btn) btn.textContent = open ? '?' : '×';
+}
 
 var s1 = {}, s2 = {}, pendelDone = false;
 AREAS.forEach(function(a){ s1[a.key]=5; s2[a.key]=null; });
@@ -307,7 +387,7 @@ function updateS2(key, val) {
   renderPendel();
   var d = {};
   AREAS.forEach(function(a){ d[a.key]=s2[a.key]!==null?s2[a.key]:5; });
-  drawWheel('wc2', d, null);
+  drawWheel('wc2', null, d);
 }
 
 function buildScoresList() {
@@ -354,17 +434,17 @@ function drawWheel(id, d1, d2) {
   if(!canvas) return;
   var ctx = canvas.getContext('2d');
   var W=canvas.width, H=canvas.height, cx=W/2, cy=H/2;
-  var outerR = Math.min(W,H)/2 - 6;
-  var ringW = 26;
-  var maxR = outerR - ringW;
+  // ~95px margin on each side for labels (canvas 560×560)
+  var outerR = Math.min(W,H)/2 - 95;
+  var ringW = 18, maxR = outerR - ringW;
   var n=AREAS.length, slice=(2*Math.PI)/n, start=-Math.PI/2;
   ctx.clearRect(0,0,W,H);
 
-  // Brede paarse ring
-  ctx.beginPath(); ctx.arc(cx,cy,outerR,0,Math.PI*2); ctx.fillStyle='#9B74C0'; ctx.fill();
+  // Paarse ring
+  ctx.beginPath(); ctx.arc(cx,cy,outerR,0,Math.PI*2); ctx.fillStyle='#7B3FA0'; ctx.fill();
   ctx.beginPath(); ctx.arc(cx,cy,maxR,0,Math.PI*2); ctx.fillStyle='#FFFFFF'; ctx.fill();
 
-  // Segmentlijnen in ring
+  // Scheidingslijnen in ring
   AREAS.forEach(function(_,i){
     var a=start+i*slice;
     ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*maxR,cy+Math.sin(a)*maxR);
@@ -372,15 +452,17 @@ function drawWheel(id, d1, d2) {
     ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1; ctx.stroke();
   });
 
-  // Grid — 10 cirkels
+  // Grid — 10 cirkels, allemaal gelijk
   for(var r=10;r>=1;r--){
     ctx.beginPath(); ctx.arc(cx,cy,(r/10)*maxR,0,Math.PI*2);
-    ctx.strokeStyle=r%2===0?'rgba(150,120,180,.45)':'rgba(150,120,180,.2)'; ctx.lineWidth=.5; ctx.stroke();
+    ctx.strokeStyle='rgba(160,150,175,.4)';
+    ctx.lineWidth=0.8; ctx.stroke();
   }
+  // Spaaklijnen
   AREAS.forEach(function(_,i){
     var a=start+i*slice;
     ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(a)*maxR,cy+Math.sin(a)*maxR);
-    ctx.strokeStyle='rgba(150,120,180,.25)'; ctx.lineWidth=.5; ctx.stroke();
+    ctx.strokeStyle='rgba(150,100,180,.3)'; ctx.lineWidth=0.7; ctx.stroke();
   });
 
   if(d1) {
@@ -392,13 +474,13 @@ function drawWheel(id, d1, d2) {
     });
     ctx.closePath();
     ctx.fillStyle=hasD2?'rgba(138,158,130,.1)':'rgba(138,158,130,.2)'; ctx.fill();
-    ctx.setLineDash(hasD2?[4,3]:[]);
-    ctx.strokeStyle=hasD2?'rgba(138,158,130,.6)':'#8A9E82'; ctx.lineWidth=hasD2?1.2:1.8; ctx.stroke();
+    ctx.setLineDash(hasD2?[5,4]:[]);
+    ctx.strokeStyle=hasD2?'rgba(138,158,130,.6)':'#8A9E82'; ctx.lineWidth=hasD2?1.5:2; ctx.stroke();
     ctx.setLineDash([]);
     AREAS.forEach(function(area,i){
       var a=start+(i+.5)*slice, r=(d1[area.key]/10)*maxR;
-      ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,hasD2?4:5,0,Math.PI*2);
-      ctx.fillStyle=area.color; ctx.fill(); ctx.strokeStyle='#FFF'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,hasD2?5:6,0,Math.PI*2);
+      ctx.fillStyle=area.color; ctx.fill(); ctx.strokeStyle='#FFF'; ctx.lineWidth=2; ctx.stroke();
     });
   }
 
@@ -410,31 +492,28 @@ function drawWheel(id, d1, d2) {
     });
     ctx.closePath();
     ctx.fillStyle='rgba(123,63,160,.12)'; ctx.fill();
-    ctx.strokeStyle='#7B3FA0'; ctx.lineWidth=1.8; ctx.stroke();
+    ctx.strokeStyle='#7B3FA0'; ctx.lineWidth=2; ctx.stroke();
     AREAS.forEach(function(area,i){
       var a=start+(i+.5)*slice, r=(d2[area.key]/10)*maxR;
-      ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,5,0,Math.PI*2);
-      ctx.fillStyle=area.color; ctx.fill(); ctx.strokeStyle='#FFF'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,6,0,Math.PI*2);
+      ctx.fillStyle=area.color; ctx.fill(); ctx.strokeStyle='#FFF'; ctx.lineWidth=2; ctx.stroke();
     });
   }
 
-  // Labels in ring, gedraaid langs de boog
+  // Labels buiten de ring
+  var lr = outerR + 15;
+  ctx.font = '600 14px Raleway,sans-serif';
+  ctx.fillStyle = '#2A2438';
+  ctx.textBaseline = 'middle';
   AREAS.forEach(function(area,i){
-    var a=start+(i+.5)*slice;
-    var lr=maxR+ringW/2;
-    ctx.save();
-    ctx.translate(cx+Math.cos(a)*lr, cy+Math.sin(a)*lr);
-    var rot=a+Math.PI/2;
-    if(Math.sin(a)>0.05) rot+=Math.PI;
-    ctx.rotate(rot);
-    ctx.font='600 7.5px Raleway,sans-serif'; ctx.fillStyle='#FFFFFF';
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(area.short, 0, 0);
-    ctx.restore();
+    var a = start+(i+.5)*slice;
+    var cosA = Math.cos(a), sinA = Math.sin(a);
+    ctx.textAlign = cosA > 0.2 ? 'left' : cosA < -0.2 ? 'right' : 'center';
+    ctx.fillText(area.short, cx + cosA*lr, cy + sinA*lr);
   });
 
-  ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2); ctx.fillStyle='#EDE4F5'; ctx.fill();
-  ctx.strokeStyle='#FFF'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,6,0,Math.PI*2); ctx.fillStyle='#EDE4F5'; ctx.fill();
+  ctx.strokeStyle='#FFF'; ctx.lineWidth=2.5; ctx.stroke();
 }
 
 function goTo(n) {
@@ -443,7 +522,7 @@ function goTo(n) {
     pendelDone=false;
     renderPendel();
     var d={}; AREAS.forEach(function(a){ d[a.key]=5; });
-    drawWheel('wc2',d,null);
+    drawWheel('wc2',null,d);
   }
   if(n===3) {
     var leg=document.getElementById('legend3');
@@ -470,6 +549,8 @@ function resetAll() {
   AREAS.forEach(function(a){ s1[a.key]=5; s2[a.key]=null; });
   pendelDone=false;
   document.getElementById('analyseWrap').style.display='none';
+  document.getElementById('deelKaart').style.display='none';
+  document.getElementById('deelNaam').value='';
   renderSliders();
   drawWheel('wc1',s1,null);
   goTo(1);
@@ -489,9 +570,6 @@ async function analyseer(metPendel) {
   body.innerHTML = '';
   btns.style.display = 'none';
   wrap.scrollIntoView({behavior:'smooth', block:'start'});
-
-  var actief = (metPendel && pendelDone) ? s2 : s1;
-  var gesorteerd = AREAS.slice().sort(function(a,b){ return actief[a.key]-actief[b.key]; });
 
   var regels = [];
   AREAS.forEach(function(a){
@@ -513,13 +591,13 @@ async function analyseer(metPendel) {
     ? 'De persoon heeft zowel eerste indruk als pendel ingevuld.'
     : 'De persoon heeft alleen een eerste indruk ingevuld.';
 
-  var prompt = 'Je bent Kirsten van Timebending. Schrijf een analyse in warme, directe Nederlandse vriendin-toon. In jij-vorm. Geen gedachtestreepjes. Markeer 2-3 losse woorden per tekst met **woord** verspreid door de zin, max 2 woorden per markering, met emotionele lading. Voorbeeld goed: Je voelt je **gevangen** in de drukte, terwijl er **meer levenskracht** in je zit dan je **toelaat**. Voeg bij elk gebied ook het juiste badge-label toe. ' + metPendelZin + ' Scores: ' + regels.join(', ') + ' Schrijf een intro van 2-3 zinnen over het geheel. Geef voor elk van de 9 gebieden: 2 zinnen analyse (tekst), een badge (Sterk als scores in lijn, Pendel hoger, Eerste indruk hoger, of leeg), EN een groeipunt van 1-2 zinnen. Sluit af met 1 aanmoedigende zin. Gebruik dit exacte JSON formaat en niks anders: {"intro":"...","gebieden":[{"naam":"Gezondheid","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Financien","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Relaties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Mindset","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Emoties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Doel en Missie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Passie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Zingeving","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Spiritualiteit en Verbondenheid","badge":"...","tekst":"...","groeipunt":"..."}],"afsluiting":"..."} Voor pendel hoger: systeem voelt dit sterker. Voor eerste indruk hoger: hoofd ziet het mooier dan systeem voelt. Voor sterk: hoofd en systeem in lijn. Voor lage scores: eerlijk maar zacht. Bij Spiritualiteit en Verbondenheid: schrijf nuchter en aards, geen zweverige taal. Kirsten staat voor de brug tussen geen verbinding en zweverigheid. Denk aan verbondenheid met jezelf, je lichaam, het leven, niet aan energie of het universum.';
+  var prompt = 'Je bent Kirsten van Timebending. Schrijf een analyse in warme, directe Nederlandse jij-vorm. Geen gedachtestreepjes of liggende streepjes. Markeer 2-3 losse woorden per tekst met **woord**, max 2 woorden per markering, met emotionele lading. ' + metPendelZin + ' Scores: ' + regels.join(', ') + ' Schrijf een intro van 2-3 zinnen over het geheel. Geef voor elk van de 9 gebieden: 2 zinnen analyse (tekst), een badge (Sterk als scores in lijn, Pendel hoger, Eerste indruk hoger, of leeg), EN een groeipunt van 1-2 zinnen. Sluit af met 1 aanmoedigende zin. Gebruik dit exacte JSON formaat en niks anders: {"intro":"...","gebieden":[{"naam":"Gezondheid","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Financien","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Relaties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Mindset","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Emoties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Doel en Missie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Passie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Zingeving","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Spiritualiteit en Verbondenheid","badge":"...","tekst":"...","groeipunt":"..."}],"afsluiting":"..."} Bij Spiritualiteit en Verbondenheid: schrijf nuchter en aards, geen zweverige taal.';
 
   try {
     var resp = await fetch('/api/analyse', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ prompt: prompt })
+      body:JSON.stringify({prompt: prompt})
     });
     var data = await resp.json();
     var tekst = (data.content && data.content[0]) ? data.content[0].text.trim() : null;
@@ -528,8 +606,6 @@ async function analyseer(metPendel) {
     var clean = tekst.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
     var parsed = JSON.parse(clean);
     loading.style.display = 'none';
-
-    var html = '<p style="font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);font-weight:300;margin-bottom:16px;font-family:\'Raleway\',sans-serif;">Per gebied</p>';
 
     var kIdx = 0;
     var kl = ['#7B3FA0','#8A9E82','#C89A3C','#6B2F8E'];
@@ -541,56 +617,4 @@ async function analyseer(metPendel) {
       });
     }
 
-    if(parsed.intro) {
-      html += '<p style="font-size:13.5px;line-height:1.85;color:var(--brown);font-family:\'Lora\',serif;margin-bottom:28px;">'+hl(parsed.intro)+'</p>';
-    }
-
-    html += '<div style="border-bottom:2px solid var(--sage);padding-bottom:8px;margin-bottom:20px;">'
-      + '<p style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--deep);font-weight:600;font-family:\'Raleway\',sans-serif;">Inzicht per gebied</p>'
-      + '</div>';
-
-    parsed.gebieden.forEach(function(g){
-      var badge = g.badge
-        ? '<span style="display:inline-block;font-size:10px;font-weight:600;letter-spacing:.05em;padding:3px 10px;border-radius:12px;margin-left:8px;vertical-align:middle;font-family:\'Raleway\',sans-serif;background:'+(g.badge==='Sterk'?'rgba(138,158,130,.2)':g.badge==='Pendel hoger'?'rgba(123,63,160,.2)':'rgba(200,154,60,.15)')+';color:'+(g.badge==='Sterk'?'#5a7a5e':g.badge==='Pendel hoger'?'#7B3FA0':'#8a6e1a')+';">'+g.badge+'</span>'
-        : '';
-      html += '<div style="background:var(--warm-white);border:1.5px solid var(--sand);border-radius:2px;padding:18px 20px;margin-bottom:10px;box-shadow:0 2px 16px rgba(61,46,82,0.06);">'
-        + '<div style="margin-bottom:10px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">'
-        + '<span style="font-family:\'Lora\',serif;font-size:19px;font-weight:600;color:var(--purple);">'+g.naam+'</span>'
-        + badge
-        + '</div>'
-        + '<p style="font-size:13px;line-height:1.85;color:var(--brown);font-family:\'Lora\',serif;margin:0;">'+hl(g.tekst)+'</p>'
-        + '</div>';
-    });
-
-    html += '<div style="border-bottom:2px solid var(--purple);padding-bottom:8px;margin:32px 0 20px;">'
-      + '<p style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--purple);font-weight:600;font-family:\'Raleway\',sans-serif;">Waar begin je?</p>'
-      + '</div>';
-
-    parsed.gebieden.forEach(function(g){
-      if(g.groeipunt) {
-        html += '<div style="background:var(--warm-white);border:1.5px solid var(--sand);border-left:3px solid var(--purple);border-radius:0 2px 2px 0;padding:16px 20px;margin-bottom:10px;box-shadow:0 2px 16px rgba(61,46,82,0.06);">'
-          + '<p style="font-family:\'Lora\',serif;font-size:17px;font-weight:600;color:var(--purple);margin-bottom:7px;">'+g.naam+'</p>'
-          + '<p style="font-size:13px;line-height:1.85;color:var(--brown);font-family:\'Lora\',serif;margin:0;">'+hl(g.groeipunt)+'</p>'
-          + '</div>';
-      }
-    });
-
-    html += '<p style="margin-top:16px;font-size:13px;line-height:1.75;color:var(--muted);font-style:italic;font-family:\'Lora\',serif;">'+parsed.afsluiting+'</p>';
-
-    body.innerHTML = html;
-    btns.style.display = 'flex';
-    analyseKnoppen.forEach(function(b){ b.disabled=false; b.textContent='Analyseer'; });
-
-  } catch(e) {
-    loading.style.display = 'none';
-    body.innerHTML = '<p style="font-size:13px;color:var(--brown);font-family:\'Lora\',serif;">Er ging iets mis. Probeer het opnieuw.</p>';
-    console.log('Analyse fout:', e);
-  }
-  analyseKnoppen.forEach(function(b){ b.disabled=false; b.textContent='Analyseer'; });
-}
-
-renderSliders();
-drawWheel('wc1',s1,null);
-</script>
-</body>
-</html>
+    var html = '';
