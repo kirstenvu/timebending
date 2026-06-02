@@ -730,20 +730,22 @@ function kopieerAnalyse() {
   });
 }
 
-function deelMetKirsten() {
+async function deelMetKirsten() {
   var naam = document.getElementById('deelNaam').value.trim();
   var fout = document.getElementById('deelFout');
-  if(!naam) { fout.style.display='block'; return; }
+  if(!naam) { fout.style.display='block'; fout.style.color='#c0392b'; fout.textContent='Vul eerst je naam in.'; return; }
   fout.style.display='none';
 
-  var datum = new Date().toLocaleDateString('nl-NL', {day:'numeric',month:'long',year:'numeric'});
+  var btn = document.querySelector('#deelKaart .btn-purple');
+  btn.disabled = true;
+  btn.textContent = 'Bezig…';
 
   var scoresTekst = 'SCORES EERSTE INDRUK\n';
   AREAS.forEach(function(a){ scoresTekst += a.name + ': ' + s1[a.key] + '\n'; });
 
   if(pendelDone) {
     scoresTekst += '\nSCORES AFSTEMMING (PENDEL)\n';
-    AREAS.forEach(function(a){ scoresTekst += a.name + ': ' + s2[a.key] + '\n'; });
+    AREAS.forEach(function(a){ scoresTekst += a.name + ': ' + (s2[a.key] !== null ? s2[a.key] : '-') + '\n'; });
   }
 
   var analyseEl = document.getElementById('analyseBody');
@@ -751,15 +753,28 @@ function deelMetKirsten() {
   tmp.innerHTML = analyseEl.innerHTML;
   var analyseTekst = (tmp.textContent || tmp.innerText || '').replace(/\s+/g,' ').trim();
 
-  var body = 'Naam: ' + naam + '\nDatum: ' + datum + '\n\n'
-    + scoresTekst
-    + '\nANALYSE\n' + analyseTekst;
+  var formData = new FormData();
+  formData.append('entry.1680545971', naam);
+  formData.append('entry.535513700', scoresTekst);
+  formData.append('entry.1038107845', analyseTekst);
 
-  var mailto = 'mailto:kirsten@vanulden.nl'
-    + '?subject=' + encodeURIComponent('Wheel of Life resultaat van ' + naam)
-    + '&body=' + encodeURIComponent(body);
-
-  window.location.href = mailto;
+  try {
+    await fetch('https://docs.google.com/forms/d/1vlyL5yOv2yuNawycLdomB0BJed5eBXH7hFBUIY6kSZ8/formResponse', {
+      method: 'POST',
+      mode: 'no-cors',
+      body: formData
+    });
+    btn.textContent = 'Verzonden ✓';
+    fout.style.display = 'block';
+    fout.style.color = '#5a7a5e';
+    fout.textContent = '✓ Kirsten ontvangt jouw resultaten.';
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Stuur naar Kirsten';
+    fout.style.display = 'block';
+    fout.style.color = '#c0392b';
+    fout.textContent = 'Er ging iets mis. Probeer opnieuw.';
+  }
 }
 
 renderSliders();
