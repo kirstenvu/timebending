@@ -179,7 +179,7 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
     </div>
   </div>
   <div id="nudge1" style="margin-bottom:16px;padding:12px 16px;background:rgba(123,63,160,0.06);border-left:3px solid var(--purple);border-radius:0 2px 2px 0;">
-    <p style="font-size:12px;font-family:'Lora',serif;color:var(--purple);line-height:1.7;margin:0;">Wil je het verschil zien tussen je bewuste beleving en je lichaamsintelligentie? Probeer dan ook de <strong>Afstemming-tab</strong> met je pendel.</p>
+    <p style="font-size:12px;font-family:'Lora',serif;color:var(--purple);line-height:1.7;margin:0;">Voor een beter beeld van hoe je er voorstaat, nodig ik je uit om ook de Afstemming in te vullen. Zo krijg je nog meer informatie over jezelf.</p>
   </div>
   <div class="cta-wrap">
     <button class="btn-purple" onclick="analyseer(false)">Analyseer</button>
@@ -385,7 +385,7 @@ function renderPendel() {
     var dots = '';
     for(var i=1;i<=10;i++){
       var sel = (v2===i);
-      dots += '<button class="dot" onclick="updateS2(\''+area.key+'\','+i+')" style="'+(sel?'background:'+area.color+';border-color:'+area.color+';color:white;':'opacity:0.5;')+'">'+i+'</button>';
+      dots += '<button class="dot" onclick="updateS2(\''+area.key+'\','+i+')" style="'+(sel?'background:'+area.color+';border-color:'+area.color+';color:white;font-weight:700;':'border-color:rgba(123,63,160,0.3);color:rgba(123,63,160,0.35);')+'">'+i+'</button>';
     }
     row.innerHTML = '<div class="area-header"><span class="area-name">'+area.name+'</span><span class="area-score" id="s2-'+area.key+'">'+(v2!==null?v2:'')+'</span></div>'
       + '<div class="pendel-dots">'+dots+'</div>';
@@ -413,15 +413,15 @@ function buildScoresList() {
     var heeftBeide = s1Active[a.key] && s2[a.key]!==null;
     if(pendelDone && heeftBeide) {
       var d = s2[a.key] - s1[a.key];
-      if(d > 1) {
+      if(d === 0) {
+        badge = '<span class="badge badge-gelijk">Sterk gebied</span>';
+        borderColor = '#C89A3C';
+      } else if(d > 0) {
         badge = '<span class="badge badge-paars">Pendel hoger</span>';
         borderColor = '#7B3FA0';
-      } else if(d < -1) {
+      } else {
         badge = '<span class="badge badge-groen">Eerste indruk hoger</span>';
         borderColor = '#8A9E82';
-      } else {
-        badge = '<span class="badge badge-gelijk">Sterk</span>';
-        borderColor = '#C89A3C';
       }
       scoresHtml = '<div class="gebied-kaart-scores">'
         + 'Eerste indruk <span class="gebied-kaart-score-val groen">'+s1[a.key]+'</span>'
@@ -634,7 +634,7 @@ async function analyseer(metPendel) {
     ? (heeftEersteBlik ? 'De persoon heeft zowel eerste indruk als pendel ingevuld.' : 'De persoon heeft alleen de pendel/afstemming ingevuld. Voeg aan het einde van de afsluiting een korte uitnodiging toe om ook de Eerste Blik tab te proberen.')
     : (heeftEersteBlik ? 'De persoon heeft alleen een eerste indruk ingevuld. Voeg aan het einde van de afsluiting een korte uitnodiging toe om ook de Afstemming-tab met pendel te proberen.' : 'Geen scores ingevuld.');
 
-  var prompt = 'Je bent Kirsten van Timebending. Schrijf een analyse in warme, directe Nederlandse jij-vorm. Geen gedachtestreepjes of liggende streepjes. Markeer 2-3 losse woorden per tekst met **woord**, max 2 woorden per markering, met emotionele lading. ' + metPendelZin + ' Scores: ' + regels.join(', ') + ' Schrijf een intro van 2-3 zinnen over het geheel. Geef voor elk van de 9 gebieden: 2 zinnen analyse (tekst), een badge (Sterk als scores in lijn, Pendel hoger, Eerste indruk hoger, of leeg), EN een groeipunt van 1-2 zinnen. Sluit af met 1 aanmoedigende zin (en bij alleen eerste indruk: ook de uitnodiging voor afstemming). Gebruik ALLEEN een badge (Sterk, Pendel hoger, Eerste indruk hoger) als er voor dat gebied ZOWEL een eerste indruk ALS een pendel score is. Als er maar een van de twee is, laat badge dan altijd leeg. Gebruik dit exacte JSON formaat en niks anders: {"intro":"...","gebieden":[{"naam":"Gezondheid","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Financien","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Relaties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Mindset","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Emoties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Doel en Missie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Passie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Zingeving","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Spiritualiteit en Verbondenheid","badge":"...","tekst":"...","groeipunt":"..."}],"afsluiting":"..."} Bij Spiritualiteit en Verbondenheid: schrijf nuchter en aards, geen zweverige taal.';
+  var prompt = 'Je bent Kirsten van Timebending. Schrijf een analyse in warme, directe Nederlandse jij-vorm. Geen gedachtestreepjes of liggende streepjes. Markeer 2-3 losse woorden per tekst met **woord**, max 2 woorden per markering, met emotionele lading. ' + metPendelZin + ' Scores: ' + regels.join(', ') + ' Schrijf een intro van 2-3 zinnen over het geheel. Geef voor elk van de 9 gebieden: 2 zinnen analyse (tekst), een badge (Sterk gebied als scores exact gelijk, Pendel hoger als pendel hoger, Eerste indruk hoger als eerste indruk hoger, leeg als maar 1 kant ingevuld), EN een groeipunt van 1-2 zinnen. Sluit af met 1 aanmoedigende zin (en bij alleen eerste indruk: ook de uitnodiging voor afstemming). Gebruik ALLEEN een badge (Sterk, Pendel hoger, Eerste indruk hoger) als er voor dat gebied ZOWEL een eerste indruk ALS een pendel score is. Als er maar een van de twee is, laat badge dan altijd leeg. Gebruik dit exacte JSON formaat en niks anders: {"intro":"...","gebieden":[{"naam":"Gezondheid","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Financien","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Relaties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Mindset","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Emoties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Doel en Missie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Passie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Zingeving","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Spiritualiteit en Verbondenheid","badge":"...","tekst":"...","groeipunt":"..."}],"afsluiting":"..."} Bij Spiritualiteit en Verbondenheid: schrijf nuchter en aards, geen zweverige taal.';
 
   try {
     var resp = await fetch('/api/analyse', {
