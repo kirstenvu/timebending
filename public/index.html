@@ -648,6 +648,7 @@ async function analyseer(metPendel) {
 
     var clean = tekst.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
     var parsed = JSON.parse(clean);
+    window._lastParsed = parsed;
     loading.style.display = 'none';
 
     var kIdx = 0;
@@ -735,23 +736,49 @@ async function deelMetKirsten() {
   var fout = document.getElementById('deelFout');
   if(!naam) { fout.style.display='block'; fout.style.color='#c0392b'; fout.textContent='Vul eerst je naam in.'; return; }
   fout.style.display='none';
-
   var btn = document.querySelector('#deelKaart .btn-purple');
-  btn.disabled = true;
-  btn.textContent = 'Bezig…';
+  btn.disabled = true; btn.textContent = 'Bezig…';
 
-  var scoresTekst = 'SCORES EERSTE INDRUK\n';
-  AREAS.forEach(function(a){ scoresTekst += a.name + ': ' + s1[a.key] + '\n'; });
+  // Visuele scores met balkjes
+  var bar = function(n){ return '▓'.repeat(n) + '░'.repeat(10-n); };
+  var pad = function(s,l){ while(s.length<l) s+=' '; return s; };
+  var scoresTekst = 'WHEEL OF LIFE
+═══════════════════════
 
-  if(pendelDone) {
-    scoresTekst += '\nSCORES AFSTEMMING (PENDEL)\n';
-    AREAS.forEach(function(a){ scoresTekst += a.name + ': ' + (s2[a.key] !== null ? s2[a.key] : '-') + '\n'; });
+';
+  AREAS.forEach(function(a){
+    var s1v = s1[a.key]; var s2v = (pendelDone && s2[a.key]!==null) ? s2[a.key] : null;
+    scoresTekst += pad(a.name,28) + bar(s1v) + '  ' + s1v + '/10
+';
+    if(s2v!==null) scoresTekst += pad('  ↳ pendel',28) + bar(s2v) + '  ' + s2v + '/10
+';
+  });
+  scoresTekst += '
+Datum: ' + new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
+
+  // Opgemaakte analyse vanuit JSON
+  var analyseTekst = naam + '\n\n';
+  if(window._lastParsed) {
+    var p = window._lastParsed;
+    analyseTekst += p.intro + '\n\n';
+    analyseTekst += '───────────────────────────\n';
+    analyseTekst += 'INZICHT PER GEBIED\n';
+    analyseTekst += '───────────────────────────\n\n';
+    p.gebieden.forEach(function(g){
+      analyseTekst += g.naam.toUpperCase();
+      if(g.badge) analyseTekst += '  [' + g.badge + ']';
+      analyseTekst += '\n';
+      analyseTekst += g.tekst.replace(/\*\*([^*]+)\*\*/g,'$1') + '\n';
+      if(g.groeipunt) analyseTekst += '→ Groeipunt: ' + g.groeipunt.replace(/\*\*([^*]+)\*\*/g,'$1') + '\n';
+      analyseTekst += '\n';
+    });
+    analyseTekst += '───────────────────────────\n\n';
+    analyseTekst += p.afsluiting;
+  } else {
+    var el=document.getElementById('analyseBody'),tmp=document.createElement('div');
+    tmp.innerHTML=el.innerHTML;
+    analyseTekst += (tmp.textContent||tmp.innerText||'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();
   }
-
-  var analyseEl = document.getElementById('analyseBody');
-  var tmp = document.createElement('div');
-  tmp.innerHTML = analyseEl.innerHTML;
-  var analyseTekst = (tmp.textContent || tmp.innerText || '').replace(/\s+/g,' ').trim();
 
   var formData = new FormData();
   formData.append('entry.1680545971', naam);
@@ -760,20 +787,15 @@ async function deelMetKirsten() {
 
   try {
     await fetch('https://docs.google.com/forms/d/1vlyL5yOv2yuNawycLdomB0BJed5eBXH7hFBUIY6kSZ8/formResponse', {
-      method: 'POST',
-      mode: 'no-cors',
-      body: formData
+      method:'POST', mode:'no-cors', body:formData
     });
     btn.textContent = 'Verzonden ✓';
-    fout.style.display = 'block';
-    fout.style.color = '#5a7a5e';
-    fout.textContent = '✓ Kirsten ontvangt jouw resultaten.';
+    fout.style.display='block'; fout.style.color='#5a7a5e';
+    fout.textContent='✓ Kirsten ontvangt jouw resultaten.';
   } catch(e) {
-    btn.disabled = false;
-    btn.textContent = 'Stuur naar Kirsten';
-    fout.style.display = 'block';
-    fout.style.color = '#c0392b';
-    fout.textContent = 'Er ging iets mis. Probeer opnieuw.';
+    btn.disabled=false; btn.textContent='Stuur naar Kirsten';
+    fout.style.display='block'; fout.style.color='#c0392b';
+    fout.textContent='Er ging iets mis. Probeer opnieuw.';
   }
 }
 
