@@ -447,17 +447,14 @@ function drawWheel(id, d1, d2) {
   if(!canvas) return;
   var ctx = canvas.getContext('2d');
   var W=canvas.width, H=canvas.height, cx=W/2, cy=H/2;
-  // ~95px margin on each side for labels (canvas 560×560)
   var outerR = Math.min(W,H)/2 - 95;
   var ringW = 18, maxR = outerR - ringW;
   var n=AREAS.length, slice=(2*Math.PI)/n, start=-Math.PI/2;
   ctx.clearRect(0,0,W,H);
 
-  // Paarse ring
   ctx.beginPath(); ctx.arc(cx,cy,outerR,0,Math.PI*2); ctx.fillStyle='#7B3FA0'; ctx.fill();
   ctx.beginPath(); ctx.arc(cx,cy,maxR,0,Math.PI*2); ctx.fillStyle='#FFFFFF'; ctx.fill();
 
-  // Scheidingslijnen in ring
   AREAS.forEach(function(_,i){
     var a=start+i*slice;
     ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*maxR,cy+Math.sin(a)*maxR);
@@ -465,13 +462,11 @@ function drawWheel(id, d1, d2) {
     ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1; ctx.stroke();
   });
 
-  // Grid — 10 cirkels, allemaal gelijk
   for(var r=10;r>=1;r--){
     ctx.beginPath(); ctx.arc(cx,cy,(r/10)*maxR,0,Math.PI*2);
     ctx.strokeStyle='rgba(160,150,175,.4)';
     ctx.lineWidth=0.8; ctx.stroke();
   }
-  // Spaaklijnen
   AREAS.forEach(function(_,i){
     var a=start+i*slice;
     ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(a)*maxR,cy+Math.sin(a)*maxR);
@@ -513,7 +508,6 @@ function drawWheel(id, d1, d2) {
     });
   }
 
-  // Labels buiten de ring
   var lr = outerR + 15;
   ctx.font = '600 14px Raleway,sans-serif';
   ctx.fillStyle = '#2A2438';
@@ -586,6 +580,7 @@ function goTo(n) {
 function resetAll() {
   AREAS.forEach(function(a){ s1[a.key]=5; s2[a.key]=null; s1Active[a.key]=false; });
   pendelDone=false;
+  analyseData=null;
   document.getElementById('analyseWrap').style.display='none';
   document.getElementById('deelKaart').style.display='none';
   document.getElementById('deelNaam').value='';
@@ -671,7 +666,6 @@ async function analyseer(metPendel) {
       + '</div>';
 
     parsed.gebieden.forEach(function(g){
-      // Only show badge if both eerste blik AND pendel were filled for this area
       var showBadge = g.badge && heeftEersteBlik && heeftPendel;
       var badge = showBadge
         ? '<span style="display:inline-block;font-size:10px;font-weight:600;letter-spacing:.05em;padding:3px 10px;border-radius:12px;margin-left:8px;vertical-align:middle;font-family:\'Raleway\',sans-serif;background:'+(g.badge==='Sterk'?'rgba(138,158,130,.2)':g.badge==='Pendel hoger'?'rgba(123,63,160,.2)':'rgba(200,154,60,.15)')+';color:'+(g.badge==='Sterk'?'#5a7a5e':g.badge==='Pendel hoger'?'#7B3FA0':'#8a6e1a')+';">'+g.badge+'</span>'
@@ -742,21 +736,15 @@ async function deelMetKirsten() {
   // Visuele scores met balkjes
   var bar = function(n){ return '▓'.repeat(n) + '░'.repeat(10-n); };
   var pad = function(s,l){ while(s.length<l) s+=' '; return s; };
-  var scoresTekst = 'WHEEL OF LIFE
-═══════════════════════
-
-';
+  var scoresTekst = 'WHEEL OF LIFE\n═══════════════════════\n\n';
   AREAS.forEach(function(a){
     var s1v = s1[a.key]; var s2v = (pendelDone && s2[a.key]!==null) ? s2[a.key] : null;
-    scoresTekst += pad(a.name,28) + bar(s1v) + '  ' + s1v + '/10
-';
-    if(s2v!==null) scoresTekst += pad('  ↳ pendel',28) + bar(s2v) + '  ' + s2v + '/10
-';
+    scoresTekst += pad(a.name,28) + bar(s1v) + '  ' + s1v + '/10\n';
+    if(s2v!==null) scoresTekst += pad('  ↳ pendel',28) + bar(s2v) + '  ' + s2v + '/10\n';
   });
-  scoresTekst += '
-Datum: ' + new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
+  scoresTekst += '\nDatum: ' + new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
 
-  // Opgemaakte analyse vanuit JSON
+  // Opgemaakte analyse vanuit JSON — max 4000 tekens om limieten te vermijden
   var analyseTekst = naam + '\n\n';
   if(window._lastParsed) {
     var p = window._lastParsed;
@@ -769,7 +757,7 @@ Datum: ' + new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',yea
       if(g.badge) analyseTekst += '  [' + g.badge + ']';
       analyseTekst += '\n';
       analyseTekst += g.tekst.replace(/\*\*([^*]+)\*\*/g,'$1') + '\n';
-      if(g.groeipunt) analyseTekst += '→ Groeipunt: ' + g.groeipunt.replace(/\*\*([^*]+)\*\*/g,'$1') + '\n';
+      if(g.groeipunt) analyseTekst += '→ ' + g.groeipunt.replace(/\*\*([^*]+)\*\*/g,'$1') + '\n';
       analyseTekst += '\n';
     });
     analyseTekst += '───────────────────────────\n\n';
@@ -779,6 +767,8 @@ Datum: ' + new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',yea
     tmp.innerHTML=el.innerHTML;
     analyseTekst += (tmp.textContent||tmp.innerText||'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();
   }
+  // Veiligheidsgrens: kap af op 4000 tekens
+  if(analyseTekst.length > 4000) analyseTekst = analyseTekst.slice(0,3997) + '...';
 
   var formData = new FormData();
   formData.append('entry.1680545971', naam);
@@ -786,7 +776,7 @@ Datum: ' + new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',yea
   formData.append('entry.1038107845', analyseTekst);
 
   try {
-    await fetch('https://docs.google.com/forms/d/1vlyL5yOv2yuNawycLdomB0BJed5eBXH7hFBUIY6kSZ8/formResponse', {
+    await fetch('https://docs.google.com/forms/d/e/1FAIpQLSfUSkTUlId1gtfVhZetgdUv-hH4H1L73_B0_D0Uhi2IEBmPlA/formResponse', {
       method:'POST', mode:'no-cors', body:formData
     });
     btn.textContent = 'Verzonden ✓';
