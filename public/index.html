@@ -178,7 +178,7 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
       <div class="legend-item"><div class="legend-line" style="background:#8A9E82;"></div><span>Eerste indruk</span></div>
     </div>
   </div>
-  <div id="nudge1" style="display:none;margin-bottom:16px;padding:12px 16px;background:rgba(123,63,160,0.06);border-left:3px solid var(--purple);border-radius:0 2px 2px 0;">
+  <div id="nudge1" style="margin-bottom:16px;padding:12px 16px;background:rgba(123,63,160,0.06);border-left:3px solid var(--purple);border-radius:0 2px 2px 0;">
     <p style="font-size:12px;font-family:'Lora',serif;color:var(--purple);line-height:1.7;margin:0;">Wil je het verschil zien tussen je bewuste beleving en je lichaamsintelligentie? Probeer dan ook de <strong>Afstemming-tab</strong> met je pendel.</p>
   </div>
   <div class="cta-wrap">
@@ -201,15 +201,15 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
     </div>
     <button onclick="openOptin()" style="background:none;border:none;padding:0;margin-top:14px;cursor:pointer;font-family:Lora,serif;font-size:12px;font-weight:400;color:var(--gold);font-style:italic;display:flex;align-items:center;gap:6px;">Heb je nog nooit met een pendel of lichaamspendel gewerkt? Stuur mij een bericht en ik stuur je meer info. <span style="font-size:14px;font-style:normal;">→</span></button>
   </div>
+  <div id="nudge2" style="display:none;margin-bottom:20px;padding:12px 16px;background:rgba(138,158,130,0.08);border-left:3px solid var(--sage);border-radius:0 2px 2px 0;">
+    <p style="font-size:12px;font-family:'Lora',serif;color:#5a7a5e;line-height:1.7;margin:0;">Je hebt nog geen <strong>Eerste Blik</strong> ingevuld. Begin daarmee voor het bewuste deel — dan geeft de vergelijking pas echt inzicht.</p>
+  </div>
   <div class="areas-wrap" id="pendelWrap"></div>
   <div class="wheel-wrap">
     <canvas id="wc2" width="560" height="560"></canvas>
     <div class="legend">
       <div class="legend-item"><div class="legend-line" style="background:#7B3FA0;"></div><span>Afstemming</span></div>
     </div>
-  </div>
-  <div id="nudge2" style="display:none;margin-bottom:16px;padding:12px 16px;background:rgba(138,158,130,0.08);border-left:3px solid var(--sage);border-radius:0 2px 2px 0;">
-    <p style="font-size:12px;font-family:'Lora',serif;color:#5a7a5e;line-height:1.7;margin:0;">Je hebt nog geen <strong>Eerste Blik</strong> ingevuld. Begin daarmee voor het bewuste deel, dan geeft de vergelijking pas echt inzicht.</p>
   </div>
   <div class="cta-wrap">
     <button class="btn-purple" onclick="analyseer(true)">Analyseer</button>
@@ -385,7 +385,7 @@ function renderPendel() {
     var dots = '';
     for(var i=1;i<=10;i++){
       var sel = (v2===i);
-      dots += '<button class="dot" onclick="updateS2(\''+area.key+'\','+i+')" style="'+(sel?'background:'+area.color+';border-color:'+area.color+';color:white;':'')+'">'+i+'</button>';
+      dots += '<button class="dot" onclick="updateS2(\''+area.key+'\','+i+')" style="'+(sel?'background:'+area.color+';border-color:'+area.color+';color:white;':'opacity:0.5;')+'">'+i+'</button>';
     }
     row.innerHTML = '<div class="area-header"><span class="area-name">'+area.name+'</span><span class="area-score" id="s2-'+area.key+'">'+(v2!==null?v2:'')+'</span></div>'
       + '<div class="pendel-dots">'+dots+'</div>';
@@ -572,7 +572,7 @@ function goTo(n) {
   var n1 = document.getElementById('nudge1');
   var n2 = document.getElementById('nudge2');
   var hasEB = AREAS.some(function(a){ return s1Active[a.key]; });
-  if(n1) n1.style.display = (n===1 && pendelDone===false) ? 'block' : 'none';
+  if(n1) n1.style.display = (n===1) ? 'block' : 'none';
   if(n2) n2.style.display = (n===2 && !hasEB) ? 'block' : 'none';
   document.querySelectorAll('.phase').forEach(function(p,i){ p.classList.toggle('active',i+1===n); });
   for(var i=1;i<=3;i++){
