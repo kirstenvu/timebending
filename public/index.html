@@ -775,22 +775,19 @@ async function deelMetKirsten() {
   formData.append('entry.535513700', scoresTekst);
   formData.append('entry.1038107845', analyseTekst);
 
-  try {
-    await fetch('https://docs.google.com/forms/d/e/1FAIpQLSfUSkTUlId1gtfVhZetgdUv-hH4H1L73_B0_D0Uhi2IEBmPlA/formResponse', {
-      method:'POST', mode:'no-cors', body:formData
-    });
-    btn.textContent = 'Verzonden ✓';
-    fout.style.display='block'; fout.style.color='#5a7a5e';
-    fout.textContent='✓ Kirsten ontvangt jouw resultaten.';
-  } catch(e) {
-    btn.disabled=false; btn.textContent='Stuur naar Kirsten';
-    fout.style.display='block'; fout.style.color='#c0392b';
-    fout.textContent='Er ging iets mis. Probeer opnieuw.';
-  }
-}
-
-renderSliders();
-drawWheel('wc1',s1,null);
-</script>
-</body>
-</html>
+  // Aparte score-velden per gebied (voor analyses over deelnemers)
+  var scoreVelden = {
+    gezondheid:    'entry.1256848299',
+    financien:     'entry.1996374305',
+    relaties:      'entry.1366390076',
+    mindset:       'entry.1269862113',
+    emoties:       'entry.1338651569',
+    doel:          'entry.160968499',
+    passie:        'entry.1555921109',
+    zingeving:     'entry.2124910794',
+    verbondenheid: 'entry.112487302'
+  };
+  AREAS.forEach(function(a) {
+    if(!scoreVelden[a.key]) return;
+    var v1 = s1Active[a.key] ? s1[a.key] : null;
+    var v2 = (pendelDone && s2[a.key] !== null) ? s2[a.key] : null;
