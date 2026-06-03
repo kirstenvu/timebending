@@ -791,3 +791,28 @@ async function deelMetKirsten() {
     if(!scoreVelden[a.key]) return;
     var v1 = s1Active[a.key] ? s1[a.key] : null;
     var v2 = (pendelDone && s2[a.key] !== null) ? s2[a.key] : null;
+    var val = (v1 !== null && v2 !== null) ? 'EI:' + v1 + ' P:' + v2
+            : (v1 !== null) ? String(v1)
+            : (v2 !== null) ? 'P:' + v2 : '';
+    if(val) formData.append(scoreVelden[a.key], val);
+  });
+
+  try {
+    await fetch('https://docs.google.com/forms/d/e/1FAIpQLSfUSkTUlId1gtfVhZetgdUv-hH4H1L73_B0_D0Uhi2IEBmPlA/formResponse', {
+      method:'POST', mode:'no-cors', body:formData
+    });
+    btn.textContent = 'Verzonden ✓';
+    fout.style.display='block'; fout.style.color='#5a7a5e';
+    fout.textContent='✓ Kirsten ontvangt jouw resultaten.';
+  } catch(e) {
+    btn.disabled=false; btn.textContent='Stuur naar Kirsten';
+    fout.style.display='block'; fout.style.color='#c0392b';
+    fout.textContent='Er ging iets mis. Probeer opnieuw.';
+  }
+}
+
+renderSliders();
+drawWheel('wc1',s1,null);
+</script>
+</body>
+</html>
