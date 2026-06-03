@@ -642,9 +642,10 @@ async function analyseer(metPendel) {
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({prompt: prompt})
     });
-    var data = await resp.json();
+    var data = await resp.json().catch(function(){ throw new Error('Antwoord kon niet worden gelezen (timeout of serverprobleem)'); });
+    if(!resp.ok) throw new Error('Server ' + resp.status + ': ' + (data.error || JSON.stringify(data)));
     var tekst = (data.content && data.content[0]) ? data.content[0].text.trim() : null;
-    if(!tekst) throw new Error('geen tekst');
+    if(!tekst) throw new Error('Geen tekst ontvangen — API antwoord: ' + JSON.stringify(data).slice(0,200));
 
     var clean = tekst.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
     var parsed = JSON.parse(clean);
@@ -746,7 +747,8 @@ async function analyseer(metPendel) {
 
   } catch(e) {
     loading.style.display = 'none';
-    body.innerHTML = '<p style="font-size:13px;color:var(--brown);font-family:\'Lora\',serif;">Er ging iets mis bij de analyse.</p>';
+    body.innerHTML = '<p style="font-size:13px;color:var(--brown);font-family:\'Lora\',serif;margin-bottom:8px;">Er ging iets mis bij de analyse.</p>'
+      + '<p style="font-size:11px;color:var(--muted);font-family:\'Raleway\',sans-serif;">' + e.message + '</p>';
     console.log('Analyse fout:', e);
   }
   analyseKnoppen.forEach(function(b){ b.disabled=false; b.textContent='Analyseer'; });
