@@ -683,19 +683,19 @@ async function analyseer(metPendel) {
       + '</div>';
 
     var VALID_BADGES = ['Sterk', 'Pendel hoger', 'Eerste blik hoger'];
+    var badgeColors = {
+      'Sterk':             { bg:'linear-gradient(135deg,#FFD700,#C8960C)', text:'#2A1800' },
+      'Pendel hoger':      { bg:'#5B1F7A', text:'#F3E8FF' },
+      'Eerste blik hoger': { bg:'#3D6B52', text:'#E8F5EE' }
+    };
+    var borderColors = {
+      'Sterk':             '#C89A3C',
+      'Pendel hoger':      '#7B3FA0',
+      'Eerste blik hoger': '#8A9E82'
+    };
     parsed.gebieden.forEach(function(g){
       var badgeVal = (g.badge && VALID_BADGES.indexOf(g.badge) !== -1) ? g.badge : '';
       var showBadge = badgeVal && heeftEersteBlik && heeftPendel;
-      var badgeColors = {
-        'Sterk':               { bg:'linear-gradient(135deg,#FFD700,#C8960C)', text:'#2A1800' },
-        'Pendel hoger':        { bg:'#5B1F7A', text:'#F3E8FF' },
-        'Eerste blik hoger': { bg:'#3D6B52', text:'#E8F5EE' }
-      };
-      var borderColors = {
-        'Sterk':               '#C89A3C',
-        'Pendel hoger':        '#7B3FA0',
-        'Eerste blik hoger': '#8A9E82'
-      };
       var bc = badgeColors[badgeVal] || { bg:'#888', text:'#fff' };
       var borderLeft = borderColors[badgeVal] || 'var(--sand)';
       var badge = showBadge
