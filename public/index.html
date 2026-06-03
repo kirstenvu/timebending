@@ -655,9 +655,9 @@ async function analyseer(metPendel) {
       if(area && heeftEersteBlik && heeftPendel && s1Active[area.key] && s2[area.key] !== null) {
         var diff = s2[area.key] - s1[area.key];
         if(diff === 0) g.badge = 'Sterk';
+        else if(Math.abs(diff) === 1) g.badge = 'In lijn';
         else if(diff > 1) g.badge = 'Pendel hoger';
-        else if(diff < -1) g.badge = 'Eerste indruk hoger';
-        else g.badge = '';
+        else g.badge = 'Eerste indruk hoger';
       } else {
         g.badge = '';
       }
@@ -681,20 +681,28 @@ async function analyseer(metPendel) {
       + '<p style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--deep);font-weight:600;font-family:\'Raleway\',sans-serif;">Inzicht per gebied</p>'
       + '</div>';
 
-    var VALID_BADGES = ['Sterk', 'Pendel hoger', 'Eerste indruk hoger'];
+    var VALID_BADGES = ['Sterk', 'Pendel hoger', 'Eerste indruk hoger', 'In lijn'];
     parsed.gebieden.forEach(function(g){
       var badgeVal = (g.badge && VALID_BADGES.indexOf(g.badge) !== -1) ? g.badge : '';
       var showBadge = badgeVal && heeftEersteBlik && heeftPendel;
       var badgeColors = {
         'Sterk':               { bg:'linear-gradient(135deg,#FFD700,#C8960C)', text:'#2A1800' },
+        'In lijn':             { bg:'linear-gradient(135deg,#FFD700,#C8960C)', text:'#2A1800' },
         'Pendel hoger':        { bg:'#5B1F7A', text:'#F3E8FF' },
         'Eerste indruk hoger': { bg:'#3D6B52', text:'#E8F5EE' }
       };
+      var borderColors = {
+        'Sterk':               '#C89A3C',
+        'In lijn':             '#C89A3C',
+        'Pendel hoger':        '#7B3FA0',
+        'Eerste indruk hoger': '#8A9E82'
+      };
       var bc = badgeColors[badgeVal] || { bg:'#888', text:'#fff' };
+      var borderLeft = showBadge ? (borderColors[badgeVal] || 'var(--sand)') : 'var(--sand)';
       var badge = showBadge
         ? '<span style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;padding:4px 13px;border-radius:12px;margin-left:8px;vertical-align:middle;font-family:\'Raleway\',sans-serif;text-transform:uppercase;background:'+bc.bg+';color:'+bc.text+';box-shadow:0 1px 4px rgba(0,0,0,.18);">'+badgeVal+'</span>'
         : '';
-      html += '<div style="background:var(--warm-white);border:1.5px solid var(--sand);border-radius:2px;padding:18px 20px;margin-bottom:10px;box-shadow:0 2px 16px rgba(61,46,82,0.06);">'
+      html += '<div style="background:var(--warm-white);border:1.5px solid var(--sand);border-left:3px solid '+borderLeft+';border-radius:0 2px 2px 0;padding:18px 20px;margin-bottom:10px;box-shadow:0 2px 16px rgba(61,46,82,0.06);">'
         + '<div style="margin-bottom:10px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">'
         + '<span style="font-family:\'Lora\',serif;font-size:19px;font-weight:600;color:var(--purple);">'+g.naam+'</span>'
         + badge
