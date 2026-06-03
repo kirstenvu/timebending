@@ -89,7 +89,7 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
 .badge { font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:3px 9px; border-radius:10px; white-space:nowrap; }
 .badge-groen { background:#3D6B52; color:#E8F5EE; box-shadow:0 1px 4px rgba(0,0,0,.15); }
 .badge-paars { background:#5B1F7A; color:#F3E8FF; box-shadow:0 1px 4px rgba(0,0,0,.15); }
-.badge-gelijk { background:#8A6A1A; color:#FFF7E0; box-shadow:0 1px 4px rgba(0,0,0,.15); }
+.badge-gelijk { background:linear-gradient(135deg,#E8C060,#C89A3C); color:#3D2800; box-shadow:0 2px 8px rgba(200,154,60,.45), inset 0 1px 0 rgba(255,240,180,.35); }
 .gebied-kaart-scores { font-size:12px; color:var(--muted); font-weight:300; margin-bottom:6px; font-family:'Raleway',sans-serif; }
 .gebied-kaart-score-val { font-family:Lora,serif; font-size:16px; font-weight:400; }
 .gebied-kaart-score-val.groen { color:#5a7a5e; }
@@ -239,7 +239,7 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
   <div class="gebied-kaarten" id="gebiedKaarten"></div>
   <div class="cta-wrap">
     <button class="btn-purple" onclick="analyseer(pendelDone)">Analyseer</button>
-    <button class="btn-ghost" onclick="resetAll()">Opnieuw</button>
+    <button class="btn-ghost" onclick="resetAll()">Nieuw wiel</button>
   </div>
 </div>
 
@@ -670,7 +670,7 @@ async function analyseer(metPendel) {
       var badgeVal = (g.badge && VALID_BADGES.indexOf(g.badge) !== -1) ? g.badge : '';
       var showBadge = badgeVal && heeftEersteBlik && heeftPendel;
       var badgeColors = {
-        'Sterk':               { bg:'#8A6A1A', text:'#FFF7E0' },
+        'Sterk':               { bg:'linear-gradient(135deg,#E8C060,#C89A3C)', text:'#3D2800' },
         'Pendel hoger':        { bg:'#5B1F7A', text:'#F3E8FF' },
         'Eerste indruk hoger': { bg:'#3D6B52', text:'#E8F5EE' }
       };
@@ -715,7 +715,8 @@ async function analyseer(metPendel) {
 
   } catch(e) {
     loading.style.display = 'none';
-    body.innerHTML = '<p style="font-size:13px;color:var(--brown);font-family:\'Lora\',serif;">Er ging iets mis. Probeer het opnieuw.</p>';
+    body.innerHTML = '<p style="font-size:13px;color:var(--brown);font-family:\'Lora\',serif;margin-bottom:14px;">Er ging iets mis bij de analyse.</p>'
+      + '<button class="btn-ghost" style="font-size:10px;padding:9px 18px;" onclick="analyseer('+metPendel+')">Opnieuw proberen</button>';
     console.log('Analyse fout:', e);
   }
   analyseKnoppen.forEach(function(b){ b.disabled=false; b.textContent='Analyseer'; });
