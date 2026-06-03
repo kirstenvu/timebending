@@ -363,7 +363,7 @@ function renderSliders() {
       if(isTouching || !('ontouchstart' in window)) { updateS1(area.key, this.value); }
     });
     input.addEventListener('change', function() { updateS1(area.key, this.value); });
-    input.addEventListener('pointerdown', function() { updateS1(area.key, this.value); });
+    input.addEventListener('pointerup', function() { updateS1(area.key, this.value); });
   });
 }
 
