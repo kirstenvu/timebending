@@ -792,4 +792,67 @@ async function deelMetKirsten() {
     emoties:       'entry.1338651569',
     doel:          'entry.160968499',
     passie:        'entry.1555921109',
-    zingeving:     'entr
+    zingeving:     'entry.2124910794',
+    verbondenheid: 'entry.112487302'
+  };
+  AREAS.forEach(function(a) {
+    if(!scoreVelden[a.key]) return;
+    var v1 = s1Active[a.key] ? s1[a.key] : null;
+    var v2 = (pendelDone && s2[a.key] !== null) ? s2[a.key] : null;
+    var val = (v1 !== null && v2 !== null) ? 'EI:' + v1 + ' P:' + v2
+            : (v1 !== null) ? String(v1)
+            : (v2 !== null) ? 'P:' + v2 : '';
+    if(val) formData.append(scoreVelden[a.key], val);
+  });
+
+  try {
+    await fetch('https://docs.google.com/forms/d/e/1FAIpQLSfUSkTUlId1gtfVhZetgdUv-hH4H1L73_B0_D0Uhi2IEBmPlA/formResponse', {
+      method:'POST', mode:'no-cors', body:formData
+    });
+    btn.textContent = 'Verzonden ✓';
+    fout.style.display='block'; fout.style.color='#5a7a5e';
+    fout.textContent='✓ Kirsten ontvangt jouw resultaten.';
+  } catch(e) {
+    btn.disabled=false; btn.textContent='Stuur naar Kirsten';
+    fout.style.display='block'; fout.style.color='#c0392b';
+    fout.textContent='Er ging iets mis. Probeer opnieuw.';
+  }
+}
+
+function openOptin() {
+  var overlay = document.getElementById('optinOverlay');
+  overlay.style.display = 'flex';
+  document.getElementById('optinForm').style.display = 'block';
+  document.getElementById('optinBevestiging').style.display = 'none';
+  document.getElementById('optinNaam').value = '';
+  document.getElementById('optinEmail').value = '';
+}
+
+function sluitOptin() {
+  document.getElementById('optinOverlay').style.display = 'none';
+}
+
+async function verstuurOptin() {
+  var naam = document.getElementById('optinNaam').value.trim();
+  var email = document.getElementById('optinEmail').value.trim();
+  if (!naam || !email) return;
+  var btn = document.querySelector('#optinForm .btn-purple');
+  btn.disabled = true; btn.textContent = 'Bezig…';
+  try {
+    await fetch('/api/contact', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({naam: naam, email: email})
+    });
+    document.getElementById('optinForm').style.display = 'none';
+    document.getElementById('optinBevestiging').style.display = 'block';
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'Stuur mijn bericht';
+  }
+}
+
+renderSliders();
+drawWheel('wc1',s1,null);
+</script>
+</body>
+</html>
