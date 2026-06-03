@@ -239,7 +239,7 @@ canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px r
   <div class="gebied-kaarten" id="gebiedKaarten"></div>
   <div class="cta-wrap">
     <button class="btn-purple" onclick="analyseer(pendelDone)">Analyseer</button>
-    <button class="btn-ghost" onclick="resetAll()">Nieuw wiel</button>
+    <button class="btn-ghost" onclick="goTo(1)">Terug</button>
   </div>
 </div>
 
@@ -647,6 +647,22 @@ async function analyseer(metPendel) {
 
     var clean = tekst.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
     var parsed = JSON.parse(clean);
+
+    // Badges altijd berekenen vanuit werkelijke scores (niet vertrouwen op API)
+    parsed.gebieden.forEach(function(g) {
+      var area = null;
+      AREAS.forEach(function(a) { if(a.name === g.naam) area = a; });
+      if(area && heeftEersteBlik && heeftPendel && s1Active[area.key] && s2[area.key] !== null) {
+        var diff = s2[area.key] - s1[area.key];
+        if(diff === 0) g.badge = 'Sterk';
+        else if(diff > 1) g.badge = 'Pendel hoger';
+        else if(diff < -1) g.badge = 'Eerste indruk hoger';
+        else g.badge = '';
+      } else {
+        g.badge = '';
+      }
+    });
+
     window._lastParsed = parsed;
     loading.style.display = 'none';
 
@@ -715,8 +731,7 @@ async function analyseer(metPendel) {
 
   } catch(e) {
     loading.style.display = 'none';
-    body.innerHTML = '<p style="font-size:13px;color:var(--brown);font-family:\'Lora\',serif;margin-bottom:14px;">Er ging iets mis bij de analyse.</p>'
-      + '<button class="btn-ghost" style="font-size:10px;padding:9px 18px;" onclick="analyseer('+metPendel+')">Opnieuw proberen</button>';
+    body.innerHTML = '<p style="font-size:13px;color:var(--brown);font-family:\'Lora\',serif;">Er ging iets mis bij de analyse.</p>';
     console.log('Analyse fout:', e);
   }
   analyseKnoppen.forEach(function(b){ b.disabled=false; b.textContent='Analyseer'; });
