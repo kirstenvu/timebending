@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geef feedback – Timebending®</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Raleway:wght@300;400;500;600&display=swap');
+:root {
+  --cream: #F9FFFA; --sand: #E8DFD2; --gold: #C89A3C;
+  --purple: #7B3FA0; --plum: #6B2F8E; --deep: #2A2438;
+  --muted: #8A7A9A; --sage: #8A9E82; --warm-white: #ffffff;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--cream); font-family:'Raleway',sans-serif; color:var(--deep); min-height:100vh; }
+.page { max-width:560px; margin:0 auto; padding:48px 20px 80px; }
+
+.header { text-align:center; margin-bottom:40px; }
+.logo-line { font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; }
+h1 { font-family:Lora,serif; font-weight:400; font-size:clamp(28px,6vw,40px); line-height:1.1; color:var(--deep); margin-bottom:10px; }
+h1 em { font-style:italic; color:var(--gold); }
+.subtitle { font-size:13px; font-weight:300; color:var(--muted); line-height:1.75; font-family:Lora,serif; }
+.gold-line { width:40px; height:2px; background:var(--gold); margin:20px auto 0; }
+
+.card { background:var(--warm-white); border:1.5px solid var(--sand); border-radius:2px; padding:28px 24px; box-shadow:0 4px 32px rgba(61,46,82,0.08); margin-bottom:10px; }
+
+.field { margin-bottom:22px; }
+.field:last-child { margin-bottom:0; }
+.field-label { display:block; font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--deep); margin-bottom:8px; font-family:'Raleway',sans-serif; }
+.field-label span { font-size:10px; font-weight:300; letter-spacing:0; text-transform:none; color:var(--muted); margin-left:6px; }
+input[type=text], textarea {
+  width:100%; padding:11px 14px; border:1.5px solid var(--sand); border-radius:2px;
+  font-family:'Raleway',sans-serif; font-size:13px; color:var(--deep);
+  background:var(--cream); outline:none; transition:border-color .2s; resize:vertical;
+}
+input[type=text]:focus, textarea:focus { border-color:var(--purple); }
+textarea { min-height:90px; }
+
+/* Cijferbalk */
+.cijfer-wrap { margin-top:4px; }
+.cijfer-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.cijfer-waarde { font-family:Lora,serif; font-size:32px; font-weight:400; color:var(--purple); line-height:1; }
+.cijfer-label { font-size:11px; color:var(--muted); font-weight:300; }
+input[type=range].cijfer-slider {
+  -webkit-appearance:none; width:100%; height:4px;
+  background:var(--sand); border-radius:2px; outline:none; cursor:pointer;
+}
+input[type=range].cijfer-slider::-webkit-slider-thumb {
+  -webkit-appearance:none; width:28px; height:28px;
+  background:var(--purple); border-radius:50%; cursor:pointer;
+  border:3px solid var(--cream); box-shadow:0 2px 8px rgba(61,46,82,.25);
+}
+.cijfer-schaal { display:flex; justify-content:space-between; margin-top:8px; }
+.cijfer-schaal span { font-size:10px; color:var(--muted); font-weight:300; }
+
+.divider { border:none; border-top:1px solid var(--sand); margin:20px 0; }
+
+/* Radio */
+.radio-group { display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+.radio-option { display:flex; align-items:center; gap:10px; cursor:pointer; }
+.radio-option input[type=radio] { display:none; }
+.radio-dot { width:18px; height:18px; border-radius:50%; border:1.5px solid var(--sand); flex-shrink:0; transition:all .15s; display:flex; align-items:center; justify-content:center; }
+.radio-option input[type=radio]:checked + .radio-dot { border-color:var(--purple); background:var(--purple); }
+.radio-option input[type=radio]:checked + .radio-dot::after { content:''; width:6px; height:6px; border-radius:50%; background:white; display:block; }
+.radio-label { font-size:13px; font-family:Lora,serif; color:var(--deep); }
+
+.btn-submit { width:100%; background:var(--purple); color:white; border:none; padding:15px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all .2s; margin-top:20px; }
+.btn-submit:hover { background:var(--plum); transform:translateY(-1px); }
+.btn-submit:disabled { opacity:.6; cursor:default; transform:none; }
+
+.fout { display:none; font-size:11px; color:#c0392b; margin-top:8px; font-family:'Raleway',sans-serif; }
+
+.bevestiging { display:none; text-align:center; padding:48px 24px; }
+.bevestiging-titel { font-family:Lora,serif; font-size:22px; font-weight:400; color:var(--purple); margin-bottom:12px; }
+.bevestiging-tekst { font-family:Lora,serif; font-size:14px; color:var(--muted); line-height:1.8; }
+
+.footer-note { text-align:center; font-size:11px; color:var(--muted); font-weight:300; letter-spacing:.04em; margin-top:40px; font-family:'Raleway',sans-serif; }
+.footer-note a { color:var(--gold); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <p class="logo-line">Timebending®</p>
+    <h1>Jouw <em>feedback</em></h1>
+    <div class="gold-line"></div>
+    <p class="subtitle" style="margin-top:16px;">Jouw ervaring helpt mij deze tools steeds beter maken.<br>Ik lees alles persoonlijk. — Kirsten</p>
+  </div>
+
+  <div id="formWrap">
+    <div class="card">
+      <div class="field">
+        <label class="field-label">Jouw naam</label>
+        <input type="text" id="naam" placeholder="Voornaam">
+      </div>
+      <div class="field">
+        <label class="field-label">Vertel me even waar deze feedback over gaat</label>
+        <input type="text" id="onderwerp" placeholder="Bijv. Wheel of Life of een Kennisshop">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label class="field-label">Welk cijfer geef je het onderdeel waar je feedback op geeft?</label>
+        <div class="cijfer-wrap">
+          <div class="cijfer-header">
+            <span class="cijfer-label">Jouw cijfer</span>
+            <span class="cijfer-waarde" id="cijferWaarde">8</span>
+          </div>
+          <input type="range" class="cijfer-slider" id="cijferSlider" min="1" max="10" value="8"
+            oninput="document.getElementById('cijferWaarde').textContent=this.value">
+          <div class="cijfer-schaal">
+            <span>1 — niet blij</span>
+            <span>10 — super blij</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label class="field-label">Wat is je ervaring?</label>
+        <textarea id="review" placeholder="Deel gerust wat er bij je opkwam…"></textarea>
+      </div>
+      <hr class="divider">
+      <div class="field">
+        <label class="field-label">Wat kan beter?</label>
+        <textarea id="beter" placeholder="Alles is welkom, ook kleine dingen…"></textarea>
+      </div>
+      <hr class="divider">
+      <div class="field">
+        <label class="field-label">Heb je nog suggesties of opmerkingen om te verbeteren? <span>(optioneel)</span></label>
+        <textarea id="overig"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label class="field-label">Mag ik (een gedeelte van de) tekst uit jouw feedback delen met anderen?</label>
+        <p style="font-size:12px;font-family:Lora,serif;color:var(--muted);margin-bottom:12px;line-height:1.6;">Soms deel ik ervaringen om anderen te inspireren.</p>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="toestemming" value="Ja, met voornaam">
+            <span class="radio-dot"></span>
+            <span class="radio-label">Ja, met mijn voornaam</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="toestemming" value="Ja, anoniem">
+            <span class="radio-dot"></span>
+            <span class="radio-label">Ja, graag anoniem</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="toestemming" value="Nee">
+            <span class="radio-dot"></span>
+            <span class="radio-label">Nee</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <p id="foutmelding" class="fout">Vul je naam in en deel minimaal je ervaring of wat beter kan.</p>
+    <button class="btn-submit" id="submitBtn" onclick="verstuurFeedback()">Stuur mijn feedback</button>
+  </div>
+
+  <div class="bevestiging" id="bevestiging">
+    <p class="bevestiging-titel">Dank je wel.</p>
+    <p class="bevestiging-tekst">Ik heb je feedback ontvangen en lees het persoonlijk.<br>Fijn dat je de tijd nam.</p>
+    <div style="margin-top:28px;">
+      <img src="wol-project/public/kirsten_signature.png" alt="Kirsten" style="height:52px;opacity:0.85;">
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:48px;margin-bottom:8px;">
+    <img src="wol-project/public/kirsten_signature.png" alt="Kirsten" style="height:48px;opacity:0.75;">
+  </div>
+  <p class="footer-note">Timebending® door <a href="https://meavia.nu">meavia.nu</a></p>
+</div>
+
+<script>
+// Vervang dit met de URL van jouw Apps Script na deploy
+var APPS_SCRIPT_URL = 'JOUW_APPS_SCRIPT_URL_HIER';
+
+async function verstuurFeedback() {
+  var naam = document.getElementById('naam').value.trim();
+  var onderwerp = document.getElementById('onderwerp').value.trim();
+  var cijfer = document.getElementById('cijferSlider').value;
+  var review = document.getElementById('review').value.trim();
+  var beter = document.getElementById('beter').value.trim();
+  var overig = document.getElementById('overig').value.trim();
+  var toestemming = document.querySelector('input[name=toestemming]:checked');
+  var fout = document.getElementById('foutmelding');
+
+  if (!naam || (!review && !beter)) {
+    fout.style.display = 'block';
+    return;
+  }
+  fout.style.display = 'none';
+
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Bezig…';
+
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        naam: naam,
+        onderwerp: onderwerp || '—',
+        cijfer: cijfer,
+        review: review || '—',
+        beter: beter || '—',
+        overig: overig || '—',
+        toestemming: toestemming ? toestemming.value : 'Niet aangegeven'
+      })
+    });
+  } catch(e) {}
+
+  document.getElementById('formWrap').style.display = 'none';
+  document.getElementById('bevestiging').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
