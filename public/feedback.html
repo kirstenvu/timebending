@@ -85,7 +85,6 @@ input[type=range].cijfer-slider::-webkit-slider-thumb {
     <p class="logo-line">Timebending®</p>
     <h1>Jouw <em>feedback</em></h1>
     <div class="gold-line"></div>
-    <p class="subtitle" style="margin-top:16px;">Jouw ervaring helpt mij deze tools steeds beter maken.<br>Ik lees alles persoonlijk. — Kirsten</p>
   </div>
 
   <div id="formWrap">
@@ -215,6 +214,7 @@ async function verstuurFeedback() {
   } catch(e) {}
 
   document.getElementById('formWrap').style.display = 'none';
+  document.querySelector('.header').style.display = 'none';
   document.getElementById('bevestiging').style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
