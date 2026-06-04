@@ -6,7 +6,7 @@
     "api/feedback.js": { "maxDuration": 30 }
   },
   "rewrites": [
-    { "source": "/wheel-of-life", "destination": "/index.html" },
+    { "source": "/wheel-of-life", "destination": "/wheel-of-life.html" },
     { "source": "/feedback", "destination": "/feedback.html" },
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ]
