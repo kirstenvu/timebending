@@ -1,10 +1,13 @@
 {
+  "outputDirectory": "public",
   "functions": {
     "api/analyse.js": { "maxDuration": 60 },
-    "api/contact.js": { "maxDuration": 30 }
+    "api/contact.js": { "maxDuration": 30 },
+    "api/feedback.js": { "maxDuration": 30 }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/public/$1" }
+    { "source": "/wheel-of-life", "destination": "/index.html" },
+    { "source": "/feedback", "destination": "/feedback.html" },
+    { "source": "/api/(.*)", "destination": "/api/$1" }
   ]
 }
