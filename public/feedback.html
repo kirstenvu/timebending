@@ -82,7 +82,7 @@ input[type=range].cijfer-slider::-webkit-slider-thumb {
 <div class="page">
 
   <div class="header">
-    <p class="logo-line">Timebending®</p>
+    <img src="logo.png" alt="Timebending®" style="height:90px;width:auto;margin-bottom:18px;display:block;margin-left:auto;margin-right:auto;">
     <h1>Jouw <em>feedback</em></h1>
     <div class="gold-line"></div>
   </div>
@@ -174,8 +174,6 @@ input[type=range].cijfer-slider::-webkit-slider-thumb {
 </div>
 
 <script>
-var FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSevDF6rZ6DuzncGKC2LW5gmlaBiApe74mnyf_DLBY-lLbsXHw/formResponse';
-
 async function verstuurFeedback() {
   var naam = document.getElementById('naam').value.trim();
   var onderwerp = document.getElementById('onderwerp').value.trim();
@@ -196,20 +194,19 @@ async function verstuurFeedback() {
   btn.disabled = true;
   btn.textContent = 'Bezig…';
 
-  var params = new URLSearchParams();
-  params.append('entry.431895249', naam);
-  params.append('entry.946278155', onderwerp);
-  params.append('entry.1468011716', cijfer);
-  params.append('entry.573494669', review);
-  params.append('entry.2145780264', beter);
-  params.append('entry.776613450', overig);
-  params.append('entry.1368210254', toestemming ? toestemming.value : '');
-
   try {
-    await fetch(FORM_URL, {
+    await fetch('/api/feedback', {
       method: 'POST',
-      mode: 'no-cors',
-      body: params
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        naam: naam,
+        onderwerp: onderwerp,
+        cijfer: cijfer,
+        review: review,
+        beter: beter,
+        overig: overig,
+        toestemming: toestemming ? toestemming.value : ''
+      })
     });
   } catch(e) {}
 
