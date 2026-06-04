@@ -4,6 +4,8 @@
     "api/contact.js": { "maxDuration": 30 }
   },
   "rewrites": [
+    { "source": "/wheel-of-life", "destination": "/public/index.html" },
+    { "source": "/feedback", "destination": "/public/feedback.html" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/public/$1" }
   ]
