@@ -195,20 +195,11 @@ async function verstuurFeedback() {
   btn.disabled = true;
   btn.textContent = 'Bezig…';
 
-  var params = new URLSearchParams();
-  params.append('entry.1877454650', naam);
-  params.append('entry.1930566545', onderwerp);
-  params.append('entry.544612005', cijfer);
-  params.append('entry.1892157306', review);
-  params.append('entry.1768337614', beter);
-  params.append('entry.1736839042', overig);
-  params.append('entry.379637694', toestemming ? toestemming.value : '');
-
   try {
-    await fetch('https://docs.google.com/forms/d/e/1FAIpQLSfHli6_VF2NEpCKd2C24oQt_aJ3pL1Sr4M0dyd1qVTpy5p59g/formResponse', {
+    await fetch('/api/feedback', {
       method: 'POST',
-      mode: 'no-cors',
-      body: params
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ naam, onderwerp, cijfer, review, beter, overig, toestemming: toestemming ? toestemming.value : '' })
     });
   } catch(e) {}
 
