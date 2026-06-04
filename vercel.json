@@ -2,7 +2,8 @@
   "outputDirectory": "public",
   "functions": {
     "api/analyse.js": { "maxDuration": 60 },
-    "api/contact.js": { "maxDuration": 30 }
+    "api/contact.js": { "maxDuration": 30 },
+    "api/feedback.js": { "maxDuration": 30 }
   },
   "rewrites": [
     { "source": "/wheel-of-life", "destination": "/index.html" },
