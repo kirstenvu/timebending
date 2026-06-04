@@ -174,8 +174,21 @@ input[type=range].cijfer-slider::-webkit-slider-thumb {
   <p class="footer-note">Timebending® door <a href="https://meavia.nu">meavia.nu</a></p>
 </div>
 
+<iframe name="hidden_iframe" style="display:none"></iframe>
+<form id="gform" method="POST" target="hidden_iframe"
+  action="https://docs.google.com/forms/d/e/1FAIpQLSfHli6_VF2NEpCKd2C24oQt_aJ3pL1Sr4M0dyd1qVTpy5p59g/formResponse"
+  style="display:none">
+  <input type="hidden" name="entry.1877454650" id="f_naam">
+  <input type="hidden" name="entry.1930566545" id="f_onderwerp">
+  <input type="hidden" name="entry.544612005" id="f_cijfer">
+  <input type="hidden" name="entry.1892157306" id="f_review">
+  <input type="hidden" name="entry.1768337614" id="f_beter">
+  <input type="hidden" name="entry.1736839042" id="f_overig">
+  <input type="hidden" name="entry.379637694" id="f_toestemming">
+</form>
+
 <script>
-async function verstuurFeedback() {
+function verstuurFeedback() {
   var naam = document.getElementById('naam').value.trim();
   var onderwerp = document.getElementById('onderwerp').value.trim();
   var cijfer = document.getElementById('cijferSlider').value;
@@ -191,17 +204,14 @@ async function verstuurFeedback() {
   }
   fout.style.display = 'none';
 
-  var btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  btn.textContent = 'Bezig…';
-
-  try {
-    await fetch('/api/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ naam, onderwerp, cijfer, review, beter, overig, toestemming: toestemming ? toestemming.value : '' })
-    });
-  } catch(e) {}
+  document.getElementById('f_naam').value = naam;
+  document.getElementById('f_onderwerp').value = onderwerp;
+  document.getElementById('f_cijfer').value = cijfer;
+  document.getElementById('f_review').value = review;
+  document.getElementById('f_beter').value = beter;
+  document.getElementById('f_overig').value = overig;
+  document.getElementById('f_toestemming').value = toestemming ? toestemming.value : '';
+  document.getElementById('gform').submit();
 
   document.getElementById('formWrap').style.display = 'none';
   document.querySelector('.header').style.display = 'none';
