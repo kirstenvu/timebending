@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timebending® Wheel of Business</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Raleway:wght@300;400;500;600&display=swap');
+:root {
+  --cream: #F9FFFA; --warm-white: #ffffff; --sand: #E8DFD2; --taupe: #C89A3C;
+  --brown: #2A2438; --deep: #2A2438; --muted: #8A7A9A; --sage: #8A9E82;
+  --purple: #7B3FA0; --gold: #C89A3C;
+  --plum: #6B2F8E;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--cream); font-family:'Raleway',sans-serif; color:var(--deep); min-height:100vh; }
+.page { max-width:600px; margin:0 auto; padding:40px 20px 80px; }
+
+/* Header */
+.logo-line { font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; }
+h1 { font-family:Lora,serif; font-weight:400; font-size:clamp(36px,7vw,54px); line-height:1.05; margin-bottom:14px; color:var(--deep); }
+h1 em { font-style:italic; color:var(--gold); }
+.subtitle { font-size:13.5px; font-weight:300; color:var(--muted); line-height:1.75; margin-bottom:40px; font-family:Lora,serif; }
+
+/* Gold divider */
+.gold-line { width:40px; height:2px; background:var(--gold); margin:0 auto 32px; }
+
+/* Tabs */
+.tabs { display:flex; border:1.5px solid var(--sand); border-radius:32px; overflow:hidden; margin-bottom:36px; background:var(--warm-white); }
+.tab { flex:1; padding:12px 10px; font-family:'Raleway',sans-serif; font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; border:none; background:transparent; color:var(--muted); transition:all .2s; border-right:1.5px solid var(--sand); }
+.tab:last-child { border-right:none; }
+.tab.active { background:var(--purple); color:var(--cream); border-right-color:var(--purple); }
+.tab.active + .tab { border-left:none; }
+.tab:not(.active):hover { background:var(--sand); color:var(--deep); }
+
+/* Phases */
+.phase { display:none; }
+.phase.active { display:block; animation:fadeUp .3s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* Cards */
+.intro-card { background:var(--warm-white); border:1.5px solid var(--sand); border-left:3px solid var(--sage); border-radius:0 2px 2px 0; padding:20px 22px; margin-bottom:28px; box-shadow:0 4px 32px rgba(61,46,82,0.08); }
+.intro-text { font-size:13px; line-height:1.8; color:var(--brown); font-family:Lora,serif; }
+.intro-text strong { font-weight:600; color:var(--deep); }
+.pendel-card { background:var(--warm-white); border-left:3px solid var(--sage); padding:16px 20px; margin-bottom:28px; border-radius:0 2px 2px 0; box-shadow:0 4px 32px rgba(61,46,82,0.08); }
+.pendel-card-title { font-family:Lora,serif; font-size:16px; font-weight:600; color:var(--purple); margin-bottom:5px; }
+.pendel-card-text { font-size:13px; font-family:Lora,serif; color:var(--brown); line-height:1.75; }
+
+/* Area rows */
+.areas-wrap { display:flex; flex-direction:column; gap:18px; margin-bottom:32px; }
+.area-row { display:flex; flex-direction:column; gap:5px; }
+.area-header { display:flex; justify-content:space-between; align-items:baseline; }
+.area-name { font-family:Lora,serif; font-size:15px; font-weight:600; color:var(--purple); }
+.area-score { font-family:Lora,serif; font-size:20px; font-weight:400; color:var(--plum); }
+.area-desc { font-size:11px; color:var(--muted); font-family:'Raleway',sans-serif; font-weight:300; line-height:1.55; }
+.slider-outer { padding: 10px 0; margin: 2px 0; }
+input[type=range] { -webkit-appearance:none; width:70%; margin-left:15%; height:3px; background:var(--sand); border-radius:2px; outline:none; cursor:pointer; display:block; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:26px; height:26px; background:var(--area-color, var(--purple)); border-radius:50%; cursor:pointer; border:3px solid var(--cream); box-shadow:0 2px 8px rgba(61,46,82,.25); }
+input[type=range]:active::-webkit-slider-thumb { background:var(--purple); }
+
+/* Pendel dots */
+.pendel-dots { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
+.dot { width:28px; height:28px; border-radius:50%; border:1.5px solid var(--purple); background:transparent; cursor:pointer; font-size:10px; font-weight:600; font-family:'Raleway',sans-serif; color:var(--purple); transition:all .15s; display:flex; align-items:center; justify-content:center; }
+.dot:hover { border-color:var(--gold); background:rgba(200,154,60,.12); color:var(--deep); }
+
+/* Wheel */
+.wheel-wrap { display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:28px; }
+canvas { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 24px rgba(61,46,82,.15)); }
+.legend { display:flex; gap:16px; font-size:11px; color:var(--muted); font-weight:300; flex-wrap:wrap; justify-content:center; }
+.legend-item { display:flex; align-items:center; gap:6px; }
+.legend-line { width:14px; height:2px; border-radius:1px; flex-shrink:0; }
+
+/* Buttons */
+.cta-wrap { display:flex; gap:10px; flex-wrap:wrap; }
+.btn-dark { background:var(--deep); color:var(--cream); border:none; padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
+.btn-dark:hover { background:var(--plum); transform:translateY(-1px); }
+.btn-purple { background:var(--purple); color:white; border:none; padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
+.btn-purple:hover { background:var(--plum); transform:translateY(-1px); }
+.btn-green { background:var(--sage); color:white; border:none; padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
+.btn-green:hover { background:#6B8A72; transform:translateY(-1px); }
+.btn-ghost { background:transparent; color:var(--purple); border:1.5px solid var(--purple); padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
+.btn-ghost:hover { border-color:var(--plum); background:rgba(123,63,160,.06); }
+
+/* Gebied kaartjes fase 3 */
+.gebied-kaarten { display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
+.gebied-kaart { background:var(--warm-white); border:1.5px solid var(--sand); border-radius:2px; padding:16px 18px; border-left:3px solid var(--sand); box-shadow:0 4px 32px rgba(61,46,82,0.06); }
+.gebied-kaart-header { margin-bottom:8px; }
+.gebied-kaart-naam { font-family:Lora,serif; font-size:17px; font-weight:600; color:var(--purple); }
+.badge { font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:3px 9px; border-radius:10px; white-space:nowrap; }
+.badge-groen { background:#3D6B52; color:#E8F5EE; box-shadow:0 1px 4px rgba(0,0,0,.15); }
+.badge-paars { background:#5B1F7A; color:#F3E8FF; box-shadow:0 1px 4px rgba(0,0,0,.15); }
+.badge-gelijk { background:linear-gradient(135deg,#FFD700,#C8960C); color:#2A1800; box-shadow:0 2px 8px rgba(200,154,60,.5), inset 0 1px 0 rgba(255,248,180,.4); }
+.gebied-kaart-scores { font-size:12px; color:var(--muted); font-weight:300; margin-bottom:6px; font-family:'Raleway',sans-serif; }
+.gebied-kaart-score-val { font-family:Lora,serif; font-size:16px; font-weight:400; }
+.gebied-kaart-score-val.groen { color:#5a7a5e; }
+.gebied-kaart-score-val.paars { color:var(--purple); }
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Analyse */
+.analyse-wrap { display:none; margin-top:36px; background:var(--warm-white); border:1.5px solid var(--sand); border-radius:2px; padding:28px 24px; box-shadow:0 4px 32px rgba(61,46,82,0.08); }
+.analyse-title { font-family:Lora,serif; font-size:22px; font-weight:400; color:var(--purple); margin-bottom:16px; }
+.analyse-body { font-size:13.5px; line-height:1.85; color:var(--brown); font-family:Lora,serif; font-weight:400; }
+.analyse-body p { margin-bottom:14px; }
+.analyse-loading { text-align:center; padding:28px 0; display:none; }
+.spiraal-spin {
+  width: 80px; height: 80px;
+  display: block; margin: 0 auto;
+  transform-origin: center center;
+  animation: spiraalDraaien 3s linear infinite;
+}
+@keyframes spiraalDraaien { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+
+/* Spinner (inline gebruik elders) */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--sand);
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.footer-note { text-align:center; font-size:11px; color:var(--muted); font-weight:300; letter-spacing:.04em; margin-top:52px; padding-top:24px; border-top:1px solid var(--sand); font-family:'Raleway',sans-serif; }
+.footer-note a { color:var(--gold); text-decoration:none; }
+
+@media print {
+  body { background:#fff; }
+  .logo-line, h1, .subtitle, .gold-line, .tabs, .phase, .footer-note { display:none !important; }
+  .page { padding:0; max-width:100%; }
+  .analyse-wrap { display:block !important; border:none; box-shadow:none; padding:0; margin:0; }
+  .analyse-title { font-size:24px; margin-bottom:20px; }
+  #analyseBtns, #deelKaart, .analyse-loading { display:none !important; }
+  .analyse-body { font-size:12pt; line-height:1.8; }
+  .analyse-body div { break-inside:avoid; }
+  @page { margin:20mm 18mm; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div style="text-align:center;margin-bottom:40px;">
+  <img src="logo.png" alt="Timebending®" style="height:110px;width:auto;margin-bottom:18px;display:block;margin-left:auto;margin-right:auto;">
+  <h1>Wheel of <em>Business</em></h1>
+  <div class="gold-line"></div>
+  <p class="subtitle">Dit wiel is een momentopname. Er is geen goed of fout. Geen score die je moet halen. Wat je invult geeft informatie.</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="tab1" onclick="goTo(1)">Eerste blik</button>
+  <button class="tab" id="tab2" onclick="goTo(2)">Afstemming</button>
+  <button class="tab p" id="tab3" onclick="goTo(3)">Mijn wiel</button>
+</div>
+
+<!-- FASE 1 -->
+<div class="phase active" id="phase1">
+  <div class="intro-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+      <div style="display:flex;align-items:center;gap:8px;"><div style="font-size:18px;flex-shrink:0;">🌿</div><div class="pendel-card-title" style="margin-bottom:0;">Eerste blik</div></div>
+      <button onclick="toggleUitleg('uitlegExtra1','uitlegBtn1')" style="background:none;border:1.5px solid var(--purple);border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;color:var(--purple);font-weight:400;flex-shrink:0;display:flex;align-items:center;justify-content:center;" id="uitlegBtn1" title="Meer uitleg">?</button>
+    </div>
+    <div class="intro-text">Geef elk gebied een score van <strong>1 tot 10</strong>. Snel, vanuit je eerste ingeving. Wat komt er als eerste in je op?</div>
+    <div id="uitlegExtra1" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--sand);">
+      <p style="font-size:13px;font-family:Lora,serif;color:var(--brown);line-height:1.75;margin:0;"><strong>1</strong> je zit helemaal aan de grond. <strong>10</strong> je kunt je niks beters voorstellen.</p>
+    </div>
+  </div>
+  <div class="areas-wrap" id="slidersWrap"></div>
+  <div class="wheel-wrap">
+    <canvas id="wc1" width="560" height="560"></canvas>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-line" style="background:#8A9E82;"></div><span>Eerste indruk</span></div>
+    </div>
+  </div>
+  <div id="nudge1" style="margin-bottom:16px;padding:12px 16px;background:rgba(123,63,160,0.06);border-left:3px solid var(--purple);border-radius:0 2px 2px 0;">
+    <p style="font-size:12px;font-family:'Lora',serif;color:var(--purple);line-height:1.7;margin:0;">Voor een beter beeld van hoe je er voorstaat, nodig ik je uit om ook de Afstemming in te vullen. Zo krijg je nog meer informatie over jezelf.</p>
+  </div>
+  <div class="cta-wrap">
+    <button class="btn-purple" onclick="analyseer(false)">Analyseer</button>
+    <button class="btn-green" onclick="goTo(2)">Afstemming toevoegen</button>
+    <button class="btn-ghost" onclick="goTo(3)">Zie mijn wiel</button>
+  </div>
+</div>
+
+<!-- FASE 2 -->
+<div class="phase" id="phase2">
+  <div class="pendel-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div style="display:flex;align-items:center;gap:8px;"><div style="font-size:18px;flex-shrink:0;">🌿</div><div class="pendel-card-title" style="margin-bottom:0;">Afstemming</div></div>
+      <button onclick="toggleUitleg('uitlegExtra','uitlegBtn')" style="background:none;border:1.5px solid var(--purple);border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;color:var(--purple);font-weight:400;flex-shrink:0;display:flex;align-items:center;justify-content:center;" id="uitlegBtn" title="Meer uitleg">?</button>
+    </div>
+    <div class="pendel-card-text">Gebruik je pendel, biotensor of lichaamspendel. IJk voor je begint en kijk wat jouw lichaam je vertelt.</div>
+    <div id="uitlegExtra" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--sand);">
+      <p style="font-size:13px;font-family:Lora,serif;color:var(--brown);line-height:1.75;margin:0;">Bepaal voordat je begint wat voor jou een ja, een nee en een neutraal antwoord is. Start daarna met de cijfers van de gebieden te ontdekken. Start bij 5 en werk met ja en nee omhoog of omlaag tot je bij het juiste getal bent.</p>
+    </div>
+    <button onclick="openOptin()" style="background:none;border:none;padding:0;margin-top:14px;cursor:pointer;font-family:Lora,serif;font-size:12px;font-weight:400;color:var(--gold);font-style:italic;display:flex;align-items:center;gap:6px;">Heb je nog nooit met een pendel of lichaamspendel gewerkt? Stuur mij een bericht en ik stuur je meer info. <span style="font-size:14px;font-style:normal;">→</span></button>
+  </div>
+  <div id="nudge2" style="display:none;margin-bottom:20px;padding:12px 16px;background:rgba(138,158,130,0.08);border-left:3px solid var(--sage);border-radius:0 2px 2px 0;">
+    <p style="font-size:12px;font-family:'Lora',serif;color:#5a7a5e;line-height:1.7;margin:0;">Je hebt nog geen <strong>Eerste Blik</strong> ingevuld. Begin daarmee voor het bewuste deel — dan geeft de vergelijking pas echt inzicht.</p>
+  </div>
+  <div class="areas-wrap" id="pendelWrap"></div>
+  <div class="wheel-wrap">
+    <canvas id="wc2" width="560" height="560"></canvas>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-line" style="background:#7B3FA0;"></div><span>Afstemming</span></div>
+    </div>
+  </div>
+  <div class="cta-wrap">
+    <button class="btn-purple" onclick="analyseer(true)">Analyseer</button>
+    <button class="btn-ghost" onclick="goTo(3)">Zie mijn wiel</button>
+    <button class="btn-ghost" onclick="goTo(1)">Terug</button>
+  </div>
+</div>
+
+<!-- FASE 3 -->
+<div class="phase" id="phase3">
+  <div class="pendel-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+      <div style="display:flex;align-items:center;gap:8px;"><div style="font-size:18px;flex-shrink:0;">🌿</div><div class="pendel-card-title" style="margin-bottom:0;">Mijn wiel</div></div>
+      <button onclick="toggleUitleg('uitlegExtra3','uitlegBtn3')" style="background:none;border:1.5px solid var(--purple);border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;color:var(--purple);font-weight:400;flex-shrink:0;display:flex;align-items:center;justify-content:center;" id="uitlegBtn3" title="Meer uitleg">?</button>
+    </div>
+    <div class="pendel-card-text">Dit is jouw wiel. Kijk er even rustig naar. Wat vraagt je aandacht? Waar zit verschil tussen je eerste indruk en je afstemming, en wat zegt je dat?</div>
+    <div id="uitlegExtra3" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--sand);">
+      <p style="font-size:13px;font-family:Lora,serif;color:var(--brown);line-height:1.75;margin:0;">De groene lijn is je eerste indruk, de paarse je afstemming. Hoe dichter de twee bij elkaar liggen, hoe meer hoofd en systeem in lijn zijn. Een groot verschil is geen probleem, het is informatie.</p>
+    </div>
+    <p style="font-size:12px;font-family:Lora,serif;color:var(--muted);font-style:italic;margin-top:14px;">Maak de analyse en druk hem af. Dan heb je een mooie vergelijking voor de volgende keer.</p>
+    <div id="wiel3Melding"></div>
+  </div>
+  <div class="wheel-wrap">
+    <canvas id="wc3" width="560" height="560"></canvas>
+    <div class="legend" id="legend3"></div>
+  </div>
+  <div class="gebied-kaarten" id="gebiedKaarten"></div>
+  <div class="cta-wrap">
+    <button class="btn-purple" onclick="analyseer(pendelDone)">Analyseer</button>
+    <button class="btn-ghost" onclick="goTo(1)">Terug</button>
+  </div>
+</div>
+
+<!-- ANALYSE -->
+<div class="analyse-wrap" id="analyseWrap">
+  <div class="analyse-title">Jouw analyse</div>
+  <div class="analyse-loading" id="analyseLoading">
+    <img src="spiraal.png" alt="" class="spiraal-spin">
+    <p style="font-size:12px;color:var(--muted);font-weight:300;letter-spacing:.05em;margin-top:14px;font-family:'Raleway',sans-serif;">Analyse wordt opgesteld</p>
+  </div>
+  <div class="analyse-body" id="analyseBody"></div>
+  <div id="analyseBtns" style="display:none;margin-top:20px;padding-top:16px;border-top:1px solid var(--sand);gap:10px;flex-wrap:wrap;">
+    <button class="btn-ghost" onclick="window.print()" style="font-size:10px;padding:9px 18px;">Opslaan als PDF / Afdrukken</button>
+    <button class="btn-ghost" id="kopieerBtn" onclick="kopieerAnalyse()" style="font-size:10px;padding:9px 18px;">Kopiëren</button>
+    <button class="btn-ghost" onclick="document.getElementById('analyseWrap').style.display='none'" style="font-size:10px;padding:9px 18px;">Sluiten</button>
+  </div>
+
+  <!-- DEEL MET KIRSTEN -->
+  <div id="deelKaart" style="display:none;margin-top:28px;background:var(--warm-white);border:1.5px solid var(--sand);border-left:3px solid var(--purple);border-radius:0 2px 2px 0;padding:20px 22px;box-shadow:0 4px 32px rgba(61,46,82,0.08);">
+    <p style="font-family:Lora,serif;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Wheel of Life Timebending®</p>
+    <p style="font-family:Lora,serif;font-size:17px;font-weight:600;color:var(--purple);margin-bottom:6px;">Deel je resultaat met Kirsten</p>
+    <p style="font-size:13px;font-family:Lora,serif;color:var(--brown);line-height:1.75;margin-bottom:16px;">Vul je naam in.</p>
+    <input type="text" id="deelNaam" placeholder="Je naam" style="width:100%;padding:11px 14px;border:1.5px solid var(--sand);border-radius:2px;font-family:'Raleway',sans-serif;font-size:13px;color:var(--deep);background:var(--cream);margin-bottom:12px;box-sizing:border-box;outline:none;">
+    <button class="btn-purple" onclick="deelMetKirsten()" style="width:100%;">Stuur naar Kirsten</button>
+    <p id="deelFout" style="display:none;font-size:11px;color:#c0392b;margin-top:8px;font-family:'Raleway',sans-serif;">Vul eerst je naam in.</p>
+  </div>
+  <button class="btn-green" onclick="window.open('http://timebending.kennis.shop/watch/2100/43958','_blank')" style="width:100%;">Feedback geven</button>
+</div>
+
+<p class="footer-note">Timebending® door <a href="https://meavia.nu">meavia.nu</a></p>
+
+</div>
+
+<!-- OPT-IN MODAL -->
+<div id="optinOverlay" style="display:none;position:fixed;inset:0;background:rgba(42,36,56,.55);z-index:100;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--cream);max-width:420px;width:100%;border-radius:2px;padding:36px 32px;box-shadow:0 16px 60px rgba(42,36,56,.25);position:relative;">
+    <button onclick="sluitOptin()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">×</button>
+    <p style="font-family:'Raleway',sans-serif;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Timebending®</p>
+    <h2 style="font-family:Lora,serif;font-size:22px;font-weight:400;color:var(--deep);margin-bottom:8px;">Meer info over de pendel?</h2>
+    <p style="font-family:Lora,serif;font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:24px;">Laat je naam en e-mailadres achter en ik stuur je meer informatie toe.</p>
+    <div id="optinForm">
+      <input type="text" id="optinNaam" placeholder="Je naam" style="width:100%;padding:11px 14px;border:1.5px solid var(--sand);border-radius:2px;font-family:'Raleway',sans-serif;font-size:13px;color:var(--deep);background:var(--warm-white);margin-bottom:10px;box-sizing:border-box;outline:none;">
+      <input type="email" id="optinEmail" placeholder="Je e-mailadres" style="width:100%;padding:11px 14px;border:1.5px solid var(--sand);border-radius:2px;font-family:'Raleway',sans-serif;font-size:13px;color:var(--deep);background:var(--warm-white);margin-bottom:18px;box-sizing:border-box;outline:none;">
+      <button onclick="verstuurOptin()" class="btn-purple" style="width:100%;padding:14px;">Stuur mijn bericht</button>
+    </div>
+    <div id="optinBevestiging" style="display:none;text-align:center;padding:16px 0;">
+      <p style="font-family:Lora,serif;font-size:15px;color:var(--purple);margin-bottom:6px;">Bedankt!</p>
+      <p style="font-family:Lora,serif;font-size:13px;color:var(--muted);">Ik neem zo snel mogelijk contact met je op.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+var AREAS = [
+  { key:'gezondheid', name:'Gezondheid', short:'Gezondheid', color:'#3DB870',
+    desc:'Dit gaat over hoe je je lichamelijk en energetisch voelt. Over energie, rust, herstel en hoe je luistert naar de signalen van je lichaam.',
+    sleutel:null, reflection:'Je lichaam is je instrument. Alles begint hier.' },
+  { key:'financien', name:'Financiën', short:'Financiën', color:'#C89A3C',
+    desc:'Dit gaat over geld en materiële zekerheid, maar ook over je gevoel van veiligheid, vrijheid en de keuzes die je daarin maakt.',
+    sleutel:'Efficientie', reflection:'Financiële ruimte geeft ook innerlijke ruimte. Wat tolereert jij hier nu?' },
+  { key:'relaties', name:'Relaties', short:'Relatie', color:'#D93838',
+    desc:'Dit omvat je gezin, vriendschappen, intieme relaties en werkrelaties. Hoe vrij voel je je in contact met anderen? Waar stroomt het en waar kost het energie?',
+    sleutel:'Integer', reflection:'Ben jij jezelf in je relaties, of pas jij je aan om te passen?' },
+  { key:'mindset', name:'Mindset', short:'Mindset', color:'#3878D4',
+    desc:'De manier waarop je denkt en betekenis geeft aan wat je meemaakt. Welke overtuigingen richting geven aan je keuzes en hoe je met jezelf omgaat.',
+    sleutel:'Mindset', reflection:'De lens bepaalt wat je ziet. Wat wil jij anders zien?' },
+  { key:'emoties', name:'Emoties', short:'Emotie', color:'#E07030',
+    desc:'Hoe ga je om met wat je voelt? Is er ruimte voor emoties zoals ze zich aandienen, of houd je ze liever onder controle of op afstand?',
+    sleutel:'Aanpassen', reflection:'VOEL. Wat vraagt jouw emotionele wereld nu van je?' },
+  { key:'doel', name:'Doel en Missie', short:'Doel/missie', color:'#28A890',
+    desc:'Dit gaat over richting. Waar wil je heen in je leven? Waar maak jij je hard voor, en wat verwacht je van het leven en van jezelf?',
+    sleutel:'Visueel', reflection:'Jouw toekomst fluistert al. Hoor jij haar?' },
+  { key:'passie', name:'Passie', short:'Passie', color:'#D43090',
+    desc:'Wat geeft je energie? Waar word je blij van of voel je enthousiasme? En is daar nu ruimte voor in je leven?',
+    sleutel:'Actie', reflection:'Wat geeft jou energie? Krijgt dat voldoende ruimte?' },
+  { key:'zingeving', name:'Zingeving', short:'Zingeving', color:'#A8C020',
+    desc:'Dit gaat over het gevoel dat wat je doet ergens aan bijdraagt. Dat je leven, je keuzes of je aanwezigheid betekenis hebben voor jezelf, voor anderen of voor het geheel.',
+    sleutel:'Integer', reflection:'Wat jij te geven hebt aan de wereld. Mag dat er volledig zijn?' },
+  { key:'verbondenheid', name:'Spiritualiteit en Verbondenheid', short:'Verbondenheid', color:'#7B3FA0',
+    desc:'Dit gaat over verbondenheid met jezelf en het leven. Met iets dat groter voelt dan jij, op een manier die voor jou klopt.',
+    sleutel:'Mindset', reflection:'Verbondenheid met jezelf is de basis van alles. Begin hier.' }
+];
+
+function toggleUitleg(extraId, btnId) {
+  var el = document.getElementById(extraId);
+  var btn = document.getElementById(btnId);
+  var open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (btn) btn.textContent = open ? '?' : '×';
+}
+
+var s1 = {}, s2 = {}, pendelDone = false, s1Active = {};
+AREAS.forEach(function(a){ s1[a.key]=5; s2[a.key]=null; s1Active[a.key]=false; });
+
+function renderSliders() {
+  var wrap = document.getElementById('slidersWrap');
+  wrap.innerHTML = '';
+  AREAS.forEach(function(area) {
+    var v = s1[area.key];
+    var row = document.createElement('div');
+    row.className = 'area-row';
+    var isActive = s1Active[area.key];
+    var sliderColor = isActive ? area.color : '#B8AFC7';
+    var nameStyle = isActive ? 'color:var(--purple)' : 'color:var(--muted)';
+    var scoreHtml = isActive ? v : '<span style="color:var(--muted)">5</span>';
+    row.innerHTML = '<div class="area-header"><span class="area-name" style="'+nameStyle+'">'+area.name+'</span><span class="area-score" id="s1-'+area.key+'">'+scoreHtml+'</span></div>'
+      + '<p class="area-desc">'+area.desc+'</p>'
+      + '<div class="slider-outer"><input type="range" min="1" max="10" value="'+v+'" id="range-'+area.key+'" style="accent-color:'+sliderColor+';--area-color:'+sliderColor+'"></div>';
+    wrap.appendChild(row);
+
+    var input = document.getElementById('range-'+area.key);
+    var isTouching = false;
+    input.addEventListener('touchstart', function(e) {
+      var rect = input.getBoundingClientRect();
+      var touch = e.touches[0];
+      var thumbX = rect.left + (v / 10) * rect.width;
+      if(Math.abs(touch.clientX - thumbX) < 30) { isTouching = true; }
+    }, {passive: true});
+    input.addEventListener('touchend', function() { isTouching = false; });
+    input.addEventListener('touchcancel', function() { isTouching = false; });
+    input.addEventListener('input', function() {
+      if(isTouching || !('ontouchstart' in window)) { updateS1(area.key, this.value); }
+    });
+    input.addEventListener('change', function() { updateS1(area.key, this.value); });
+    input.addEventListener('pointerup', function() { updateS1(area.key, this.value); });
+  });
+}
+
+function updateS1(key, val) {
+  s1[key] = parseInt(val);
+  s1Active[key] = true;
+  var el = document.getElementById('s1-'+key);
+  if(el) el.textContent = val;
+  renderSliders();
+  drawWheel('wc1', s1, null);
+}
+
+function renderPendel() {
+  var wrap = document.getElementById('pendelWrap');
+  wrap.innerHTML = '';
+  AREAS.forEach(function(area) {
+    var v2 = s2[area.key];
+    var row = document.createElement('div');
+    row.className = 'area-row';
+    var dots = '';
+    for(var i=1;i<=10;i++){
+      var sel = (v2===i);
+      var isDefault = (i===5 && v2===null);
+      var dotStyle = sel ? 'background:'+area.color+';border-color:'+area.color+';color:white;font-weight:700;'
+        : isDefault ? 'background:rgba(123,63,160,0.08);border-color:rgba(123,63,160,0.25);color:rgba(123,63,160,0.4);'
+        : 'border-color:rgba(123,63,160,0.3);color:rgba(123,63,160,0.35);';
+      dots += '<button class="dot" onclick="updateS2(\''+area.key+'\','+i+')" style="'+dotStyle+'">'+i+'</button>';
+    }
+    row.innerHTML = '<div class="area-header"><span class="area-name">'+area.name+'</span><span class="area-score" id="s2-'+area.key+'">'+(v2!==null?v2:'')+'</span></div>'
+      + '<div class="pendel-dots">'+dots+'</div>';
+    wrap.appendChild(row);
+  });
+}
+
+function updateS2(key, val) {
+  s2[key] = parseInt(val);
+  pendelDone = true;
+  renderPendel();
+  var d = {};
+  AREAS.forEach(function(a){ d[a.key]=s2[a.key]!==null?s2[a.key]:5; });
+  drawWheel('wc2', null, d);
+}
+
+function buildScoresList() {
+  var wrap = document.getElementById('gebiedKaarten');
+  wrap.innerHTML = '';
+  AREAS.forEach(function(a) {
+    var kaart = document.createElement('div');
+    kaart.className = 'gebied-kaart';
+    var badge = '', borderColor = 'var(--sand)', scoresHtml = '';
+
+    var heeftBeide = s1Active[a.key] && s2[a.key]!==null;
+    if(pendelDone && heeftBeide) {
+      var d = s2[a.key] - s1[a.key];
+      if(d === 0) {
+        badge = '<span class="badge badge-gelijk">Sterk gebied</span>';
+        borderColor = '#C89A3C';
+      } else if(d > 0) {
+        badge = '<span class="badge badge-paars">Pendel hoger</span>';
+        borderColor = '#7B3FA0';
+      } else {
+        badge = '<span class="badge badge-groen">Eerste blik hoger</span>';
+        borderColor = '#8A9E82';
+      }
+      scoresHtml = '<div class="gebied-kaart-scores">'
+        + 'Eerste indruk <span class="gebied-kaart-score-val groen">'+s1[a.key]+'</span>'
+        + ' &nbsp;·&nbsp; '
+        + 'Pendel <span class="gebied-kaart-score-val paars">'+s2[a.key]+'</span>'
+        + '</div>';
+    } else {
+      scoresHtml = '<div class="gebied-kaart-scores">'
+        + 'Score <span class="gebied-kaart-score-val groen">'+s1[a.key]+'</span>'
+        + '</div>';
+    }
+
+    kaart.style.borderLeftColor = borderColor;
+    kaart.innerHTML = '<div class="gebied-kaart-naam">'+a.name+'</div>'
+      + '<div style="margin:5px 0 8px;">'+badge+'</div>'
+      + scoresHtml;
+    wrap.appendChild(kaart);
+  });
+}
+
+function drawWheel(id, d1, d2) {
+  var canvas = document.getElementById(id);
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W=canvas.width, H=canvas.height, cx=W/2, cy=H/2;
+  var outerR = Math.min(W,H)/2 - 95;
+  var ringW = 18, maxR = outerR - ringW;
+  var n=AREAS.length, slice=(2*Math.PI)/n, start=-Math.PI/2;
+  ctx.clearRect(0,0,W,H);
+
+  ctx.beginPath(); ctx.arc(cx,cy,outerR,0,Math.PI*2); ctx.fillStyle='#7B3FA0'; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,maxR,0,Math.PI*2); ctx.fillStyle='#FFFFFF'; ctx.fill();
+
+  AREAS.forEach(function(_,i){
+    var a=start+i*slice;
+    ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*maxR,cy+Math.sin(a)*maxR);
+    ctx.lineTo(cx+Math.cos(a)*outerR,cy+Math.sin(a)*outerR);
+    ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1; ctx.stroke();
+  });
+
+  for(var r=10;r>=1;r--){
+    ctx.beginPath(); ctx.arc(cx,cy,(r/10)*maxR,0,Math.PI*2);
+    ctx.strokeStyle='rgba(160,150,175,.4)';
+    ctx.lineWidth=0.8; ctx.stroke();
+  }
+  AREAS.forEach(function(_,i){
+    var a=start+i*slice;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(a)*maxR,cy+Math.sin(a)*maxR);
+    ctx.strokeStyle='rgba(150,100,180,.3)'; ctx.lineWidth=0.7; ctx.stroke();
+  });
+
+  if(d1) {
+    var hasD2 = d2!==null;
+    ctx.beginPath();
+    AREAS.forEach(function(area,i){
+      var a=start+(i+.5)*slice, r=(d1[area.key]/10)*maxR;
+      i===0?ctx.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r):ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);
+    });
+    ctx.closePath();
+    ctx.fillStyle=hasD2?'rgba(138,158,130,.1)':'rgba(138,158,130,.2)'; ctx.fill();
+    ctx.setLineDash(hasD2?[5,4]:[]);
+    ctx.strokeStyle=hasD2?'rgba(138,158,130,.6)':'#8A9E82'; ctx.lineWidth=hasD2?1.5:2; ctx.stroke();
+    ctx.setLineDash([]);
+    AREAS.forEach(function(area,i){
+      var a=start+(i+.5)*slice, r=(d1[area.key]/10)*maxR;
+      ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,hasD2?5:6,0,Math.PI*2);
+      ctx.fillStyle=area.color; ctx.fill(); ctx.strokeStyle='#FFF'; ctx.lineWidth=2; ctx.stroke();
+    });
+  }
+
+  if(d2) {
+    ctx.beginPath();
+    AREAS.forEach(function(area,i){
+      var a=start+(i+.5)*slice, r=(d2[area.key]/10)*maxR;
+      i===0?ctx.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r):ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);
+    });
+    ctx.closePath();
+    ctx.fillStyle='rgba(123,63,160,.12)'; ctx.fill();
+    ctx.strokeStyle='#7B3FA0'; ctx.lineWidth=2; ctx.stroke();
+    AREAS.forEach(function(area,i){
+      var a=start+(i+.5)*slice, r=(d2[area.key]/10)*maxR;
+      ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,6,0,Math.PI*2);
+      ctx.fillStyle=area.color; ctx.fill(); ctx.strokeStyle='#FFF'; ctx.lineWidth=2; ctx.stroke();
+    });
+  }
+
+  var lr = outerR + 15;
+  ctx.font = '600 14px Raleway,sans-serif';
+  ctx.fillStyle = '#2A2438';
+  ctx.textBaseline = 'middle';
+  AREAS.forEach(function(area,i){
+    var a = start+(i+.5)*slice;
+    var cosA = Math.cos(a), sinA = Math.sin(a);
+    ctx.textAlign = cosA > 0.2 ? 'left' : cosA < -0.2 ? 'right' : 'center';
+    ctx.fillText(area.short, cx + cosA*lr, cy + sinA*lr);
+  });
+
+  ctx.beginPath(); ctx.arc(cx,cy,6,0,Math.PI*2); ctx.fillStyle='#EDE4F5'; ctx.fill();
+  ctx.strokeStyle='#FFF'; ctx.lineWidth=2.5; ctx.stroke();
+}
+
+function goTo(n) {
+  if(n===2) {
+    AREAS.forEach(function(a){ if(s2[a.key]===null) s2[a.key]=null; });
+    pendelDone=false;
+    renderPendel();
+    var hasAny = AREAS.some(function(a){ return s2[a.key]!==null; });
+    if(hasAny) {
+      var d={}; AREAS.forEach(function(a){ d[a.key]=s2[a.key]!==null?s2[a.key]:5; });
+      drawWheel('wc2',null,d);
+    } else {
+      var ctx=document.getElementById('wc2').getContext('2d');
+      ctx.clearRect(0,0,560,560);
+    }
+  }
+  if(n===3) {
+    var leg=document.getElementById('legend3');
+    var hasEB = AREAS.some(function(a){ return s1Active[a.key]; });
+    var hasPendel = pendelDone && AREAS.some(function(a){ return s2[a.key]!==null; });
+    var d1 = hasEB ? s1 : null;
+    var d2 = hasPendel ? s2 : null;
+    var legHtml = '';
+    var msg3 = document.getElementById('wiel3Melding');
+    var melding = '';
+    if(hasEB && hasPendel) {
+      legHtml = '<div class="legend-item"><div class="legend-line" style="background:#8A9E82;"></div><span>Eerste indruk</span></div>'
+        +'<div class="legend-item"><div class="legend-line" style="background:#7B3FA0;"></div><span>Pendel</span></div>';
+    } else if(hasEB) {
+      legHtml = '<div class="legend-item"><div class="legend-line" style="background:#8A9E82;"></div><span>Eerste indruk</span></div>';
+      melding = 'Je hebt de eerste blik ingevuld. Probeer ook de Afstemming-tab voor extra diepgang.';
+    } else if(hasPendel) {
+      legHtml = '<div class="legend-item"><div class="legend-line" style="background:#7B3FA0;"></div><span>Pendel</span></div>';
+      melding = 'Je hebt de pendel ingevuld. Voeg ook je eerste blik toe via de Eerste Blik-tab.';
+    } else {
+      melding = 'Vul eerst de Eerste Blik of Afstemming in.';
+    }
+    leg.innerHTML = legHtml;
+    if(msg3) msg3.innerHTML = melding ? '<p style="font-size:12px;font-family:Lora,serif;color:var(--gold);font-style:italic;margin-top:12px;">'+melding+'</p>' : '';
+    drawWheel('wc3', d1, d2);
+    buildScoresList();
+  }
+  var n1 = document.getElementById('nudge1');
+  var n2 = document.getElementById('nudge2');
+  var hasEB = AREAS.some(function(a){ return s1Active[a.key]; });
+  if(n1) n1.style.display = (n===1) ? 'block' : 'none';
+  if(n2) n2.style.display = (n===2 && !hasEB) ? 'block' : 'none';
+  document.querySelectorAll('.phase').forEach(function(p,i){ p.classList.toggle('active',i+1===n); });
+  for(var i=1;i<=3;i++){
+    var t=document.getElementById('tab'+i);
+    t.classList.toggle('active',i===n);
+    t.classList.toggle('p',i===n&&i===3);
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function resetAll() {
+  AREAS.forEach(function(a){ s1[a.key]=5; s2[a.key]=null; s1Active[a.key]=false; });
+  pendelDone=false;
+  analyseData=null;
+  document.getElementById('analyseWrap').style.display='none';
+  document.getElementById('deelKaart').style.display='none';
+  document.getElementById('deelNaam').value='';
+  renderSliders();
+  drawWheel('wc1',s1,null);
+  goTo(1);
+}
+
+async function analyseer(metPendel) {
+  var wrap = document.getElementById('analyseWrap');
+  var loading = document.getElementById('analyseLoading');
+  var body = document.getElementById('analyseBody');
+  var btns = document.getElementById('analyseBtns');
+
+  var analyseKnoppen = document.querySelectorAll('button[onclick^="analyseer"]');
+  analyseKnoppen.forEach(function(b){ b.disabled=true; b.textContent='Bezig...'; });
+
+  wrap.style.display = 'block';
+  loading.style.display = 'block';
+  body.innerHTML = '';
+  btns.style.display = 'none';
+  wrap.scrollIntoView({behavior:'smooth', block:'start'});
+
+  var regels = [];
+  var heeftEersteBlik = AREAS.some(function(a){ return s1Active[a.key]; });
+  var heeftPendel = metPendel && pendelDone && AREAS.some(function(a){ return s2[a.key]!==null; });
+  AREAS.forEach(function(a){
+    var s1v = s1Active[a.key] ? s1[a.key] : null;
+    var s2v = heeftPendel ? s2[a.key] : null;
+    if(s1v===null && s2v===null) return;
+    var type;
+    if(s2v === null) {
+      type = 'score '+s1v;
+    } else if(s1v === null) {
+      type = 'pendel '+s2v+' (alleen pendel ingevuld)';
+    } else {
+      var diff = s2v - s1v;
+      if(diff > 1) type = 'eerste indruk '+s1v+', pendel '+s2v+' (pendel hoger)';
+      else if(diff < -1) type = 'eerste indruk '+s1v+', pendel '+s2v+' (eerste indruk hoger)';
+      else type = 'eerste indruk '+s1v+', pendel '+s2v+' (sterk: in lijn)';
+    }
+    regels.push(a.name+': '+type);
+  });
+
+  var metPendelZin = heeftPendel
+    ? (heeftEersteBlik ? 'De persoon heeft zowel eerste indruk als pendel ingevuld.' : 'De persoon heeft alleen de pendel/afstemming ingevuld. Voeg aan het einde van de afsluiting een korte uitnodiging toe om ook de Eerste Blik tab te proberen.')
+    : (heeftEersteBlik ? 'De persoon heeft alleen een eerste indruk ingevuld. Voeg aan het einde van de afsluiting een korte uitnodiging toe om ook de Afstemming-tab met pendel te proberen.' : 'Geen scores ingevuld.');
+
+  var prompt = 'Je bent Kirsten van Timebending®. Dit is een tool voor highend klanten die kwaliteit en diepgang verwachten. Schrijf een persoonlijke, unieke analyse in warme, directe Nederlandse jij-vorm. Geen gedachtestreepjes of liggende streepjes.\n\nTOON: Warm, direct en nieuwsgierig — alsof je naast iemand staat en hardop denkt mee. Lage scores zijn uitnodigingen, geen tekortkomingen. Gebruik zachte hypothesetaal: "dit suggereert", "misschien speelt hier", "het zou kunnen zijn dat", "het lijkt erop dat". Nooit veroordelend. Nooit vragen stellen aan het einde van een zin (dus geen "Wat vraagt dit van jou?" — stel het als observatie: "Dit vraagt misschien iets van je").\n\nBADGE REGEL (ABSOLUUT STRENG): De badge mag ALLEEN een van deze drie exacte waarden zijn: "Sterk", "Pendel hoger", of "Eerste blik hoger". Geen andere woorden. Gebruik "Sterk" UITSLUITEND als beide scores het EXACTE ZELFDE GETAL zijn. Alle andere waarden of geen tweede score = lege badge "". Badges zijn alleen zichtbaar als ZOWEL eerste indruk ALS pendel zijn ingevuld.\n\nMARKERINGEN (ABSOLUUT VERPLICHT IN ELK BLOK — ZOWEL TEKST ALS GROEIPUNT): Elk tekstveld en elk groeipunt moet minimaal 2 tot 3 markeringen bevatten met **woord** of **twee of drie woorden als zinsdeel**. Geen enkel blok zonder markering. De gemarkeerde zinsdelen samen vormen bijna een samenvatting — wie alleen de gouden woorden leest, begrijpt de kern. Markeer nooit beschrijvende woorden (hoog, laag, gebied, score) maar alleen woorden met emotionele of psychologische lading: **innerlijke ruimte**, **bewuste toestemming**, **bron van veiligheid**, **diepere laag**, **echte verbinding**, **eigen ritme**, **verlangen erkennen**, **grenzen voelen**, **overgave toestaan**, **verborgen kracht**, **durven toelaten**, **ruimte om te zijn**, **eigen waarheid**, **stille kracht**, **bewust kiezen**.\n\nVOORBEREIDING (doe dit VOOR je de JSON schrijft):\nBekijk alle scores in één oogopslag. Stel jezelf drie vragen:\n1. Welke twee gebieden lijken het meest op elkaar qua score of patroon?\n2. Welke twee gebieden staan het meest tegenover elkaar?\n3. Is er een algemeen patroon (bijna alles hoog, laag, of bewust hoger dan pendel)?\nVerwerk de antwoorden als concrete zinnen IN de tekst van de betreffende gebieden. Dit is niet optioneel.\n\nCROSS-REFERENTIE REGELS (minimaal 3 keer toepassen in de volledige analyse):\nAls twee gebieden hetzelfde patroon tonen: begin de zin letterlijk met "Net als bij [naam gebied]..." of "Dit patroon herken je van [naam gebied]:"\nAls een gebied contrasteert met een eerder gebied: begin met "Hier is het precies omgekeerd dan bij [naam gebied]:" of "Terwijl je bij [naam gebied] een [score] gaf, geeft je lichaam hier een [score]."\nAls alles laag of hoog is: benoem in de intro wat dit als geheel zegt. Een wiel dat overal een 5 scoort vertelt iets anders dan een wiel met grote pieken en dalen.\nAlle informatie is een les — ook gelijkmatige scores, ook patronen die op het eerste gezicht gewoon lijken.\n\nTEKSTEN PER GEBIED (3 zinnen, bij twee scores: benoem het patroon):\nAls er TWEE scores zijn (eerste indruk + pendel):\n- Zin 1: Benoem het patroon direct en concreet, gebruik beide getallen als anker — bv. "Met een bewuste 7 en een pendel van 5 zie je dat..." of "Je eerste indruk (6) en je lichaam (9) vertellen een ander verhaal." Benoem wat dit patroon suggereert of wat er mogelijk onder speelt.\n- Zin 2: De diepere betekenis — wat zegt dit over iemands leven, patronen of krachten op dit moment? Gebruik "dit suggereert", "misschien", "het wijst erop dat".\n- Zin 3: Een warme, uitnodigende observatie — geen vraag, maar een zachte opening.\nAls er maar ÉÉN score is:\n- Zin 1: Wat dit gebied werkelijk inhoudt voor iemands leven, gevoed door de score.\n- Zin 2: Wat de score onthult over een patroon, kracht of verlangen.\n- Zin 3: Een uitnodigende observatie vanuit nieuwsgierigheid.\n\nGROEIPUNTEN (3 zinnen — schrijf als mini-gesprek, begin ALTIJD met de score als anker):\nZin 1: Start met de score(s) als concrete observatie — bv. "Met scores van 9 en 10 is dit je **krachtbron**." of "Het verschil tussen 7 en 4 nodigt je uit om naar de **diepere laag** te kijken." of "Beide scores op 6 laten zien dat je hier **helder over bent**." Benoem daarna of dit een kracht is of een uitnodiging tot aandacht — niet als oordeel, maar als informatief.\nZin 2: Verdiep de betekenis vanuit de score — wat zegt dit getal over waar iemand staat? Gebruik de scores als spiegel.\nZin 3: Een zachte, persoonlijke beweging — geen opdracht, geen tijdsdruk. Iets als: "Misschien is het tijd om...", "Je zou kunnen beginnen met **woord**...", "Geef jezelf **bewuste toestemming** om...". NOOIT "doe dit vandaag" of andere directieven.\nGebruik minimaal 2 **accentwoorden** per groeipunt. Richtlijnen per gebied:\n- Gezondheid: lichaam als informatiebron of krachtbron — afhankelijk van de score\n- Financiën: ruimte of bewustzijn — scores bepalen of dit kracht of uitnodiging is\n- Relaties: diepte van contact of kwaliteit van verbinding\n- Mindset: de lens benoemen — kracht of uitnodiging tot onderzoek\n- Emoties: ruimte of toestemming — niet oplossen\n- Doel en Missie: richting of verlangen — wat fluistert de score?\n- Passie: krachtbron benoemen of zachte uitnodiging om iets te laten staan\n- Zingeving: betekenis die al aanwezig is, of uitnodiging om die te ontdekken\n- Spiritualiteit en Verbondenheid: aanwezig zijn — nuchter en aards\n\nAFSLUITING: Één warme, aanmoedigende zin. Dan een lichte uitnodiging om over 4-6 weken terug te komen om te zien wat er verschoven is — nieuwsgierig en licht, niet als opdracht.\n\n' + metPendelZin + ' Scores: ' + regels.join(', ') + ' Gebruik dit exacte JSON formaat en niks anders: {"intro":"...","gebieden":[{"naam":"Gezondheid","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Financiën","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Relaties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Mindset","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Emoties","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Doel en Missie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Passie","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Zingeving","badge":"...","tekst":"...","groeipunt":"..."},{"naam":"Spiritualiteit en Verbondenheid","badge":"...","tekst":"...","groeipunt":"..."}],"afsluiting":"..."}. Bij Spiritualiteit en Verbondenheid: nuchter en aards, geen spirituele clichés.';
+
+  try {
+    var resp = await fetch('/api/analyse', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt: prompt})
+    });
+    var data = await resp.json().catch(function(){ throw new Error('Antwoord kon niet worden gelezen (timeout of serverprobleem)'); });
+    if(!resp.ok) throw new Error('Server ' + resp.status + ': ' + (data.error || JSON.stringify(data)));
+    var tekst = (data.content && data.content[0]) ? data.content[0].text.trim() : null;
+    if(!tekst) throw new Error('Geen tekst ontvangen — API antwoord: ' + JSON.stringify(data).slice(0,200));
+
+    var clean = tekst.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+    var parsed = JSON.parse(clean);
+
+    // Badges altijd berekenen vanuit werkelijke scores (niet vertrouwen op API)
+    parsed.gebieden.forEach(function(g) {
+      var area = null;
+      AREAS.forEach(function(a) { if(a.name === g.naam) area = a; });
+      if(area && heeftEersteBlik && heeftPendel && s1Active[area.key] && s2[area.key] !== null) {
+        var diff = s2[area.key] - s1[area.key];
+        if(diff === 0) g.badge = 'Sterk';
+        else if(diff > 0) g.badge = 'Pendel hoger';
+        else g.badge = 'Eerste blik hoger';
+      } else {
+        g.badge = '';
+      }
+    });
+
+    window._lastParsed = parsed;
+    loading.style.display = 'none';
+
+    function hl(t) {
+      return t.replace(/\*\*([^*]+)\*\*/g, function(_,w){
+        return '<strong style="color:#C89A3C;font-weight:600;">'+w+'</strong>';
+      });
+    }
+
+    var html = '';
+    if(parsed.intro) {
+      html += '<p style="font-size:13.5px;line-height:1.85;color:var(--brown);font-family:\'Lora\',serif;margin-bottom:28px;">'+hl(parsed.intro)+'</p>';
+    }
+
+    html += '<div style="border-bottom:2px solid var(--sage);padding-bottom:8px;margin-bottom:20px;">'
+      + '<p style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--deep);font-weight:600;font-family:\'Raleway\',sans-serif;">Inzicht per gebied</p>'
+      + '</div>';
+
+    var VALID_BADGES = ['Sterk', 'Pendel hoger', 'Eerste blik hoger'];
+    var badgeColors = {
+      'Sterk':             { bg:'linear-gradient(135deg,#FFD700,#C8960C)', text:'#2A1800' },
+      'Pendel hoger':      { bg:'#5B1F7A', text:'#F3E8FF' },
+      'Eerste blik hoger': { bg:'#3D6B52', text:'#E8F5EE' }
+    };
+    var borderColors = {
+      'Sterk':             '#C89A3C',
+      'Pendel hoger':      '#7B3FA0',
+      'Eerste blik hoger': '#8A9E82'
+    };
+    parsed.gebieden.forEach(function(g){
+      var badgeVal = (g.badge && VALID_BADGES.indexOf(g.badge) !== -1) ? g.badge : '';
+      var showBadge = badgeVal && heeftEersteBlik && heeftPendel;
+      var bc = badgeColors[badgeVal] || { bg:'#888', text:'#fff' };
+      var borderLeft = borderColors[badgeVal] || 'var(--sand)';
+      var badge = showBadge
+        ? '<span style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;padding:4px 13px;border-radius:12px;margin-left:8px;vertical-align:middle;font-family:\'Raleway\',sans-serif;text-transform:uppercase;background:'+bc.bg+';color:'+bc.text+';box-shadow:0 1px 4px rgba(0,0,0,.18);">'+badgeVal+'</span>'
+        : '';
+      html += '<div style="background:var(--warm-white);border:1.5px solid var(--sand);border-left:3px solid '+borderLeft+';border-radius:0 2px 2px 0;padding:18px 20px;margin-bottom:10px;box-shadow:0 2px 16px rgba(61,46,82,0.06);">'
+        + '<div style="margin-bottom:10px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;">'
+        + '<span style="font-family:\'Lora\',serif;font-size:19px;font-weight:600;color:var(--purple);">'+g.naam+'</span>'
+        + badge
+        + '</div>'
+        + '<p style="font-size:13px;line-height:1.85;color:var(--brown);font-family:\'Lora\',serif;margin:0;">'+hl(g.tekst)+'</p>'
+        + '</div>';
+    });
+
+    html += '<div style="border-bottom:2px solid var(--purple);padding-bottom:8px;margin:32px 0 20px;">'
+      + '<p style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--purple);font-weight:600;font-family:\'Raleway\',sans-serif;">Waar begin je?</p>'
+      + '</div>';
+
+    parsed.gebieden.forEach(function(g){
+      if(g.groeipunt) {
+        var gBorderLeft = borderColors[g.badge] || 'var(--sand)';
+        var gBadgeVal = (g.badge && VALID_BADGES.indexOf(g.badge) !== -1) ? g.badge : '';
+        var gBc = badgeColors[gBadgeVal] || null;
+        var gBadge = (gBadgeVal && heeftEersteBlik && heeftPendel && gBc)
+          ? '<span style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;padding:4px 13px;border-radius:12px;margin-left:8px;vertical-align:middle;font-family:\'Raleway\',sans-serif;text-transform:uppercase;background:'+gBc.bg+';color:'+gBc.text+';box-shadow:0 1px 4px rgba(0,0,0,.18);">'+gBadgeVal+'</span>'
+          : '';
+        html += '<div style="background:var(--warm-white);border:1.5px solid var(--sand);border-left:3px solid '+gBorderLeft+';border-radius:0 2px 2px 0;padding:16px 20px;margin-bottom:10px;box-shadow:0 2px 16px rgba(61,46,82,0.06);">'
+          + '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:7px;">'
+          + '<span style="font-family:\'Lora\',serif;font-size:17px;font-weight:600;color:var(--purple);">'+g.naam+'</span>'
+          + gBadge
+          + '</div>'
+          + '<p style="font-size:13px;line-height:1.85;color:var(--brown);font-family:\'Lora\',serif;margin:0;">'+hl(g.groeipunt)+'</p>'
+          + '</div>';
+      }
+    });
+
+    html += '<p style="margin-top:16px;font-size:13px;line-height:1.75;color:var(--muted);font-style:italic;font-family:\'Lora\',serif;">'+parsed.afsluiting+'</p>';
+
+    html += '<div style="margin-top:36px;padding-top:24px;border-top:1px solid var(--sand);">'
+      + '<p style="font-family:\'Lora\',serif;font-size:13.5px;color:var(--brown);line-height:1.8;margin-bottom:20px;">Fijn dat je de tijd hebt genomen om bij jezelf te zijn. Dit wiel is een momentopname, een spiegel. Wat je erin ziet mag er zijn. Neem het mee en kijk wat het je brengt.</p>'
+      + '<p style="font-family:\'Raleway\',sans-serif;font-size:11px;font-weight:300;color:var(--muted);letter-spacing:.08em;margin-bottom:6px;">Liefs,</p>'
+      + '<img src="kirsten_van_ulden.png" alt="Kirsten van Ulden" style="height:64px;opacity:.9;display:block;margin-bottom:4px;">'
+      + '<p style="font-family:\'Raleway\',sans-serif;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);">Timebending®</p>'
+      + '</div>';
+
+    body.innerHTML = html;
+    btns.style.display = 'flex';
+    document.getElementById('deelKaart').style.display = 'block';
+
+  } catch(e) {
+    loading.style.display = 'none';
+    body.innerHTML = '<p style="font-size:13px;color:var(--brown);font-family:\'Lora\',serif;margin-bottom:8px;">Er ging iets mis bij de analyse.</p>'
+      + '<p style="font-size:11px;color:var(--muted);font-family:\'Raleway\',sans-serif;">' + e.message + '</p>';
+    console.log('Analyse fout:', e);
+  }
+  analyseKnoppen.forEach(function(b){ b.disabled=false; b.textContent='Analyseer'; });
+}
+
+function kopieerAnalyse() {
+  var el = document.getElementById('analyseBody');
+  var tmp = document.createElement('div');
+  tmp.innerHTML = el.innerHTML;
+  var tekst = (tmp.textContent || tmp.innerText || '').replace(/\s{2,}/g,' ').trim();
+  navigator.clipboard.writeText(tekst).then(function() {
+    var btn = document.getElementById('kopieerBtn');
+    btn.textContent = 'Gekopieerd ✓';
+    setTimeout(function(){ btn.textContent = 'Kopiëren'; }, 2500);
+  });
+}
+
+async function deelMetKirsten() {
+  var naam = document.getElementById('deelNaam').value.trim();
+  var fout = document.getElementById('deelFout');
+  if(!naam) { fout.style.display='block'; fout.style.color='#c0392b'; fout.textContent='Vul eerst je naam in.'; return; }
+  fout.style.display='none';
+  var btn = document.querySelector('#deelKaart .btn-purple');
+  btn.disabled = true; btn.textContent = 'Bezig…';
+
+  // Visuele scores met balkjes
+  var bar = function(n){ return '▓'.repeat(n) + '░'.repeat(10-n); };
+  var pad = function(s,l){ while(s.length<l) s+=' '; return s; };
+  var scoresTekst = 'WHEEL OF LIFE\n═══════════════════════\n\n';
+  AREAS.forEach(function(a){
+    var s1v = s1[a.key]; var s2v = (pendelDone && s2[a.key]!==null) ? s2[a.key] : null;
+    scoresTekst += pad(a.name,28) + bar(s1v) + '  ' + s1v + '/10\n';
+    if(s2v!==null) scoresTekst += pad('  ↳ pendel',28) + bar(s2v) + '  ' + s2v + '/10\n';
+  });
+  scoresTekst += '\nDatum: ' + new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
+
+  // Opgemaakte analyse vanuit JSON — max 4000 tekens om limieten te vermijden
+  var analyseTekst = naam + '\n\n';
+  if(window._lastParsed) {
+    var p = window._lastParsed;
+    analyseTekst += p.intro + '\n\n';
+    analyseTekst += '───────────────────────────\n';
+    analyseTekst += 'INZICHT PER GEBIED\n';
+    analyseTekst += '───────────────────────────\n\n';
+    p.gebieden.forEach(function(g){
+      analyseTekst += g.naam.toUpperCase();
+      if(g.badge) analyseTekst += '  [' + g.badge + ']';
+      analyseTekst += '\n';
+      analyseTekst += g.tekst.replace(/\*\*([^*]+)\*\*/g,'$1') + '\n';
+      if(g.groeipunt) analyseTekst += '→ ' + g.groeipunt.replace(/\*\*([^*]+)\*\*/g,'$1') + '\n';
+      analyseTekst += '\n';
+    });
+    analyseTekst += '───────────────────────────\n\n';
+    analyseTekst += p.afsluiting;
+  } else {
+    var el=document.getElementById('analyseBody'),tmp=document.createElement('div');
+    tmp.innerHTML=el.innerHTML;
+    analyseTekst += (tmp.textContent||tmp.innerText||'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+  }
+  // Veiligheidsgrens: kap af op 4000 tekens
+  if(analyseTekst.length > 4000) analyseTekst = analyseTekst.slice(0,3997) + '...';
+
+  var formData = new FormData();
+  formData.append('entry.1680545971', naam);
+  formData.append('entry.535513700', scoresTekst);
+  formData.append('entry.1038107845', analyseTekst);
+
+  // Aparte score-velden per gebied (voor analyses over deelnemers)
+  var scoreVelden = {
+    gezondheid:    'entry.1256848299',
+    financien:     'entry.1996374305',
+    relaties:      'entry.1366390076',
+    mindset:       'entry.1269862113',
+    emoties:       'entry.1338651569',
+    doel:          'entry.160968499',
+    passie:        'entry.1555921109',
+    zingeving:     'entry.2124910794',
+    verbondenheid: 'entry.112487302'
+  };
+  AREAS.forEach(function(a) {
+    if(!scoreVelden[a.key]) return;
+    var v1 = s1Active[a.key] ? s1[a.key] : null;
+    var v2 = (pendelDone && s2[a.key] !== null) ? s2[a.key] : null;
+    var val = (v1 !== null && v2 !== null) ? 'EI:' + v1 + ' P:' + v2
+            : (v1 !== null) ? String(v1)
+            : (v2 !== null) ? 'P:' + v2 : '';
+    if(val) formData.append(scoreVelden[a.key], val);
+  });
+
+  try {
+    await fetch('https://docs.google.com/forms/d/e/1FAIpQLSfUSkTUlId1gtfVhZetgdUv-hH4H1L73_B0_D0Uhi2IEBmPlA/formResponse', {
+      method:'POST', mode:'no-cors', body:formData
+    });
+    btn.textContent = 'Verzonden ✓';
+    fout.style.display='block'; fout.style.color='#5a7a5e';
+    fout.textContent='✓ Kirsten ontvangt jouw resultaten.';
+  } catch(e) {
+    btn.disabled=false; btn.textContent='Stuur naar Kirsten';
+    fout.style.display='block'; fout.style.color='#c0392b';
+    fout.textContent='Er ging iets mis. Probeer opnieuw.';
+  }
+}
+
+function openOptin() {
+  var overlay = document.getElementById('optinOverlay');
+  overlay.style.display = 'flex';
+  document.getElementById('optinForm').style.display = 'block';
+  document.getElementById('optinBevestiging').style.display = 'none';
+  document.getElementById('optinNaam').value = '';
+  document.getElementById('optinEmail').value = '';
+}
+
+function sluitOptin() {
+  document.getElementById('optinOverlay').style.display = 'none';
+}
+
+async function verstuurOptin() {
+  var naam = document.getElementById('optinNaam').value.trim();
+  var email = document.getElementById('optinEmail').value.trim();
+  if (!naam || !email) return;
+  var btn = document.querySelector('#optinForm .btn-purple');
+  btn.disabled = true; btn.textContent = 'Bezig…';
+  try {
+    await fetch('/api/contact', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({naam: naam, email: email})
+    });
+    document.getElementById('optinForm').style.display = 'none';
+    document.getElementById('optinBevestiging').style.display = 'block';
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'Stuur mijn bericht';
+  }
+}
+
+renderSliders();
+drawWheel('wc1',s1,null);
+</script>
+</body>
+</html>
