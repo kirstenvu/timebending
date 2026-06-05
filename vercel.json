@@ -7,6 +7,7 @@
   },
   "rewrites": [
     { "source": "/wheel-of-life", "destination": "/wheel-of-life.html" },
+    { "source": "/wheel-of-business", "destination": "/wheel-of-business.html" },
     { "source": "/feedback", "destination": "/feedback.html" },
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ]
