@@ -809,8 +809,8 @@ async function deelMetKirsten() {
     tmp.innerHTML=el.innerHTML;
     analyseTekst += (tmp.textContent||tmp.innerText||'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();
   }
-  // Veiligheidsgrens: kap af op 4000 tekens
-  if(analyseTekst.length > 4000) analyseTekst = analyseTekst.slice(0,3997) + '...';
+  // Veiligheidsgrens: kap af op 50000 tekens (Google Forms limiet)
+  if(analyseTekst.length > 50000) analyseTekst = analyseTekst.slice(0,49997) + '...';
 
   var formData = new FormData();
   formData.append('entry.1680545971', naam);
