@@ -168,22 +168,15 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
       <div class="ingang-kaart" id="ingang-a" onclick="kiesIngang('weet')">
         <div class="ingang-icoon" id="icoon-a">🔑</div>
         <div class="ingang-tekst">
-          <h3>Ik weet welke sleutel het is</h3>
-          <p>Je voelt het al. Kies direct de sleutel die om aandacht vraagt.</p>
+          <h3>Kies een sleutel</h3>
+          <p>Laat het op je inwerken, of gebruik je pendel.</p>
         </div>
       </div>
       <div class="ingang-kaart" id="ingang-b" onclick="kiesIngang('ontdek')">
         <div class="ingang-icoon" id="icoon-b">🔍</div>
         <div class="ingang-tekst">
           <h3>Ik wil het nog ontdekken</h3>
-          <p>Lees de zes sleutels met jouw situatie in gedachten. Voelen welke raakt.</p>
-        </div>
-      </div>
-      <div class="ingang-kaart" id="ingang-c" onclick="kiesIngang('beeld')">
-        <div class="ingang-icoon" id="icoon-c">✨</div>
-        <div class="ingang-tekst">
-          <h3>Eerste ingeving</h3>
-          <p>Kijk naar de zes sleutels. Klik op wat trekt. Vertrouw op je eerste reactie.</p>
+          <p>Een paar gerichte vragen helpen je te voelen welke sleutel hier speelt.</p>
         </div>
       </div>
     </div>
@@ -196,8 +189,8 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
   <!-- STAP 3a: Direct kiezen -->
   <div class="sectie" id="stap3-weet">
     <div class="card">
-      <div class="card-titel">Welke sleutel vraagt aandacht?</div>
-      <div class="card-tekst">Kies de sleutel die resoneert met wat er speelt.</div>
+      <div class="card-titel">Kies een sleutel</div>
+      <div class="card-tekst">Laat het op je inwerken, of gebruik je pendel.</div>
     </div>
     <div class="sleutels-raster">
       <div class="sleutel-kaart" onclick="kiesSleutel(this,'M')">
@@ -252,44 +245,6 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
     </div>
   </div>
 
-  <!-- STAP 3c: Eerste ingeving -->
-  <div class="sectie" id="stap3-beeld">
-    <div class="situatie-context" style="margin-bottom:20px">
-      <div class="situatie-context-label">Jouw situatie</div>
-      <div class="situatie-context-tekst" id="beeld-situatie-tekst"></div>
-    </div>
-    <p class="wiel-uitleg">Adem even in. Kijk naar de zes sleutels. Welke trekt jouw aandacht? Klik op je eerste ingeving.</p>
-    <div class="hex-grid">
-      <div class="hex-item" onclick="kiesSleutelBeeld(this,'M')">
-        <div class="hex-letter">M</div>
-        <div class="hex-naam">Mindset</div>
-      </div>
-      <div class="hex-item" onclick="kiesSleutelBeeld(this,'E')">
-        <div class="hex-letter">E</div>
-        <div class="hex-naam">Efficiëntie</div>
-      </div>
-      <div class="hex-item" onclick="kiesSleutelBeeld(this,'A1')">
-        <div class="hex-letter">A</div>
-        <div class="hex-naam">Aanpassen</div>
-      </div>
-      <div class="hex-item" onclick="kiesSleutelBeeld(this,'V')">
-        <div class="hex-letter">V</div>
-        <div class="hex-naam">Visueel</div>
-      </div>
-      <div class="hex-item" onclick="kiesSleutelBeeld(this,'I')">
-        <div class="hex-letter">I</div>
-        <div class="hex-naam">Integer</div>
-      </div>
-      <div class="hex-item" onclick="kiesSleutelBeeld(this,'A2')">
-        <div class="hex-letter">A</div>
-        <div class="hex-naam">Actie</div>
-      </div>
-    </div>
-    <div class="btn-wrap">
-      <button class="btn-dark" id="btn-beeld-verder" onclick="naarLaden()" disabled>Bekijk de reflectie</button>
-      <button class="btn-ghost" onclick="terug(2)">Terug</button>
-    </div>
-  </div>
 
   <!-- Laden -->
   <div class="sectie" id="stap-laden">
@@ -333,6 +288,7 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
     </div>
 
     <div class="btn-wrap" style="margin-top:32px">
+      <button class="btn-ghost" onclick="terug(2)">Terug</button>
       <button class="btn-opnieuw" onclick="opnieuw()">Opnieuw beginnen</button>
     </div>
   </div>
@@ -369,7 +325,7 @@ function naarStap2() {
 function kiesIngang(type) {
   gekozenIngang = type;
   document.querySelectorAll('.ingang-kaart').forEach(k => k.classList.remove('geselecteerd'));
-  const map = { weet:'ingang-a', ontdek:'ingang-b', beeld:'ingang-c' };
+  const map = { weet:'ingang-a', ontdek:'ingang-b' };
   document.getElementById(map[type]).classList.add('geselecteerd');
   document.getElementById('btn-naar-stap3').disabled = false;
 }
@@ -384,8 +340,7 @@ async function naarStap3() {
   } else if (gekozenIngang === 'beeld') {
     document.getElementById('beeld-situatie-tekst').textContent = situatie;
     setStap('stap3-beeld');
-  } else {
-    // Ontdek: laad eerst AI-vragen
+  } else if (gekozenIngang === 'ontdek') {
     setStap('stap-laden');
     document.getElementById('laden-tekst').textContent = 'Even nadenken over jouw situatie...';
     try {
@@ -449,6 +404,8 @@ function kiesOntdekOptie(el, idx) {
   huidigOptie = idx;
   document.getElementById('anders-input').value = '';
   document.getElementById('btn-ontdek-verder').disabled = false;
+  // Automatisch doorgaan na korte pauze
+  setTimeout(() => ontdekVolgende(), 400);
 }
 
 async function ontdekVolgende() {
@@ -497,13 +454,6 @@ function kiesSleutel(el, key) {
   document.querySelectorAll('.sleutel-kaart').forEach(k => k.classList.remove('geselecteerd'));
   el.classList.add('geselecteerd');
   document.getElementById('btn-weet-verder').disabled = false;
-}
-
-function kiesSleutelBeeld(el, key) {
-  gekozenSleutel = key;
-  document.querySelectorAll('.hex-item').forEach(k => k.classList.remove('geselecteerd'));
-  el.classList.add('geselecteerd');
-  document.getElementById('btn-beeld-verder').disabled = false;
 }
 
 async function naarLaden() {
@@ -643,7 +593,16 @@ function toonUitkomstFout(situatie) {
 
 function terug(stap) {
   if (stap === 1) { setStap('stap1'); zetDots(false, false, false); }
-  if (stap === 2) { setStap('stap2'); zetDots(true, false, false); }
+  if (stap === 2) {
+    // Reset gespreksgeschiedenis en sleutel bij terugkeer
+    gespreksGeschiedenis = [];
+    uitkomstSleutel = null;
+    gekozenSleutel = null;
+    document.getElementById('gesprek-geschiedenis').innerHTML = '';
+    document.getElementById('gesprek-input').value = '';
+    setStap('stap2');
+    zetDots(true, false, false);
+  }
 }
 
 function opnieuw() {
