@@ -12,6 +12,14 @@
 
 Altijd "Timebending®" — nooit zonder ®.
 
+In een h1 titel is de ® te groot als gewone tekst. Gebruik dan:
+
+```html
+Timebending<sup style="font-size:0.45em;vertical-align:super;">®</sup>
+```
+
+In footer, labels en kleinere tekst volstaat gewoon `®`.
+
 ## Fonts
 
 ```css
