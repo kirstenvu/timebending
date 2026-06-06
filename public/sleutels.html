@@ -118,6 +118,11 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
 .gesprek-antwoord-label { font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin-bottom:5px; }
 .gesprek-antwoord-tekst { font-size:13px; font-family:Lora,serif; color:var(--brown); font-style:italic; line-height:1.65; }
 
+/* Interactief sleutel logo */
+.sleutel-overlay { position:absolute; border-radius:50%; cursor:pointer; border:3px solid transparent; box-sizing:border-box; transition:all .2s; }
+.sleutel-overlay:hover { border-color: var(--overlay-kleur, #7B3FA0); background:rgba(0,0,0,0.06); }
+.sleutel-overlay.geselecteerd { border-color: var(--overlay-kleur, #7B3FA0); background:rgba(0,0,0,0.08); }
+
 /* Footer */
 .footer-note { text-align:center; font-size:11px; color:var(--muted); font-weight:300; letter-spacing:.04em; margin-top:52px; padding-top:24px; border-top:1px solid var(--sand); font-family:'Raleway',sans-serif; }
 .footer-note a { color:var(--gold); text-decoration:none; }
@@ -192,47 +197,23 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
     </div>
   </div>
 
-  <!-- STAP 3a: Direct kiezen -->
+  <!-- STAP 3a: Direct kiezen via interactief logo -->
   <div class="sectie" id="stap3-weet">
-    <div style="text-align:center;margin-bottom:28px;">
-      <img src="sleutel-logo.png" alt="De 6 sleutels" style="width:240px;height:auto;">
+    <div style="position:relative;width:280px;margin:0 auto 8px;" id="sleutel-logo-wrap">
+      <img src="sleutel-logo.png" alt="De 6 sleutels" style="width:280px;height:auto;display:block;">
+      <!-- Onzichtbare klikgebieden, pixel-precies berekend via kleuranalyse -->
+      <div class="sleutel-overlay" data-key="E"  data-naam="Efficiëntie" data-kleur="#3D6B52" style="left:calc(34.8% - 34px);top:calc(23.5% - 34px);width:68px;height:68px;"></div>
+      <div class="sleutel-overlay" data-key="A1" data-naam="Aanpassen"   data-kleur="#9070AA" style="left:calc(66.5% - 34px);top:calc(24.3% - 34px);width:68px;height:68px;"></div>
+      <div class="sleutel-overlay" data-key="M"  data-naam="Mindset"     data-kleur="#6A9E6A" style="left:calc(18.3% - 32px);top:calc(50.6% - 32px);width:64px;height:64px;"></div>
+      <div class="sleutel-overlay" data-key="V"  data-naam="Visueel"     data-kleur="#7B3FA0" style="left:calc(81.7% - 32px);top:calc(52.1% - 32px);width:64px;height:64px;"></div>
+      <div class="sleutel-overlay" data-key="A2" data-naam="Actie"       data-kleur="#2A8A8A" style="left:calc(33.5% - 34px);top:calc(78.3% - 34px);width:68px;height:68px;"></div>
+      <div class="sleutel-overlay" data-key="I"  data-naam="Integer"     data-kleur="#4A8A9A" style="left:calc(65.2% - 34px);top:calc(78.4% - 34px);width:68px;height:68px;"></div>
     </div>
-    <div class="card">
-      <div class="card-titel">Kies een sleutel</div>
-      <div class="card-tekst">Laat het op je inwerken, of gebruik je pendel.</div>
+    <div id="sleutel-instructie" style="text-align:center;margin-bottom:16px;">
+      <p style="font-family:Lora,serif;font-size:13.5px;color:var(--muted);font-style:italic;line-height:1.75;margin-bottom:10px;">Laat het op je inwerken, welke sleutel trekt je aandacht?<br>Of gebruik je pendel voor de juiste keuze.</p>
+      <p style="font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-family:Raleway,sans-serif;">Selecteer of klik op een sleutel</p>
     </div>
-    <div class="sleutels-raster">
-      <div class="sleutel-kaart" onclick="kiesSleutel(this,'M')">
-        <div class="sleutel-letter">M</div>
-        <div class="sleutel-naam">Mindset</div>
-        <div class="sleutel-kort">Hoe je kijkt en vanwaar</div>
-      </div>
-      <div class="sleutel-kaart" onclick="kiesSleutel(this,'E')">
-        <div class="sleutel-letter">E</div>
-        <div class="sleutel-naam">Efficiëntie</div>
-        <div class="sleutel-kort">Energie en focus</div>
-      </div>
-      <div class="sleutel-kaart" onclick="kiesSleutel(this,'A1')">
-        <div class="sleutel-letter">A</div>
-        <div class="sleutel-naam">Aanpassen</div>
-        <div class="sleutel-kort">Meebewegen met wat verandert</div>
-      </div>
-      <div class="sleutel-kaart" onclick="kiesSleutel(this,'V')">
-        <div class="sleutel-letter">V</div>
-        <div class="sleutel-naam">Visueel</div>
-        <div class="sleutel-kort">Richting en dromen</div>
-      </div>
-      <div class="sleutel-kaart" onclick="kiesSleutel(this,'I')">
-        <div class="sleutel-letter">I</div>
-        <div class="sleutel-naam">Integer</div>
-        <div class="sleutel-kort">Trouw aan jezelf</div>
-      </div>
-      <div class="sleutel-kaart" onclick="kiesSleutel(this,'A2')">
-        <div class="sleutel-letter">A</div>
-        <div class="sleutel-naam">Actie</div>
-        <div class="sleutel-kort">Bewegen en de stap zetten</div>
-      </div>
-    </div>
+    <p id="sleutel-selectie-label" style="text-align:center;font-family:Lora,serif;font-size:14px;font-style:italic;margin-bottom:24px;min-height:20px;color:transparent;">–</p>
     <div class="btn-wrap">
       <button class="btn-dark" id="btn-weet-verder" onclick="naarLaden()" disabled>Bekijk de reflectie</button>
       <button class="btn-ghost" onclick="terug(2)">Terug</button>
@@ -480,10 +461,27 @@ async function naarOntdekUitkomst() {
 
 function kiesSleutel(el, key) {
   gekozenSleutel = key;
-  document.querySelectorAll('.sleutel-kaart').forEach(k => k.classList.remove('geselecteerd'));
+  document.querySelectorAll('.sleutel-overlay').forEach(k => k.classList.remove('geselecteerd'));
   el.classList.add('geselecteerd');
   document.getElementById('btn-weet-verder').disabled = false;
 }
+
+// Initialiseer overlay-knoppen
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.sleutel-overlay').forEach(btn => {
+    const kleur = btn.dataset.kleur;
+    btn.style.setProperty('--overlay-kleur', kleur);
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sleutel-overlay').forEach(b => b.classList.remove('geselecteerd'));
+      btn.classList.add('geselecteerd');
+      gekozenSleutel = btn.dataset.key;
+      const lbl = document.getElementById('sleutel-selectie-label');
+      lbl.textContent = '✓ ' + btn.dataset.naam + ' geselecteerd';
+      lbl.style.color = kleur;
+      document.getElementById('btn-weet-verder').disabled = false;
+    });
+  });
+});
 
 async function naarLaden() {
   if (!gekozenSleutel) return;
