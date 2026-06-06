@@ -54,10 +54,14 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-  const { type, situatie, sleutel, antwoorden, context } = body || {};
+  const { type, situatie, sleutel, antwoorden, context, samenvatting } = body || {};
 
   const contextTekst = context && context.length > 0
     ? `\nEerder in dit gesprek is al het volgende besproken. Gebruik dit als achtergrond maar herhaal het niet:\n${context.map(c => `${c.rol === 'tool' ? 'Tool' : 'Persoon'}: ${c.tekst}`).join('\n\n')}\n`
+    : '';
+
+  const samenvattingTekst = samenvatting && samenvatting.length > 20
+    ? `\nAanvullende context: deze persoon heeft eerder een Timebending® onderzoek gedaan. Dit is de samenvatting daarvan. Gebruik dit alleen als achtergrond om de situatie beter te begrijpen. Benoem deze context niet expliciet en ga er niet op door tenzij de persoon dat zelf aankaart:\n${samenvatting}\n`
     : '';
 
   try {
@@ -68,7 +72,7 @@ module.exports = async function handler(req, res) {
 
       const prompt = `${stemPrefix()}Iemand beschrijft deze situatie:
 "${situatie}"
-
+${samenvattingTekst}
 Schrijf 3 vragen die echt dieper gaan op wat hier speelt. Niet breed of open, maar specifiek gericht op deze situatie. De vragen mogen iets raken wat de persoon misschien nog niet heeft gezien. Geen Timebending-jargon, geen vragen over energie of afstemming. Gewoon eerlijke vragen die helpen om de kern te vinden.
 
 Geef per vraag 3 antwoordopties. De opties zijn kort (max 12 woorden) en herkenbaar eerlijk. Ze klinken als wat mensen echt denken, niet als mooie antwoorden. Ze mogen ook een beetje oncomfortabel zijn als dat klopt bij de situatie.
@@ -111,7 +115,7 @@ Geef alleen dit JSON terug:
 
       const prompt = `${stemPrefix()}Iemand beschrijft deze situatie:
 "${situatie}"
-${contextTekst}
+${samenvattingTekst}${contextTekst}
 Op basis van deze situatie zijn de volgende vragen gesteld en zo beantwoord:
 ${antwoordTekst}
 
@@ -154,7 +158,7 @@ Geef alleen dit JSON terug:
 
       const prompt = `${stemPrefix()}Iemand beschrijft deze situatie:
 "${situatie}"
-${contextTekst}
+${samenvattingTekst}${contextTekst}
 De sleutel die hier aandacht vraagt is: ${s.naam}
 Wat deze sleutel betekent: ${s.kern}
 

@@ -180,6 +180,26 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
     </div>
     <label class="veld-label" for="situatie">Wat speelt er?</label>
     <textarea id="situatie" placeholder="Bijv. Ik merk dat ik steeds uitstel, of: ik voel weerstand maar weet niet waar het vandaan komt..."></textarea>
+
+    <div style="margin-top:20px;">
+      <button type="button" id="btn-samenvatting-toggle" onclick="toggleSamenvatting()" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:8px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);">
+        <span id="samenvatting-pijl" style="font-size:10px;transition:transform .2s;">▶</span>
+        Heb je al een Wheel of Life of Wheel of Business analyse?
+      </button>
+      <div id="samenvatting-wrap" style="display:none;margin-top:12px;">
+        <label id="pdf-upload-label" style="display:flex;align-items:center;gap:14px;border:1.5px dashed var(--sand);border-radius:2px;padding:16px 18px;cursor:pointer;transition:border-color .2s;">
+          <span style="font-size:22px;flex-shrink:0;">📄</span>
+          <span>
+            <span id="pdf-upload-tekst" style="display:block;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);">Voeg je analyse(s) toe</span>
+            <span style="display:block;font-family:Lora,serif;font-size:12px;color:var(--muted);font-style:italic;margin-top:3px;">Wheel of Life · Wheel of Business — je kunt meerdere bestanden toevoegen</span>
+          </span>
+          <input type="file" id="pdf-upload" accept=".pdf" multiple style="display:none;" onchange="laadPDF(this)">
+        </label>
+        <div id="pdf-lijst" style="margin-top:8px;display:flex;flex-direction:column;gap:4px;"></div>
+        <textarea id="samenvatting-input" style="display:none;"></textarea>
+      </div>
+    </div>
+
     <div class="btn-wrap">
       <button class="btn-dark" id="btn-naar-stap2" onclick="naarStap2()" disabled>Verder</button>
     </div>
@@ -310,6 +330,7 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
   <p class="footer-note">Timebending® door <a href="https://meavia.nu">meavia.nu</a></p>
 
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 const sleutelData = {
   M:  { naam:'Mindset',     letter:'M' },
@@ -332,6 +353,61 @@ let uitkomstSleutel = null;
 document.getElementById('situatie').addEventListener('input', function() {
   document.getElementById('btn-naar-stap2').disabled = this.value.trim().length < 5;
 });
+
+let _pdfTekstAccu = '';
+let _pdfAantalAccu = 0;
+
+async function laadPDF(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const label = document.getElementById('pdf-upload-tekst');
+  const lijst = document.getElementById('pdf-lijst');
+  label.textContent = 'Bezig met inlezen...';
+
+  for (const file of files) {
+    const regel = document.createElement('p');
+    regel.style.cssText = 'font-family:Raleway,sans-serif;font-size:11px;color:var(--muted);';
+    regel.textContent = `⏳ ${file.name}`;
+    lijst.appendChild(regel);
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+      let tekst = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        tekst += content.items.map(item => item.str).join(' ') + '\n';
+      }
+      _pdfTekstAccu += tekst.trim() + '\n\n';
+      _pdfAantalAccu++;
+      regel.textContent = `✓ ${file.name}`;
+      regel.style.color = 'var(--sage)';
+    } catch(e) {
+      regel.textContent = `✗ ${file.name} — kon niet worden ingelezen`;
+      regel.style.color = '#8B3A3A';
+    }
+  }
+
+  document.getElementById('samenvatting-input').value = _pdfTekstAccu.trim();
+  document.getElementById('pdf-upload-label').style.borderColor = 'var(--sage)';
+  label.textContent = `${_pdfAantalAccu} analyse${_pdfAantalAccu > 1 ? 's' : ''} toegevoegd`;
+  input.value = '';
+}
+
+function toggleSamenvatting() {
+  const wrap = document.getElementById('samenvatting-wrap');
+  const pijl = document.getElementById('samenvatting-pijl');
+  const open = wrap.style.display === 'none';
+  wrap.style.display = open ? 'block' : 'none';
+  pijl.style.transform = open ? 'rotate(90deg)' : '';
+}
+
+function getSamenvatting() {
+  return document.getElementById('samenvatting-input')?.value.trim() || '';
+}
 
 function naarStap2() {
   setStap('stap2');
@@ -365,7 +441,7 @@ async function naarStap3() {
       const resp = await fetch('/api/sleutels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'vragen', situatie })
+        body: JSON.stringify({ type: 'vragen', situatie, samenvatting: getSamenvatting() })
       });
       const data = await resp.json();
       ontdekVragen = data.vragen || [];
@@ -471,7 +547,7 @@ async function naarOntdekUitkomst() {
     const resp = await fetch('/api/sleutels', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'ontdek', situatie, antwoorden: ontdekAntwoorden, context: gespreksGeschiedenis })
+      body: JSON.stringify({ type: 'ontdek', situatie, antwoorden: ontdekAntwoorden, context: gespreksGeschiedenis, samenvatting: getSamenvatting() })
     });
     if (!resp.ok) throw new Error();
     const data = await resp.json();
@@ -520,7 +596,7 @@ async function naarLaden() {
     const resp = await fetch('/api/sleutels', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'reflectie', situatie, sleutel: gekozenSleutel, context: gespreksGeschiedenis })
+      body: JSON.stringify({ type: 'reflectie', situatie, sleutel: gekozenSleutel, context: gespreksGeschiedenis, samenvatting: getSamenvatting() })
     });
     if (!resp.ok) throw new Error();
     const data = await resp.json();
