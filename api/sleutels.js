@@ -54,7 +54,11 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-  const { type, situatie, sleutel, antwoorden } = body || {};
+  const { type, situatie, sleutel, antwoorden, context } = body || {};
+
+  const contextTekst = context && context.length > 0
+    ? `\nEerder in dit gesprek is al het volgende besproken. Gebruik dit als achtergrond maar herhaal het niet:\n${context.map(c => `${c.rol === 'tool' ? 'Tool' : 'Persoon'}: ${c.tekst}`).join('\n\n')}\n`
+    : '';
 
   try {
 
@@ -107,7 +111,7 @@ Geef alleen dit JSON terug:
 
       const prompt = `${stemPrefix()}Iemand beschrijft deze situatie:
 "${situatie}"
-
+${contextTekst}
 Op basis van deze situatie zijn de volgende vragen gesteld en zo beantwoord:
 ${antwoordTekst}
 
@@ -150,7 +154,7 @@ Geef alleen dit JSON terug:
 
       const prompt = `${stemPrefix()}Iemand beschrijft deze situatie:
 "${situatie}"
-
+${contextTekst}
 De sleutel die hier aandacht vraagt is: ${s.naam}
 Wat deze sleutel betekent: ${s.kern}
 

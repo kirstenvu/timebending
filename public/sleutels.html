@@ -288,8 +288,8 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
     </div>
 
     <div class="btn-wrap" style="margin-top:32px">
-      <button class="btn-ghost" onclick="terug(2)">Terug</button>
-      <button class="btn-opnieuw" onclick="opnieuw()">Opnieuw beginnen</button>
+      <button class="btn-ghost" onclick="terug('uitkomst')">Terug</button>
+      <button class="btn-opnieuw" onclick="opnieuw()">Opnieuw</button>
     </div>
   </div>
 
@@ -328,6 +328,8 @@ function kiesIngang(type) {
   const map = { weet:'ingang-a', ontdek:'ingang-b' };
   document.getElementById(map[type]).classList.add('geselecteerd');
   document.getElementById('btn-naar-stap3').disabled = false;
+  // Automatisch doorgaan
+  setTimeout(() => naarStap3(), 300);
 }
 
 async function naarStap3() {
@@ -372,27 +374,43 @@ async function naarStap3() {
 
 function laadOntdekVraag() {
   const v = ontdekVragen[ontdekStap];
+  const vorigAntwoord = ontdekAntwoorden[ontdekStap] || null;
   huidigOptie = null;
+
   document.getElementById('ontdek-stap-label').textContent = `Vraag ${ontdekStap + 1} van ${ontdekVragen.length}`;
   document.getElementById('ontdek-vraag-tekst').textContent = v.vraag;
-  document.getElementById('anders-input').value = '';
 
   const isLaatste = ontdekStap === ontdekVragen.length - 1;
   const btn = document.getElementById('btn-ontdek-verder');
   btn.textContent = isLaatste ? 'Bekijk de reflectie' : 'Volgende vraag';
-  btn.disabled = true;
 
   document.getElementById('ontdek-opties').innerHTML = v.opties.map((o, i) =>
     `<button class="ontdek-optie" onclick="kiesOntdekOptie(this, ${i})">${o}</button>`
   ).join('');
 
-  // Anders-veld activeert ook de knop
-  document.getElementById('anders-input').oninput = function() {
+  // Herstel vorig antwoord indien aanwezig
+  const andersInput = document.getElementById('anders-input');
+  if (vorigAntwoord) {
+    const optieIdx = v.opties.indexOf(vorigAntwoord.antwoord);
+    if (optieIdx > -1) {
+      document.querySelectorAll('.ontdek-optie')[optieIdx].classList.add('geselecteerd');
+      huidigOptie = optieIdx;
+      andersInput.value = '';
+    } else {
+      andersInput.value = vorigAntwoord.antwoord;
+    }
+    btn.disabled = false;
+  } else {
+    andersInput.value = '';
+    btn.disabled = true;
+  }
+
+  andersInput.oninput = function() {
     if (this.value.trim().length > 1) {
       document.querySelectorAll('.ontdek-optie').forEach(o => o.classList.remove('geselecteerd'));
       huidigOptie = null;
       btn.disabled = false;
-    } else if (!huidigOptie) {
+    } else if (huidigOptie === null) {
       btn.disabled = true;
     }
   };
@@ -415,7 +433,7 @@ async function ontdekVolgende() {
     ? andersWaarde
     : (huidigOptie !== null ? v.opties[huidigOptie] : '');
 
-  ontdekAntwoorden.push({ vraag: v.vraag, antwoord });
+  ontdekAntwoorden[ontdekStap] = { vraag: v.vraag, antwoord };
 
   if (ontdekStap < ontdekVragen.length - 1) {
     ontdekStap++;
@@ -437,7 +455,7 @@ async function naarOntdekUitkomst() {
     const resp = await fetch('/api/sleutels', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'ontdek', situatie, antwoorden: ontdekAntwoorden })
+      body: JSON.stringify({ type: 'ontdek', situatie, antwoorden: ontdekAntwoorden, context: gespreksGeschiedenis })
     });
     if (!resp.ok) throw new Error();
     const data = await resp.json();
@@ -469,7 +487,7 @@ async function naarLaden() {
     const resp = await fetch('/api/sleutels', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'reflectie', situatie, sleutel: gekozenSleutel })
+      body: JSON.stringify({ type: 'reflectie', situatie, sleutel: gekozenSleutel, context: gespreksGeschiedenis })
     });
     if (!resp.ok) throw new Error();
     const data = await resp.json();
@@ -593,15 +611,22 @@ function toonUitkomstFout(situatie) {
 
 function terug(stap) {
   if (stap === 1) { setStap('stap1'); zetDots(false, false, false); }
-  if (stap === 2) {
-    // Reset gespreksgeschiedenis en sleutel bij terugkeer
-    gespreksGeschiedenis = [];
+  if (stap === 2) { setStap('stap2'); zetDots(true, false, false); }
+  if (stap === 'uitkomst') {
+    // Terug: bewaar gespreksgeschiedenis als context, reset alleen de uitkomst UI
     uitkomstSleutel = null;
     gekozenSleutel = null;
     document.getElementById('gesprek-geschiedenis').innerHTML = '';
     document.getElementById('gesprek-input').value = '';
-    setStap('stap2');
-    zetDots(true, false, false);
+    if (gekozenIngang === 'ontdek') {
+      ontdekStap = 0;
+      laadOntdekVraag();
+      setStap('stap3-ontdek');
+    } else {
+      document.querySelectorAll('.sleutel-kaart').forEach(k => k.classList.remove('geselecteerd'));
+      setStap('stap3-weet');
+    }
+    zetDots(true, true, false);
   }
 }
 
