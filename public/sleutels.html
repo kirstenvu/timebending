@@ -107,6 +107,17 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
 
 .fout-melding { background:rgba(200,80,80,.08); border:1.5px solid rgba(200,80,80,.3); border-radius:2px; padding:14px 16px; font-size:13px; font-family:Lora,serif; color:#8B3A3A; line-height:1.65; margin-bottom:20px; }
 
+/* Gesprek verdieping */
+.gesprek-wrap { margin-top:24px; }
+.gesprek-invoer-label { font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; display:block; }
+.gesprek-hint { font-size:12px; font-family:Lora,serif; color:var(--muted); font-style:italic; margin-bottom:10px; line-height:1.6; }
+.gesprek-blok { background:var(--warm-white); border:1.5px solid var(--sand); border-radius:2px; padding:22px 24px; margin-bottom:14px; box-shadow:0 4px 32px rgba(61,46,82,0.07); border-left:3px solid var(--purple); }
+.gesprek-blok p { font-size:13.5px; font-family:Lora,serif; color:var(--brown); line-height:1.85; margin-bottom:12px; }
+.gesprek-blok p:last-child { margin-bottom:0; }
+.gesprek-antwoord-blok { background:rgba(200,154,60,.06); border:1.5px solid rgba(200,154,60,.25); border-radius:2px; padding:14px 18px; margin-bottom:14px; }
+.gesprek-antwoord-label { font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin-bottom:5px; }
+.gesprek-antwoord-tekst { font-size:13px; font-family:Lora,serif; color:var(--brown); font-style:italic; line-height:1.65; }
+
 /* Knoppen */
 .btn-wrap { display:flex; gap:10px; flex-wrap:wrap; margin-top:24px; }
 .btn-dark { background:var(--deep); color:var(--cream); border:none; padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
@@ -310,7 +321,18 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
         <p id="uitkomst-beweging"></p>
       </div>
     </div>
-    <div class="btn-wrap">
+    <!-- Gesprek verdieping -->
+    <div class="gesprek-wrap" id="gesprek-wrap">
+      <div id="gesprek-geschiedenis"></div>
+      <label class="gesprek-invoer-label" for="gesprek-input">Wat roept dit bij je op?</label>
+      <p class="gesprek-hint">Reageer op wat je leest. Wat raakt je, wat herkent je, of wat wil je verder onderzoeken?</p>
+      <textarea id="gesprek-input" placeholder="Typ hier je reactie..." style="min-height:70px"></textarea>
+      <div class="btn-wrap">
+        <button class="btn-dark" id="btn-gesprek" onclick="stuurVerdieping()" disabled>Ga dieper</button>
+      </div>
+    </div>
+
+    <div class="btn-wrap" style="margin-top:32px">
       <button class="btn-opnieuw" onclick="opnieuw()">Opnieuw beginnen</button>
     </div>
   </div>
@@ -332,6 +354,8 @@ let ontdekVragen = [];
 let ontdekStap = 0;
 let ontdekAntwoorden = [];
 let huidigOptie = null;
+let gespreksGeschiedenis = [];
+let uitkomstSleutel = null;
 
 document.getElementById('situatie').addEventListener('input', function() {
   document.getElementById('btn-naar-stap2').disabled = this.value.trim().length < 5;
@@ -509,6 +533,9 @@ async function naarLaden() {
 
 function toonUitkomst(sleutelKey, sleutelNaam, situatie, data) {
   const letter = sleutelData[sleutelKey]?.letter || sleutelKey;
+  uitkomstSleutel = sleutelKey;
+  gespreksGeschiedenis = [];
+
   document.getElementById('uitkomst-naam').innerHTML = `<span>${letter}</span> — ${sleutelNaam}`;
   const preview = situatie.length > 90 ? situatie.substring(0,90)+'...' : situatie;
   document.getElementById('uitkomst-situatie').textContent = `Over: "${preview}"`;
@@ -517,7 +544,86 @@ function toonUitkomst(sleutelKey, sleutelNaam, situatie, data) {
   document.getElementById('uitkomst-kern').textContent = data.kern || '';
   document.getElementById('uitkomst-vragen').innerHTML = (data.vragen || []).map(v => `<li>${v}</li>`).join('');
   document.getElementById('uitkomst-beweging').textContent = data.beweging || '';
+
+  // Sla eerste uitkomst op in geschiedenis
+  const eersteUitkomst = [data.kern, ...(data.vragen || []), data.beweging].filter(Boolean).join(' ');
+  gespreksGeschiedenis.push({ rol: 'tool', tekst: eersteUitkomst });
+
+  // Gespreksinvoer activeren
+  document.getElementById('gesprek-geschiedenis').innerHTML = '';
+  document.getElementById('gesprek-input').value = '';
+  document.getElementById('btn-gesprek').disabled = true;
+  document.getElementById('gesprek-input').oninput = function() {
+    document.getElementById('btn-gesprek').disabled = this.value.trim().length < 5;
+  };
+
   setStap('stap4');
+}
+
+async function stuurVerdieping() {
+  const antwoord = document.getElementById('gesprek-input').value.trim();
+  if (!antwoord) return;
+
+  const situatie = document.getElementById('situatie').value.trim();
+
+  // Voeg antwoord toe aan geschiedenis en toon het
+  gespreksGeschiedenis.push({ rol: 'persoon', tekst: antwoord });
+
+  const geschiedenis = document.getElementById('gesprek-geschiedenis');
+  geschiedenis.innerHTML += `
+    <div class="gesprek-antwoord-blok">
+      <div class="gesprek-antwoord-label">Jouw reactie</div>
+      <div class="gesprek-antwoord-tekst">${antwoord}</div>
+    </div>`;
+
+  // Verberg invoer tijdelijk en toon laden
+  document.getElementById('gesprek-input').value = '';
+  document.getElementById('btn-gesprek').disabled = true;
+  const laadBlok = document.createElement('div');
+  laadBlok.className = 'laden-wrap';
+  laadBlok.style.padding = '20px 0';
+  laadBlok.innerHTML = '<div class="laden-spinner"></div>';
+  geschiedenis.appendChild(laadBlok);
+  window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+
+  try {
+    const resp = await fetch('/api/sleutels', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'verdieping',
+        situatie,
+        sleutel: uitkomstSleutel,
+        antwoorden: gespreksGeschiedenis
+      })
+    });
+    if (!resp.ok) throw new Error();
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    // Verwijder laadblok
+    laadBlok.remove();
+
+    // Toon verdieping
+    const verdiepingTekst = data.verdieping || '';
+    const verdiepingVragen = (data.vragen || []).filter(v => v.trim());
+
+    let verdiepingHtml = `<div class="gesprek-blok"><p>${verdiepingTekst}</p>`;
+    if (verdiepingVragen.length > 0) {
+      verdiepingHtml += `<ul class="reflectie-vragen" style="margin-top:12px">${verdiepingVragen.map(v => `<li>${v}</li>`).join('')}</ul>`;
+    }
+    verdiepingHtml += `</div>`;
+    geschiedenis.innerHTML += verdiepingHtml;
+
+    // Sla op in geschiedenis
+    gespreksGeschiedenis.push({ rol: 'tool', tekst: verdiepingTekst + ' ' + verdiepingVragen.join(' ') });
+
+    window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+
+  } catch(e) {
+    laadBlok.remove();
+    geschiedenis.innerHTML += `<div class="gesprek-blok"><p>Er ging iets mis. Probeer opnieuw.</p></div>`;
+  }
 }
 
 function toonUitkomstFout(situatie) {
@@ -547,7 +653,11 @@ function opnieuw() {
   ontdekStap = 0;
   ontdekAntwoorden = [];
   huidigOptie = null;
+  gespreksGeschiedenis = [];
+  uitkomstSleutel = null;
   document.getElementById('situatie').value = '';
+  document.getElementById('gesprek-geschiedenis').innerHTML = '';
+  document.getElementById('gesprek-input').value = '';
   document.getElementById('btn-naar-stap2').disabled = true;
   document.querySelectorAll('.ingang-kaart').forEach(k => k.classList.remove('geselecteerd'));
   setStap('stap1');

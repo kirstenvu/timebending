@@ -152,23 +152,69 @@ Geef alleen dit JSON terug:
 De sleutel die hier aandacht vraagt is: ${s.naam}
 Wat deze sleutel betekent: ${s.kern}
 
-Schrijf een reflectie die echt ingaat op wat deze persoon beschrijft. Blijf bij de werkelijke situatie. Ga niet terug naar algemene innerlijke werk vragen als de situatie praktisch of concreet is. Benoem wat er werkelijk speelt en wat de sleutel ${s.naam} onthult over precies deze situatie.
+Jouw rol is niet om dit op te lossen of adviezen te geven. De sleutel is een lens waardoor je laat zien wat er onder de situatie zit, zodat de persoon zelf tot inzicht komt.
 
-De drie vragen moeten scherp zijn en verder gaan dan wat de persoon al weet. Ze mogen iets openen wat de persoon nog niet heeft gezien. Geen vragen als "waar gaat je energie naartoe" of "wat vraagt aandacht". Stel vragen die echt iets concreets openen in deze situatie.
+Lees de situatie goed. Neem alles wat de persoon zegt serieus en ga er niet tegenin. Ga niet veronderstellen wat er mis is of wat er moet veranderen. Gebruik de sleutel ${s.naam} om te benoemen wat er hier speelt op een dieper niveau, iets wat de persoon misschien nog niet zo heeft gezien.
 
-De beweging is geen open reflectie maar een echte richting. Wat is de concrete verschuiving of stap die past bij wat hier speelt?
+De kern benoemt wat de sleutel zichtbaar maakt in deze situatie. Niet wat de persoon moet doen, maar wat er te zien is. Concreet, herkenbaar, zonder oordeel.
+
+De drie vragen openen iets. Ze helpen de persoon zelf verder te kijken in hun eigen situatie. Geen adviezen verpakt als vraag. Geen "heb je al geprobeerd om...". Echte vragen die iets openen wat de persoon zelf nog niet heeft gezien.
+
+De beweging is een uitnodiging, geen instructie. Wat mag de persoon zelf gaan zien of onderzoeken? Niet wat ze moeten doen.
 
 Schrijf in de stem van Kirsten: warm, direct, geen jargon, echte zinnen, geen liggend streepje (—). Minimaal 3 volle zinnen voor kern en beweging.
 
 Geef alleen dit JSON terug:
 {
-  "kern": "Minimaal 3 zinnen die benoemen wat er werkelijk speelt in deze situatie",
+  "kern": "Minimaal 3 zinnen die benoemen wat de sleutel zichtbaar maakt in deze specifieke situatie",
   "vragen": [
-    "Eerste scherpe vraag die iets opent wat de persoon nog niet heeft gezien",
+    "Een vraag die iets opent wat de persoon zelf nog niet heeft gezien",
     "Tweede vraag",
     "Derde vraag"
   ],
-  "beweging": "Minimaal 2 concrete zinnen over de werkelijke verschuiving of stap die hier past"
+  "beweging": "Minimaal 2 zinnen als uitnodiging om verder te kijken, niet als instructie"
+}`;
+
+      const data = await callClaude(prompt, 2048);
+      return res.status(200).json(data);
+    }
+
+    // Modus 4: Verdieping op basis van het antwoord van de persoon
+    if (type === 'verdieping') {
+      if (!situatie || !sleutel || !antwoorden) return res.status(400).json({ error: 'Situatie, sleutel en antwoord verplicht' });
+
+      const s = sleutelContext[sleutel];
+      if (!s) return res.status(400).json({ error: 'Onbekende sleutel' });
+
+      // antwoorden bevat hier de gespreksgeschiedenis
+      const geschiedenis = antwoorden.map((a, i) =>
+        `${a.rol === 'tool' ? 'Tool' : 'Persoon'}: ${a.tekst}`
+      ).join('\n\n');
+
+      const prompt = `${stemPrefix()}Dit is een lopend gesprek binnen de Timebending® methodiek.
+
+De oorspronkelijke situatie: "${situatie}"
+De sleutel die hier speelt: ${s.naam} - ${s.kern}
+
+Het gesprek tot nu toe:
+${geschiedenis}
+
+Ga dieper in op wat de persoon zojuist heeft gezegd. Neem hun antwoord serieus en bouw daarop verder. Ga niet herhalen wat al gezegd is. Zoek naar wat er onder hun antwoord zit of wat er nog niet benoemd is.
+
+Jouw rol is niet om op te lossen of te adviseren. Help de persoon zelf verder te zien. Gebruik de sleutel ${s.naam} als lens.
+
+Als het antwoord van de persoon al een duidelijke richting of inzicht bevat, benoem dat dan en help hen het te verankeren. Als er nog iets onder zit, ga daar dan op in.
+
+Sluit af met maximaal 2 gerichte vragen of één concrete uitnodiging om verder mee te gaan. Niet meer dan dat.
+
+Schrijf in de stem van Kirsten: warm, direct, geen jargon, echte zinnen, geen liggend streepje (—). Minimaal 3 volle zinnen.
+
+Geef alleen dit JSON terug:
+{
+  "verdieping": "Minimaal 3 zinnen die ingaan op wat de persoon zei en verder openen",
+  "vragen": [
+    "Maximaal één of twee vervolgvragen, of laat dit leeg als er een duidelijk inzicht is"
+  ]
 }`;
 
       const data = await callClaude(prompt, 2048);
