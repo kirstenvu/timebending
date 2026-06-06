@@ -61,7 +61,7 @@ module.exports = async function handler(req, res) {
     : '';
 
   const samenvattingTekst = samenvatting && samenvatting.length > 20
-    ? `\nAanvullende context: deze persoon heeft eerder een Timebending® onderzoek gedaan. Dit is de samenvatting daarvan. Gebruik dit alleen als achtergrond om de situatie beter te begrijpen. Benoem deze context niet expliciet en ga er niet op door tenzij de persoon dat zelf aankaart:\n${samenvatting}\n`
+    ? `\nDeze persoon heeft eerder een Timebending® analyse gedaan. Hier is de uitkomst daarvan:\n${samenvatting}\n\nGebruik deze context actief in je reflectie. Verwijs er kort en natuurlijk naar — niet door de analyse te herhalen, maar door te benoemen wat je ziet als je de eerdere uitkomst naast de huidige situatie legt. Zo voelt de persoon dat de context is meegenomen.\n`
     : '';
 
   try {
