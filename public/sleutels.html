@@ -87,8 +87,8 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
 
 /* Laden animatie */
 .laden-wrap { display:flex; flex-direction:column; align-items:center; padding:40px 0; gap:16px; }
-.laden-spinner { width:36px; height:36px; border:2.5px solid var(--sand); border-top-color:var(--purple); border-radius:50%; animation:spin .8s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
+.spiraal-spin { width:80px; height:80px; display:block; transform-origin:center center; animation:spiraalDraaien 3s linear infinite; }
+@keyframes spiraalDraaien { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
 .laden-tekst { font-size:13px; font-family:Lora,serif; color:var(--muted); font-style:italic; }
 
 /* Uitkomst */
@@ -132,10 +132,12 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
 <body>
 <div class="page">
 
-  <div class="logo-line">Timebending®</div>
-  <h1>De <em>6 sleutels</em><br>van Timebending</h1>
-  <p class="subtitle">De sleutels zijn je kompas. Ze brengen je terug naar de kern van wat er werkelijk speelt.</p>
-  <div class="gold-line"></div>
+  <div style="text-align:center;margin-bottom:40px;">
+    <img src="logo.png" alt="Timebending®" style="height:110px;width:auto;display:block;margin:0 auto 18px;">
+    <h1>De <em>6 sleutels</em><br>van Timebending</h1>
+    <div class="gold-line" style="margin-bottom:16px;"></div>
+    <p class="subtitle" style="margin-bottom:0;">De sleutels zijn je kompas. Ze brengen je terug naar de kern van wat er werkelijk speelt.</p>
+  </div>
 
   <div class="stap-indicator">
     <div class="stap-dot actief" id="dot1">1</div>
@@ -188,6 +190,9 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
 
   <!-- STAP 3a: Direct kiezen -->
   <div class="sectie" id="stap3-weet">
+    <div style="text-align:center;margin-bottom:28px;">
+      <img src="sleutel-logo.png" alt="De 6 sleutels" style="width:240px;height:auto;">
+    </div>
     <div class="card">
       <div class="card-titel">Kies een sleutel</div>
       <div class="card-tekst">Laat het op je inwerken, of gebruik je pendel.</div>
@@ -249,7 +254,7 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
   <!-- Laden -->
   <div class="sectie" id="stap-laden">
     <div class="laden-wrap">
-      <div class="laden-spinner"></div>
+      <img src="spiraal.png" alt="" class="spiraal-spin" style="width:80px;height:80px;">
       <div class="laden-tekst" id="laden-tekst">Even afstemmen op jouw situatie...</div>
     </div>
   </div>
