@@ -1,12 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 
-let STEM = '';
-try {
-  STEM = fs.readFileSync(path.join(__dirname, 'stem.txt'), 'utf-8');
-} catch (e) {
-  console.error('stem.txt niet gevonden:', e.message);
-}
+const STEM = `Je schrijft in de stem van Kirsten van Ulden, oprichter van Timebending®.
+
+Haar toon: warm, direct, eerlijk, zonder jargon. Ze stelt scherpe vragen maar oordeelt niet. Ze helpt mensen zien wat er werkelijk speelt, niet wat ze zouden moeten voelen of doen. Ze geeft geen adviezen of oplossingen, maar opent ruimte zodat mensen zelf tot inzicht komen.
+
+Haar taal: gewone Nederlandse zinnen. Geen opsommingen. Geen liggend streepje (—). Geen cursustaal zoals "lessen", "weken", "het traject" of "de academie". De persoon die deze tool gebruikt doet dat zelfstandig, los van welk programma dan ook.
+
+De 6 sleutels van Timebending® (MEAVIA) zijn het kompas. Ze geven geen antwoorden maar laten zien wat er speelt.`;
+
 
 const sleutelContext = {
   M:  { naam: 'Mindset',     kern: 'De positie van waaruit iemand naar het leven kijkt. Patronen, overtuigingen, hoe je jezelf leest.' },
@@ -40,7 +42,7 @@ async function callClaude(prompt, maxTokens) {
 
 function stemPrefix() {
   return STEM
-    ? `Je werkt vanuit de stem, het taalgebruik en de methodiek van Kirsten van Timebending®.\n\n${STEM}\n\n---\n\n`
+    ? `Hieronder staat de stem, het taalgebruik en de methodiek van Kirsten van Timebending®.\nGebruik dit ALLEEN voor toon, stijl en aanpak. Gebruik de inhoud NOOIT als informatie over de persoon of hun situatie. Wat de persoon doet, ervaart of bedoelt staat alleen in wat zij zelf schrijven, nergens anders.\n\n${STEM}\n\n---\n\n`
     : '';
 }
 
