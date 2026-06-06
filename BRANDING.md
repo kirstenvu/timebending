@@ -84,9 +84,22 @@ In footer, labels en kleinere tekst volstaat gewoon `®`.
 ## Knoppen
 
 ```css
-.btn-dark   /* primair — donker gevuld */
-.btn-ghost  /* secundair — paarse outline */
-.btn-opnieuw /* tertiair — grijs outline, klein */
+/* Primair — paars gevuld */
+.btn-dark { background:var(--purple); color:white; border:none; padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
+.btn-dark:hover { background:var(--plum); transform:translateY(-1px); }
+.btn-dark:disabled { opacity:.4; cursor:default; transform:none; }
+
+/* Secundair — paarse outline */
+.btn-ghost { background:transparent; color:var(--purple); border:1.5px solid var(--purple); padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
+.btn-ghost:hover { border-color:var(--plum); background:rgba(123,63,160,.06); }
+
+/* Tertiair — grijs outline, klein */
+.btn-opnieuw { background:transparent; color:var(--muted); border:1.5px solid var(--sand); padding:10px 22px; font-family:'Raleway',sans-serif; font-size:10px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
+.btn-opnieuw:hover { border-color:var(--muted); color:var(--deep); }
+
+/* Paars gevuld (voor CTAs als delen/sturen) */
+.btn-purple { background:var(--purple); color:white; border:none; padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
+.btn-purple:hover { background:var(--plum); transform:translateY(-1px); }
 ```
 
 ## Kaarten
