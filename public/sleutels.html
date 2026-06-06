@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timebending® De 6 Sleutels</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Raleway:wght@300;400;500;600&display=swap');
+:root {
+  --cream: #F9FFFA; --warm-white: #ffffff; --sand: #E8DFD2;
+  --brown: #2A2438; --deep: #2A2438; --muted: #8A7A9A; --sage: #8A9E82;
+  --purple: #7B3FA0; --gold: #C89A3C; --plum: #6B2F8E;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--cream); font-family:'Raleway',sans-serif; color:var(--deep); min-height:100vh; }
+.page { max-width:600px; margin:0 auto; padding:40px 20px 80px; }
+
+.logo-line { font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; }
+h1 { font-family:Lora,serif; font-weight:400; font-size:clamp(32px,6vw,48px); line-height:1.05; margin-bottom:14px; color:var(--deep); }
+h1 em { font-style:italic; color:var(--gold); }
+.subtitle { font-size:13.5px; font-weight:300; color:var(--muted); line-height:1.75; margin-bottom:36px; font-family:Lora,serif; }
+.gold-line { width:40px; height:2px; background:var(--gold); margin:0 auto 32px; }
+
+.stap-indicator { display:flex; align-items:center; gap:8px; margin-bottom:32px; }
+.stap-dot { width:28px; height:28px; border-radius:50%; border:1.5px solid var(--sand); background:var(--warm-white); font-size:10px; font-weight:600; color:var(--muted); display:flex; align-items:center; justify-content:center; transition:all .3s; flex-shrink:0; }
+.stap-dot.actief { background:var(--purple); border-color:var(--purple); color:white; }
+.stap-dot.klaar { background:var(--sage); border-color:var(--sage); color:white; }
+.stap-lijn { flex:1; height:1.5px; background:var(--sand); }
+
+.sectie { display:none; animation:fadeUp .3s ease; }
+.sectie.actief { display:block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.card { background:var(--warm-white); border:1.5px solid var(--sand); border-left:3px solid var(--sage); border-radius:0 2px 2px 0; padding:20px 22px; margin-bottom:24px; box-shadow:0 4px 32px rgba(61,46,82,0.08); }
+.card-titel { font-family:Lora,serif; font-size:15px; font-weight:600; color:var(--purple); margin-bottom:8px; }
+.card-tekst { font-size:13px; line-height:1.8; color:var(--brown); font-family:Lora,serif; }
+
+.veld-label { font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; display:block; }
+textarea { width:100%; min-height:90px; padding:14px 16px; font-family:Lora,serif; font-size:13.5px; color:var(--deep); background:var(--warm-white); border:1.5px solid var(--sand); border-radius:2px; resize:vertical; outline:none; line-height:1.7; transition:border-color .2s; }
+textarea:focus { border-color:var(--purple); }
+textarea::placeholder { color:var(--muted); font-style:italic; }
+
+.ingang-wrap { display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
+.ingang-kaart { background:var(--warm-white); border:1.5px solid var(--sand); border-radius:2px; padding:18px 20px; cursor:pointer; transition:all .2s; display:flex; align-items:flex-start; gap:14px; }
+.ingang-kaart:hover { border-color:var(--purple); box-shadow:0 4px 20px rgba(123,63,160,.1); }
+.ingang-kaart.geselecteerd { border-color:var(--purple); border-left:3px solid var(--purple); background:rgba(123,63,160,.04); }
+.ingang-icoon { width:36px; height:36px; border-radius:50%; background:var(--sand); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:16px; transition:background .2s; }
+.ingang-kaart.geselecteerd .ingang-icoon { background:var(--purple); }
+.ingang-tekst h3 { font-family:Lora,serif; font-size:14px; font-weight:600; color:var(--deep); margin-bottom:3px; }
+.ingang-tekst p { font-size:12px; color:var(--muted); font-weight:300; line-height:1.55; }
+
+/* Sleutel keuze raster */
+.sleutels-raster { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:24px; }
+.sleutel-kaart { background:var(--warm-white); border:1.5px solid var(--sand); border-radius:2px; padding:16px 12px; cursor:pointer; transition:all .2s; text-align:center; }
+.sleutel-kaart:hover { border-color:var(--purple); transform:translateY(-2px); box-shadow:0 6px 20px rgba(123,63,160,.12); }
+.sleutel-kaart.geselecteerd { border-color:var(--purple); background:rgba(123,63,160,.06); }
+.sleutel-letter { font-family:Lora,serif; font-size:28px; font-weight:400; color:var(--gold); line-height:1; margin-bottom:4px; }
+.sleutel-naam { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--deep); margin-bottom:4px; }
+.sleutel-kort { font-size:11px; color:var(--muted); font-weight:300; line-height:1.4; font-family:Lora,serif; font-style:italic; }
+
+/* Situatie context banner */
+.situatie-context { background:rgba(200,154,60,.08); border:1.5px solid rgba(200,154,60,.3); border-radius:2px; padding:14px 16px; margin-bottom:20px; }
+.situatie-context-label { font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin-bottom:5px; }
+.situatie-context-tekst { font-size:13px; font-family:Lora,serif; color:var(--brown); font-style:italic; line-height:1.65; }
+
+/* Ontdek: vragen flow */
+.ontdek-stap-label { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:16px; }
+.ontdek-vraag-tekst { font-family:Lora,serif; font-size:16px; font-weight:500; color:var(--deep); line-height:1.55; margin-bottom:20px; }
+.ontdek-opties { display:flex; flex-direction:column; gap:9px; margin-bottom:16px; }
+.ontdek-optie { background:var(--warm-white); border:1.5px solid var(--sand); border-radius:20px; padding:12px 18px; cursor:pointer; font-size:13px; font-family:Lora,serif; color:var(--brown); transition:all .2s; line-height:1.5; text-align:left; width:100%; }
+.ontdek-optie:hover { border-color:var(--purple); background:rgba(123,63,160,.04); }
+.ontdek-optie.geselecteerd { border-color:var(--purple); background:rgba(123,63,160,.08); color:var(--purple); }
+.anders-wrap { margin-top:4px; }
+.anders-label { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:7px; display:block; }
+.anders-input { width:100%; padding:11px 15px; font-family:Lora,serif; font-size:13px; color:var(--deep); background:var(--warm-white); border:1.5px solid var(--sand); border-radius:2px; outline:none; line-height:1.6; transition:border-color .2s; }
+.anders-input:focus { border-color:var(--purple); }
+.anders-input::placeholder { color:var(--muted); font-style:italic; }
+
+/* Eerste ingeving */
+.wiel-uitleg { font-size:13px; color:var(--muted); font-family:Lora,serif; font-style:italic; margin-bottom:20px; line-height:1.7; }
+.hex-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:24px; }
+.hex-item { background:var(--warm-white); border:1.5px solid var(--sand); border-radius:12px; padding:20px 10px; cursor:pointer; text-align:center; transition:all .25s; }
+.hex-item:hover { border-color:var(--purple); transform:scale(1.04); box-shadow:0 6px 24px rgba(123,63,160,.15); }
+.hex-item.geselecteerd { border-color:var(--purple); background:rgba(123,63,160,.08); transform:scale(1.06); box-shadow:0 8px 28px rgba(123,63,160,.2); }
+.hex-letter { font-family:Lora,serif; font-size:32px; font-weight:400; color:var(--gold); line-height:1; }
+.hex-naam { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--deep); margin-top:5px; }
+
+/* Laden animatie */
+.laden-wrap { display:flex; flex-direction:column; align-items:center; padding:40px 0; gap:16px; }
+.laden-spinner { width:36px; height:36px; border:2.5px solid var(--sand); border-top-color:var(--purple); border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.laden-tekst { font-size:13px; font-family:Lora,serif; color:var(--muted); font-style:italic; }
+
+/* Uitkomst */
+.uitkomst-header { margin-bottom:24px; }
+.uitkomst-label { font-size:10px; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+.uitkomst-sleutel { font-family:Lora,serif; font-size:32px; font-weight:400; color:var(--purple); }
+.uitkomst-sleutel span { color:var(--gold); }
+.uitkomst-situatie { font-size:12px; color:var(--muted); font-family:Lora,serif; font-style:italic; margin-top:6px; line-height:1.6; }
+
+.reflectie-blok { background:var(--warm-white); border:1.5px solid var(--sand); border-radius:2px; padding:22px 24px; margin-bottom:14px; box-shadow:0 4px 32px rgba(61,46,82,0.07); }
+.reflectie-blok-label { font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+.reflectie-blok p { font-size:13.5px; font-family:Lora,serif; color:var(--brown); line-height:1.85; }
+.reflectie-vragen { list-style:none; display:flex; flex-direction:column; gap:12px; }
+.reflectie-vragen li { font-size:13.5px; font-family:Lora,serif; color:var(--brown); line-height:1.75; padding-left:18px; position:relative; }
+.reflectie-vragen li::before { content:''; position:absolute; left:0; top:9px; width:6px; height:6px; border-radius:50%; background:var(--gold); }
+
+.fout-melding { background:rgba(200,80,80,.08); border:1.5px solid rgba(200,80,80,.3); border-radius:2px; padding:14px 16px; font-size:13px; font-family:Lora,serif; color:#8B3A3A; line-height:1.65; margin-bottom:20px; }
+
+/* Knoppen */
+.btn-wrap { display:flex; gap:10px; flex-wrap:wrap; margin-top:24px; }
+.btn-dark { background:var(--deep); color:var(--cream); border:none; padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
+.btn-dark:hover { background:var(--plum); transform:translateY(-1px); }
+.btn-dark:disabled { opacity:.4; cursor:default; transform:none; }
+.btn-ghost { background:transparent; color:var(--purple); border:1.5px solid var(--purple); padding:12px 28px; font-family:'Raleway',sans-serif; font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
+.btn-ghost:hover { border-color:var(--plum); background:rgba(123,63,160,.06); }
+.btn-opnieuw { background:transparent; color:var(--muted); border:1.5px solid var(--sand); padding:10px 22px; font-family:'Raleway',sans-serif; font-size:10px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border-radius:20px; transition:all .2s; }
+.btn-opnieuw:hover { border-color:var(--muted); color:var(--deep); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="logo-line">Timebending®</div>
+  <h1>De <em>6 sleutels</em><br>van Timebending</h1>
+  <p class="subtitle">De sleutels zijn je kompas. Ze brengen je terug naar de kern van wat er werkelijk speelt.</p>
+  <div class="gold-line"></div>
+
+  <div class="stap-indicator">
+    <div class="stap-dot actief" id="dot1">1</div>
+    <div class="stap-lijn"></div>
+    <div class="stap-dot" id="dot2">2</div>
+    <div class="stap-lijn"></div>
+    <div class="stap-dot" id="dot3">3</div>
+  </div>
+
+  <!-- STAP 1: Situatie -->
+  <div class="sectie actief" id="stap1">
+    <div class="card">
+      <div class="card-titel">Waar gaat het over?</div>
+      <div class="card-tekst">Beschrijf kort de situatie of het gevoel waarover je wilt nadenken. Het hoeft niet perfect omschreven te zijn.</div>
+    </div>
+    <label class="veld-label" for="situatie">Wat speelt er?</label>
+    <textarea id="situatie" placeholder="Bijv. Ik merk dat ik steeds uitstel, of: ik voel weerstand maar weet niet waar het vandaan komt..."></textarea>
+    <div class="btn-wrap">
+      <button class="btn-dark" id="btn-naar-stap2" onclick="naarStap2()" disabled>Verder</button>
+    </div>
+  </div>
+
+  <!-- STAP 2: Ingang -->
+  <div class="sectie" id="stap2">
+    <div class="card">
+      <div class="card-titel">Hoe ga jij erin?</div>
+      <div class="card-tekst">Kies de manier die nu het beste bij je past.</div>
+    </div>
+    <div class="ingang-wrap">
+      <div class="ingang-kaart" id="ingang-a" onclick="kiesIngang('weet')">
+        <div class="ingang-icoon" id="icoon-a">🔑</div>
+        <div class="ingang-tekst">
+          <h3>Ik weet welke sleutel het is</h3>
+          <p>Je voelt het al. Kies direct de sleutel die om aandacht vraagt.</p>
+        </div>
+      </div>
+      <div class="ingang-kaart" id="ingang-b" onclick="kiesIngang('ontdek')">
+        <div class="ingang-icoon" id="icoon-b">🔍</div>
+        <div class="ingang-tekst">
+          <h3>Ik wil het nog ontdekken</h3>
+          <p>Lees de zes sleutels met jouw situatie in gedachten. Voelen welke raakt.</p>
+        </div>
+      </div>
+      <div class="ingang-kaart" id="ingang-c" onclick="kiesIngang('beeld')">
+        <div class="ingang-icoon" id="icoon-c">✨</div>
+        <div class="ingang-tekst">
+          <h3>Eerste ingeving</h3>
+          <p>Kijk naar de zes sleutels. Klik op wat trekt. Vertrouw op je eerste reactie.</p>
+        </div>
+      </div>
+    </div>
+    <div class="btn-wrap">
+      <button class="btn-dark" id="btn-naar-stap3" onclick="naarStap3()" disabled>Verder</button>
+      <button class="btn-ghost" onclick="terug(1)">Terug</button>
+    </div>
+  </div>
+
+  <!-- STAP 3a: Direct kiezen -->
+  <div class="sectie" id="stap3-weet">
+    <div class="card">
+      <div class="card-titel">Welke sleutel vraagt aandacht?</div>
+      <div class="card-tekst">Kies de sleutel die resoneert met wat er speelt.</div>
+    </div>
+    <div class="sleutels-raster">
+      <div class="sleutel-kaart" onclick="kiesSleutel(this,'M')">
+        <div class="sleutel-letter">M</div>
+        <div class="sleutel-naam">Mindset</div>
+        <div class="sleutel-kort">Hoe je kijkt en vanwaar</div>
+      </div>
+      <div class="sleutel-kaart" onclick="kiesSleutel(this,'E')">
+        <div class="sleutel-letter">E</div>
+        <div class="sleutel-naam">Efficiëntie</div>
+        <div class="sleutel-kort">Energie en focus</div>
+      </div>
+      <div class="sleutel-kaart" onclick="kiesSleutel(this,'A1')">
+        <div class="sleutel-letter">A</div>
+        <div class="sleutel-naam">Aanpassen</div>
+        <div class="sleutel-kort">Meebewegen met wat verandert</div>
+      </div>
+      <div class="sleutel-kaart" onclick="kiesSleutel(this,'V')">
+        <div class="sleutel-letter">V</div>
+        <div class="sleutel-naam">Visueel</div>
+        <div class="sleutel-kort">Richting en dromen</div>
+      </div>
+      <div class="sleutel-kaart" onclick="kiesSleutel(this,'I')">
+        <div class="sleutel-letter">I</div>
+        <div class="sleutel-naam">Integer</div>
+        <div class="sleutel-kort">Trouw aan jezelf</div>
+      </div>
+      <div class="sleutel-kaart" onclick="kiesSleutel(this,'A2')">
+        <div class="sleutel-letter">A</div>
+        <div class="sleutel-naam">Actie</div>
+        <div class="sleutel-kort">Bewegen en de stap zetten</div>
+      </div>
+    </div>
+    <div class="btn-wrap">
+      <button class="btn-dark" id="btn-weet-verder" onclick="naarLaden()" disabled>Bekijk de reflectie</button>
+      <button class="btn-ghost" onclick="terug(2)">Terug</button>
+    </div>
+  </div>
+
+  <!-- STAP 3b: Ontdekken via AI-vragen -->
+  <div class="sectie" id="stap3-ontdek">
+    <div class="ontdek-stap-label" id="ontdek-stap-label">Vraag 1 van 3</div>
+    <div class="ontdek-vraag-tekst" id="ontdek-vraag-tekst"></div>
+    <div class="ontdek-opties" id="ontdek-opties"></div>
+    <div class="anders-wrap">
+      <label class="anders-label" for="anders-input">Anders, namelijk</label>
+      <input class="anders-input" id="anders-input" type="text" placeholder="Typ hier je eigen antwoord...">
+    </div>
+    <div class="btn-wrap" style="margin-top:20px">
+      <button class="btn-dark" id="btn-ontdek-verder" onclick="ontdekVolgende()" disabled>Volgende vraag</button>
+      <button class="btn-ghost" onclick="terug(2)">Terug</button>
+    </div>
+  </div>
+
+  <!-- STAP 3c: Eerste ingeving -->
+  <div class="sectie" id="stap3-beeld">
+    <div class="situatie-context" style="margin-bottom:20px">
+      <div class="situatie-context-label">Jouw situatie</div>
+      <div class="situatie-context-tekst" id="beeld-situatie-tekst"></div>
+    </div>
+    <p class="wiel-uitleg">Adem even in. Kijk naar de zes sleutels. Welke trekt jouw aandacht? Klik op je eerste ingeving.</p>
+    <div class="hex-grid">
+      <div class="hex-item" onclick="kiesSleutelBeeld(this,'M')">
+        <div class="hex-letter">M</div>
+        <div class="hex-naam">Mindset</div>
+      </div>
+      <div class="hex-item" onclick="kiesSleutelBeeld(this,'E')">
+        <div class="hex-letter">E</div>
+        <div class="hex-naam">Efficiëntie</div>
+      </div>
+      <div class="hex-item" onclick="kiesSleutelBeeld(this,'A1')">
+        <div class="hex-letter">A</div>
+        <div class="hex-naam">Aanpassen</div>
+      </div>
+      <div class="hex-item" onclick="kiesSleutelBeeld(this,'V')">
+        <div class="hex-letter">V</div>
+        <div class="hex-naam">Visueel</div>
+      </div>
+      <div class="hex-item" onclick="kiesSleutelBeeld(this,'I')">
+        <div class="hex-letter">I</div>
+        <div class="hex-naam">Integer</div>
+      </div>
+      <div class="hex-item" onclick="kiesSleutelBeeld(this,'A2')">
+        <div class="hex-letter">A</div>
+        <div class="hex-naam">Actie</div>
+      </div>
+    </div>
+    <div class="btn-wrap">
+      <button class="btn-dark" id="btn-beeld-verder" onclick="naarLaden()" disabled>Bekijk de reflectie</button>
+      <button class="btn-ghost" onclick="terug(2)">Terug</button>
+    </div>
+  </div>
+
+  <!-- Laden -->
+  <div class="sectie" id="stap-laden">
+    <div class="laden-wrap">
+      <div class="laden-spinner"></div>
+      <div class="laden-tekst" id="laden-tekst">Even afstemmen op jouw situatie...</div>
+    </div>
+  </div>
+
+  <!-- STAP 4: Uitkomst -->
+  <div class="sectie" id="stap4">
+    <div class="uitkomst-header">
+      <div class="uitkomst-label">De sleutel die hier aandacht vraagt</div>
+      <div class="uitkomst-sleutel" id="uitkomst-naam"></div>
+      <div class="uitkomst-situatie" id="uitkomst-situatie"></div>
+    </div>
+    <div id="uitkomst-fout" class="fout-melding" style="display:none"></div>
+    <div id="uitkomst-inhoud">
+      <div class="reflectie-blok">
+        <div class="reflectie-blok-label">Wat deze sleutel je laat zien</div>
+        <p id="uitkomst-kern"></p>
+      </div>
+      <div class="reflectie-blok">
+        <div class="reflectie-blok-label">Vragen om mee te zitten</div>
+        <ul class="reflectie-vragen" id="uitkomst-vragen"></ul>
+      </div>
+      <div class="reflectie-blok">
+        <div class="reflectie-blok-label">Wat er mag bewegen</div>
+        <p id="uitkomst-beweging"></p>
+      </div>
+    </div>
+    <div class="btn-wrap">
+      <button class="btn-opnieuw" onclick="opnieuw()">Opnieuw beginnen</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const sleutelData = {
+  M:  { naam:'Mindset',     letter:'M' },
+  E:  { naam:'Efficiëntie', letter:'E' },
+  A1: { naam:'Aanpassen',   letter:'A' },
+  V:  { naam:'Visueel',     letter:'V' },
+  I:  { naam:'Integer',     letter:'I' },
+  A2: { naam:'Actie',       letter:'A' }
+};
+
+let gekozenIngang = null;
+let gekozenSleutel = null;
+let ontdekVragen = [];
+let ontdekStap = 0;
+let ontdekAntwoorden = [];
+let huidigOptie = null;
+
+document.getElementById('situatie').addEventListener('input', function() {
+  document.getElementById('btn-naar-stap2').disabled = this.value.trim().length < 5;
+});
+
+function naarStap2() {
+  setStap('stap2');
+  zetDots(true, false, false);
+}
+
+function kiesIngang(type) {
+  gekozenIngang = type;
+  document.querySelectorAll('.ingang-kaart').forEach(k => k.classList.remove('geselecteerd'));
+  const map = { weet:'ingang-a', ontdek:'ingang-b', beeld:'ingang-c' };
+  document.getElementById(map[type]).classList.add('geselecteerd');
+  document.getElementById('btn-naar-stap3').disabled = false;
+}
+
+async function naarStap3() {
+  if (!gekozenIngang) return;
+  zetDots(true, true, false);
+  const situatie = document.getElementById('situatie').value.trim();
+
+  if (gekozenIngang === 'weet') {
+    setStap('stap3-weet');
+  } else if (gekozenIngang === 'beeld') {
+    document.getElementById('beeld-situatie-tekst').textContent = situatie;
+    setStap('stap3-beeld');
+  } else {
+    // Ontdek: laad eerst AI-vragen
+    setStap('stap-laden');
+    document.getElementById('laden-tekst').textContent = 'Even nadenken over jouw situatie...';
+    try {
+      const resp = await fetch('/api/sleutels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'vragen', situatie })
+      });
+      const data = await resp.json();
+      ontdekVragen = data.vragen || [];
+      ontdekStap = 0;
+      ontdekAntwoorden = [];
+      laadOntdekVraag();
+      setStap('stap3-ontdek');
+    } catch(e) {
+      // Fallback vragen
+      ontdekVragen = [
+        { vraag: 'Wat voel je het meest als je aan deze situatie denkt?', opties: ['Weerstand of spanning', 'Verwarring over de richting', 'Moeheid of gebrek aan energie'] },
+        { vraag: 'Waar loopt het het meest vast?', opties: ['In hoe ik erover denk', 'In wat ik wel of niet doe', 'In trouw blijven aan mezelf'] },
+        { vraag: 'Wat heeft dit het meest nodig?', opties: ['Een ander perspectief', 'Meer helderheid over richting', 'Gewoon beginnen'] }
+      ];
+      ontdekStap = 0;
+      ontdekAntwoorden = [];
+      laadOntdekVraag();
+      setStap('stap3-ontdek');
+    }
+  }
+}
+
+function laadOntdekVraag() {
+  const v = ontdekVragen[ontdekStap];
+  huidigOptie = null;
+  document.getElementById('ontdek-stap-label').textContent = `Vraag ${ontdekStap + 1} van ${ontdekVragen.length}`;
+  document.getElementById('ontdek-vraag-tekst').textContent = v.vraag;
+  document.getElementById('anders-input').value = '';
+
+  const isLaatste = ontdekStap === ontdekVragen.length - 1;
+  const btn = document.getElementById('btn-ontdek-verder');
+  btn.textContent = isLaatste ? 'Bekijk de reflectie' : 'Volgende vraag';
+  btn.disabled = true;
+
+  document.getElementById('ontdek-opties').innerHTML = v.opties.map((o, i) =>
+    `<button class="ontdek-optie" onclick="kiesOntdekOptie(this, ${i})">${o}</button>`
+  ).join('');
+
+  // Anders-veld activeert ook de knop
+  document.getElementById('anders-input').oninput = function() {
+    if (this.value.trim().length > 1) {
+      document.querySelectorAll('.ontdek-optie').forEach(o => o.classList.remove('geselecteerd'));
+      huidigOptie = null;
+      btn.disabled = false;
+    } else if (!huidigOptie) {
+      btn.disabled = true;
+    }
+  };
+}
+
+function kiesOntdekOptie(el, idx) {
+  document.querySelectorAll('.ontdek-optie').forEach(o => o.classList.remove('geselecteerd'));
+  el.classList.add('geselecteerd');
+  huidigOptie = idx;
+  document.getElementById('anders-input').value = '';
+  document.getElementById('btn-ontdek-verder').disabled = false;
+}
+
+async function ontdekVolgende() {
+  const v = ontdekVragen[ontdekStap];
+  const andersWaarde = document.getElementById('anders-input').value.trim();
+  const antwoord = andersWaarde.length > 1
+    ? andersWaarde
+    : (huidigOptie !== null ? v.opties[huidigOptie] : '');
+
+  ontdekAntwoorden.push({ vraag: v.vraag, antwoord });
+
+  if (ontdekStap < ontdekVragen.length - 1) {
+    ontdekStap++;
+    laadOntdekVraag();
+  } else {
+    // Alle vragen beantwoord, analyseer
+    await naarOntdekUitkomst();
+  }
+}
+
+async function naarOntdekUitkomst() {
+  setStap('stap-laden');
+  document.getElementById('laden-tekst').textContent = 'Even afstemmen op jouw situatie...';
+  zetDots(true, true, true);
+
+  const situatie = document.getElementById('situatie').value.trim();
+
+  try {
+    const resp = await fetch('/api/sleutels', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'ontdek', situatie, antwoorden: ontdekAntwoorden })
+    });
+    if (!resp.ok) throw new Error();
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    toonUitkomst(data.sleutel, data.sleutelnaam, situatie, data);
+  } catch(e) {
+    toonUitkomstFout(situatie);
+  }
+}
+
+function kiesSleutel(el, key) {
+  gekozenSleutel = key;
+  document.querySelectorAll('.sleutel-kaart').forEach(k => k.classList.remove('geselecteerd'));
+  el.classList.add('geselecteerd');
+  document.getElementById('btn-weet-verder').disabled = false;
+}
+
+function kiesSleutelBeeld(el, key) {
+  gekozenSleutel = key;
+  document.querySelectorAll('.hex-item').forEach(k => k.classList.remove('geselecteerd'));
+  el.classList.add('geselecteerd');
+  document.getElementById('btn-beeld-verder').disabled = false;
+}
+
+async function naarLaden() {
+  if (!gekozenSleutel) return;
+  setStap('stap-laden');
+  document.getElementById('laden-tekst').textContent = 'Even afstemmen op jouw situatie...';
+  zetDots(true, true, true);
+
+  const situatie = document.getElementById('situatie').value.trim();
+  const s = sleutelData[gekozenSleutel];
+
+  try {
+    const resp = await fetch('/api/sleutels', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'reflectie', situatie, sleutel: gekozenSleutel })
+    });
+    if (!resp.ok) throw new Error();
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    toonUitkomst(gekozenSleutel, s.naam, situatie, data);
+  } catch(e) {
+    toonUitkomstFout(situatie);
+  }
+}
+
+function toonUitkomst(sleutelKey, sleutelNaam, situatie, data) {
+  const letter = sleutelData[sleutelKey]?.letter || sleutelKey;
+  document.getElementById('uitkomst-naam').innerHTML = `<span>${letter}</span> — ${sleutelNaam}`;
+  const preview = situatie.length > 90 ? situatie.substring(0,90)+'...' : situatie;
+  document.getElementById('uitkomst-situatie').textContent = `Over: "${preview}"`;
+  document.getElementById('uitkomst-fout').style.display = 'none';
+  document.getElementById('uitkomst-inhoud').style.display = 'block';
+  document.getElementById('uitkomst-kern').textContent = data.kern || '';
+  document.getElementById('uitkomst-vragen').innerHTML = (data.vragen || []).map(v => `<li>${v}</li>`).join('');
+  document.getElementById('uitkomst-beweging').textContent = data.beweging || '';
+  setStap('stap4');
+}
+
+function toonUitkomstFout(situatie) {
+  // Toon de fout bovenaan maar geef ook een bruikbare fallback
+  document.getElementById('uitkomst-fout').textContent = 'De verbinding met de server is er niet. Hieronder zie je een algemene reflectie.';
+  document.getElementById('uitkomst-fout').style.display = 'block';
+  document.getElementById('uitkomst-inhoud').style.display = 'block';
+  document.getElementById('uitkomst-kern').textContent = 'Zit even rustig met wat er speelt. Welke sleutel je ook gekozen hebt, de vraag die hier centraal staat is: wat vraagt in deze situatie echt jouw aandacht? Niet wat logisch lijkt of wat zou moeten, maar wat je voelt als je er echt bij stilstaat.';
+  document.getElementById('uitkomst-vragen').innerHTML = [
+    'Wat herkent je het meest in deze situatie als je er eerlijk naar kijkt?',
+    'Waar wil je eigenlijk naar toe, ook al is dat nog vaag?',
+    'Wat zou er veranderen als dit hier in beweging komt?'
+  ].map(v => `<li>${v}</li>`).join('');
+  document.getElementById('uitkomst-beweging').textContent = 'Neem de tijd om met deze vragen te zitten. Er hoeft nu niets opgelost te worden. Bewustzijn is al een beweging.';
+  setStap('stap4');
+}
+
+function terug(stap) {
+  if (stap === 1) { setStap('stap1'); zetDots(false, false, false); }
+  if (stap === 2) { setStap('stap2'); zetDots(true, false, false); }
+}
+
+function opnieuw() {
+  gekozenIngang = null;
+  gekozenSleutel = null;
+  ontdekVragen = [];
+  ontdekStap = 0;
+  ontdekAntwoorden = [];
+  huidigOptie = null;
+  document.getElementById('situatie').value = '';
+  document.getElementById('btn-naar-stap2').disabled = true;
+  document.querySelectorAll('.ingang-kaart').forEach(k => k.classList.remove('geselecteerd'));
+  setStap('stap1');
+  zetDots(false, false, false);
+}
+
+function setStap(id) {
+  document.querySelectorAll('.sectie').forEach(s => s.classList.remove('actief'));
+  document.getElementById(id).classList.add('actief');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function zetDots(s1, s2, s3) {
+  const dots = ['dot1','dot2','dot3'].map(id => document.getElementById(id));
+  dots.forEach((d, i) => {
+    d.classList.remove('actief','klaar');
+    if ([s1,s2,s3][i]) d.classList.add('klaar');
+  });
+  const actief = !s1 ? 0 : !s2 ? 1 : 2;
+  dots[actief].classList.remove('klaar');
+  dots[actief].classList.add('actief');
+}
+</script>
+</body>
+</html>

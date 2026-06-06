@@ -3,12 +3,14 @@
   "functions": {
     "api/analyse.js": { "maxDuration": 60 },
     "api/contact.js": { "maxDuration": 30 },
-    "api/feedback.js": { "maxDuration": 30 }
+    "api/feedback.js": { "maxDuration": 30 },
+    "api/sleutels.js": { "maxDuration": 60 }
   },
   "rewrites": [
     { "source": "/wheel-of-life", "destination": "/wheel-of-life.html" },
     { "source": "/wheel-of-business", "destination": "/wheel-of-business.html" },
     { "source": "/feedback", "destination": "/feedback.html" },
+    { "source": "/sleutels", "destination": "/sleutels.html" },
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ]
 }
