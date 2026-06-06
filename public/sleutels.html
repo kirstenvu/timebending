@@ -118,6 +118,22 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
 .gesprek-antwoord-label { font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin-bottom:5px; }
 .gesprek-antwoord-tekst { font-size:13px; font-family:Lora,serif; color:var(--brown); font-style:italic; line-height:1.65; }
 
+/* Print / PDF */
+@media print {
+  body { background:#fff; }
+  .stap-indicator, #stap1, #stap2, #stap3-weet, #stap3-ontdek, #stap-laden,
+  .gesprek-wrap, .btn-wrap, .footer-note { display:none !important; }
+  .page { padding:0; max-width:100%; }
+  #stap4 { display:block !important; }
+  .print-header { display:flex !important; }
+  .reflectie-blok { box-shadow:none; border:1px solid #E8DFD2; page-break-inside:avoid; }
+  @page { margin:20mm 18mm; }
+}
+.print-header { display:none; align-items:center; gap:16px; margin-bottom:28px; padding-bottom:16px; border-bottom:1px solid #E8DFD2; }
+.print-header img { height:60px; width:auto; }
+.print-header-tekst p:first-child { font-size:10px; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:#C89A3C; font-family:Raleway,sans-serif; }
+.print-header-tekst p:last-child { font-family:Lora,serif; font-size:18px; color:#2A2438; }
+
 /* Interactief sleutel logo */
 .sleutel-overlay { position:absolute; border-radius:50%; cursor:pointer; border:3px solid transparent; box-sizing:border-box; transition:all .2s; }
 .sleutel-overlay:hover { border-color: var(--overlay-kleur, #7B3FA0); background:rgba(0,0,0,0.06); }
@@ -246,6 +262,13 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
 
   <!-- STAP 4: Uitkomst -->
   <div class="sectie" id="stap4">
+    <div class="print-header">
+      <img src="logo.png" alt="Timebending®">
+      <div class="print-header-tekst">
+        <p>Timebending®</p>
+        <p id="print-sleutel-titel">6 sleutels tot succes</p>
+      </div>
+    </div>
     <div class="uitkomst-header">
       <div class="uitkomst-label">De sleutel die hier aandacht vraagt</div>
       <div class="uitkomst-sleutel" id="uitkomst-naam"></div>
@@ -278,6 +301,7 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
     </div>
 
     <div class="btn-wrap" style="margin-top:32px">
+      <button class="btn-dark" onclick="bewaarAlsPDF()">Bewaar als PDF</button>
       <button class="btn-ghost" onclick="terug('uitkomst')">Terug</button>
       <button class="btn-opnieuw" onclick="opnieuw()">Opnieuw</button>
     </div>
@@ -639,6 +663,12 @@ function terug(stap) {
   }
 }
 
+function bewaarAlsPDF() {
+  const naam = document.getElementById('uitkomst-naam').textContent;
+  document.getElementById('print-sleutel-titel').textContent = naam;
+  window.print();
+}
+
 function opnieuw() {
   gekozenIngang = null;
   gekozenSleutel = null;
@@ -653,6 +683,10 @@ function opnieuw() {
   document.getElementById('gesprek-input').value = '';
   document.getElementById('btn-naar-stap2').disabled = true;
   document.querySelectorAll('.ingang-kaart').forEach(k => k.classList.remove('geselecteerd'));
+  document.querySelectorAll('.sleutel-overlay').forEach(k => k.classList.remove('geselecteerd'));
+  const lbl = document.getElementById('sleutel-selectie-label');
+  if (lbl) { lbl.textContent = '–'; lbl.style.color = 'transparent'; }
+  document.getElementById('btn-weet-verder').disabled = true;
   setStap('stap1');
   zetDots(false, false, false);
 }
