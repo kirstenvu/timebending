@@ -60,12 +60,14 @@ module.exports = async function handler(req, res) {
     if (type === 'vragen') {
       if (!situatie) return res.status(400).json({ error: 'Situatie verplicht' });
 
-      const prompt = `${stemPrefix()}Iemand werkt met de Timebending® methodiek en beschrijft deze situatie:
+      const prompt = `${stemPrefix()}Iemand beschrijft deze situatie:
 "${situatie}"
 
-Schrijf 3 korte, gerichte vragen die helpen te voelen wat er werkelijk speelt. De vragen gaan dieper in op de situatie, zonder de zes sleutels te noemen. Schrijf in de stijl van Kirsten: warm, direct, zonder jargon. Geen liggend streepje (—).
+Schrijf 3 vragen die echt dieper gaan op wat hier speelt. Niet breed of open, maar specifiek gericht op deze situatie. De vragen mogen iets raken wat de persoon misschien nog niet heeft gezien. Geen Timebending-jargon, geen vragen over energie of afstemming. Gewoon eerlijke vragen die helpen om de kern te vinden.
 
-Geef per vraag ook 3 antwoordopties die specifiek aansluiten bij de beschreven situatie. De opties zijn kort (max 12 woorden), herkenbaar en eerlijk. Geen mooie woorden, maar wat mensen echt denken of voelen.
+Geef per vraag 3 antwoordopties. De opties zijn kort (max 12 woorden) en herkenbaar eerlijk. Ze klinken als wat mensen echt denken, niet als mooie antwoorden. Ze mogen ook een beetje oncomfortabel zijn als dat klopt bij de situatie.
+
+Schrijf in de stijl van Kirsten van Timebending: direct, warm, geen liggend streepje (—).
 
 Geef alleen dit JSON terug:
 {
@@ -101,33 +103,39 @@ Geef alleen dit JSON terug:
         .map((a, i) => `Vraag ${i+1}: ${a.vraag}\nAntwoord: ${a.antwoord}`)
         .join('\n\n');
 
-      const prompt = `${stemPrefix()}Iemand werkt met de Timebending® methodiek.
+      const prompt = `${stemPrefix()}Iemand beschrijft deze situatie:
+"${situatie}"
 
-Situatie: "${situatie}"
-
+Op basis van deze situatie zijn de volgende vragen gesteld en zo beantwoord:
 ${antwoordTekst}
 
 De zes sleutels van Timebending® zijn:
 ${sleutelLijst}
 
-Welke sleutel vraagt hier het meest om aandacht? Kies er één op basis van de situatie en de antwoorden.
+Kies de sleutel die het meest raakt aan wat hier werkelijk speelt.
 
-Schrijf daarna een persoonlijke reflectie die direct aansluit op wat deze persoon beschrijft en beantwoordt. Gebruik de stem van Kirsten: warm, direct, zonder jargon, echte zinnen. Geen liggend streepje (—).
+Schrijf daarna een reflectie die echt ingaat op de situatie. Niet algemeen, niet breed. Benoem wat er werkelijk aan de hand is in deze specifieke situatie. Wat ziet de persoon nog niet? Wat is het patroon of de kern die hier zichtbaar wordt? Wees concreet en direct.
+
+De drie vervolgvragen moeten verder gaan dan wat de persoon al beschreef. Ze mogen iets scherps of onverwachts raken. Geen vragen als "waar gaat je energie naartoe" of "wat heeft aandacht nodig", maar vragen die echt iets openen in deze situatie.
+
+De beweging is geen open uitnodiging maar een concrete richting: wat is de eigenlijke verschuiving of eerste stap die hier past?
+
+Schrijf in de stem van Kirsten: warm, direct, geen jargon, echte zinnen, geen liggend streepje (—). Minimaal 3 volle zinnen voor kern en beweging.
 
 Geef alleen dit JSON terug:
 {
   "sleutel": "de sleutelcode (M, E, A1, V, I of A2)",
   "sleutelnaam": "naam van de sleutel",
-  "kern": "2 tot 3 zinnen die laten zien wat deze sleutel onthult in deze specifieke situatie",
+  "kern": "Minimaal 3 zinnen die benoemen wat er werkelijk speelt in deze situatie",
   "vragen": [
-    "Eerste vervolgvraag om mee te zitten, direct gerelateerd aan de beschreven situatie",
+    "Eerste scherpe vervolgvraag die verder gaat dan de situatie",
     "Tweede vraag",
     "Derde vraag"
   ],
-  "beweging": "2 zinnen over wat er mag bewegen of wat een eerste stap kan zijn"
+  "beweging": "Minimaal 2 concrete zinnen over de werkelijke verschuiving die hier past"
 }`;
 
-      const data = await callClaude(prompt, 1024);
+      const data = await callClaude(prompt, 2048);
       return res.status(200).json(data);
     }
 
@@ -138,26 +146,32 @@ Geef alleen dit JSON terug:
       const s = sleutelContext[sleutel];
       if (!s) return res.status(400).json({ error: 'Onbekende sleutel' });
 
-      const prompt = `${stemPrefix()}Iemand werkt met de Timebending® methodiek en kiest de sleutel ${s.naam}.
+      const prompt = `${stemPrefix()}Iemand beschrijft deze situatie:
+"${situatie}"
 
-Kern van deze sleutel: ${s.kern}
+De sleutel die hier aandacht vraagt is: ${s.naam}
+Wat deze sleutel betekent: ${s.kern}
 
-Wat de persoon beschrijft: "${situatie}"
+Schrijf een reflectie die echt ingaat op wat deze persoon beschrijft. Blijf bij de werkelijke situatie. Ga niet terug naar algemene innerlijke werk vragen als de situatie praktisch of concreet is. Benoem wat er werkelijk speelt en wat de sleutel ${s.naam} onthult over precies deze situatie.
 
-Schrijf een persoonlijke reflectie die direct aansluit op wat deze persoon beschrijft. Gebruik de stem van Kirsten: warm, direct, zonder jargon, echte zinnen. Geen liggend streepje (—).
+De drie vragen moeten scherp zijn en verder gaan dan wat de persoon al weet. Ze mogen iets openen wat de persoon nog niet heeft gezien. Geen vragen als "waar gaat je energie naartoe" of "wat vraagt aandacht". Stel vragen die echt iets concreets openen in deze situatie.
+
+De beweging is geen open reflectie maar een echte richting. Wat is de concrete verschuiving of stap die past bij wat hier speelt?
+
+Schrijf in de stem van Kirsten: warm, direct, geen jargon, echte zinnen, geen liggend streepje (—). Minimaal 3 volle zinnen voor kern en beweging.
 
 Geef alleen dit JSON terug:
 {
-  "kern": "2 tot 3 zinnen die laten zien wat deze sleutel onthult in deze specifieke situatie",
+  "kern": "Minimaal 3 zinnen die benoemen wat er werkelijk speelt in deze situatie",
   "vragen": [
-    "Eerste vraag om mee te zitten, direct gerelateerd aan de situatie",
+    "Eerste scherpe vraag die iets opent wat de persoon nog niet heeft gezien",
     "Tweede vraag",
     "Derde vraag"
   ],
-  "beweging": "2 zinnen over wat er mag bewegen of wat een eerste stap kan zijn"
+  "beweging": "Minimaal 2 concrete zinnen over de werkelijke verschuiving of stap die hier past"
 }`;
 
-      const data = await callClaude(prompt, 1024);
+      const data = await callClaude(prompt, 2048);
       return res.status(200).json(data);
     }
 
