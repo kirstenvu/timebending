@@ -201,21 +201,26 @@ De sleutel die hier speelt: ${s.naam} - ${s.kern}
 Het gesprek tot nu toe:
 ${geschiedenis}
 
-Ga dieper in op wat de persoon zojuist heeft gezegd. Neem hun antwoord serieus en bouw daarop verder. Ga niet herhalen wat al gezegd is. Zoek naar wat er onder hun antwoord zit of wat er nog niet benoemd is.
+Lees het gesprek goed. Beweeg zo snel mogelijk naar iets concreets. Niet eindeloos blijven reflecteren.
 
-Jouw rol is niet om op te lossen of te adviseren. Help de persoon zelf verder te zien. Gebruik de sleutel ${s.naam} als lens.
+Lees wat de persoon werkelijk vraagt, ook als ze dat niet letterlijk zeggen. Als iemand aangeeft vast te zitten op de HOE, als ze niet weten wat ze als eerste moeten doen, als ze steeds terugkomen op hetzelfde punt zonder verder te komen, geef dan concrete richting. Wacht daar niet op een expliciete vraag om.
 
-Als het antwoord van de persoon al een duidelijke richting of inzicht bevat, benoem dat dan en help hen het te verankeren. Als er nog iets onder zit, ga daar dan op in.
+Jouw rol wisselt afhankelijk van wat het gesprek vraagt:
+- Als er nog iets onzichtbaars is dat benoemd moet worden, benoem het.
+- Als de persoon al ziet wat er speelt maar niet weet hoe verder, geef dan concrete eerste stappen die passen bij wat ze hebben verteld. Geen generieke tips, maar iets dat aansluit op deze specifieke situatie en persoon.
+- Als er een inzicht is, help het landen. Niet meer vragen stellen dan nodig.
 
-Sluit af met maximaal 2 gerichte vragen of één concrete uitnodiging om verder mee te gaan. Niet meer dan dat.
+Herhaal nooit wat al gezegd is. Ga niet nog een keer uitleggen wat de sleutel betekent.
+
+Sluit af met maximaal 1 vraag of 1 concrete uitnodiging. Alleen als dat echt nog iets toevoegt. Anders niet.
 
 Schrijf in de stem van Kirsten: warm, direct, geen jargon, echte zinnen, geen liggend streepje (—). Minimaal 3 volle zinnen.
 
 Geef alleen dit JSON terug:
 {
-  "verdieping": "Minimaal 3 zinnen die ingaan op wat de persoon zei en verder openen",
+  "verdieping": "Minimaal 3 zinnen die ingaan op wat de persoon zei, concreet en gericht",
   "vragen": [
-    "Maximaal één of twee vervolgvragen, of laat dit leeg als er een duidelijk inzicht is"
+    "Maximaal één vervolgvraag of concrete stap, of een lege array als het niet nodig is"
   ]
 }`;
 
