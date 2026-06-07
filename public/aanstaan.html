@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hoe sta jij aan? — Timebending®</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Raleway:wght@300;400;500;600&display=swap');
+
+:root {
+  --cream: #F9FFFA;
+  --warm-white: #ffffff;
+  --sand: #E8DFD2;
+  --gold: #C89A3C;
+  --purple: #7B3FA0;
+  --plum: #6B2F8E;
+  --sage: #8A9E82;
+  --muted: #8A7A9A;
+  --deep: #2A2438;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--cream);
+  color: var(--deep);
+  font-family: 'Lora', serif;
+  min-height: 100vh;
+  padding: 40px 20px 60px;
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-family: 'Lora', serif;
+  font-size: 1.9em;
+  font-weight: 500;
+  color: var(--purple);
+  line-height: 1.3;
+  margin-bottom: 10px;
+}
+h1 em { color: var(--gold); font-style: italic; }
+
+.gold-line {
+  width: 40px; height: 2px;
+  background: var(--gold);
+  margin: 0 auto 16px;
+}
+
+.subtitle {
+  font-family: 'Raleway', sans-serif;
+  font-size: 0.95em;
+  color: var(--muted);
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+/* Stappen */
+.step { display: none; }
+.step.active { display: block; }
+
+/* Email stap */
+.email-card {
+  background: var(--warm-white);
+  border-radius: 16px;
+  padding: 36px 32px;
+  margin-top: 32px;
+  border: 1px solid var(--sand);
+}
+
+.email-card p {
+  font-size: 1em;
+  line-height: 1.7;
+  color: var(--deep);
+  margin-bottom: 24px;
+}
+
+.field-label {
+  display: block;
+  font-family: 'Raleway', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+input[type="text"],
+input[type="email"] {
+  width: 100%;
+  border: 1.5px solid var(--sand);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-family: 'Lora', serif;
+  font-size: 0.95em;
+  color: var(--deep);
+  background: var(--cream);
+  outline: none;
+  transition: border-color .2s;
+  margin-bottom: 16px;
+}
+input:focus { border-color: var(--purple); }
+
+.btn-dark {
+  background: var(--purple); color: white; border: none;
+  padding: 12px 28px; font-family: 'Raleway', sans-serif;
+  font-size: 11px; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase; cursor: pointer; border-radius: 20px;
+  transition: all .2s; width: 100%; margin-top: 8px;
+}
+.btn-dark:hover { background: var(--plum); transform: translateY(-1px); }
+.btn-dark:disabled { opacity: .4; cursor: default; transform: none; }
+
+.btn-ghost {
+  background: transparent; color: var(--purple);
+  border: 1.5px solid var(--purple);
+  padding: 12px 28px; font-family: 'Raleway', sans-serif;
+  font-size: 11px; font-weight: 500; letter-spacing: .1em;
+  text-transform: uppercase; cursor: pointer; border-radius: 20px;
+  transition: all .2s;
+}
+.btn-ghost:hover { border-color: var(--plum); background: rgba(123,63,160,.06); }
+
+.btn-opnieuw {
+  background: transparent; color: var(--muted);
+  border: 1.5px solid var(--sand);
+  padding: 10px 22px; font-family: 'Raleway', sans-serif;
+  font-size: 10px; font-weight: 500; letter-spacing: .1em;
+  text-transform: uppercase; cursor: pointer; border-radius: 20px;
+  transition: all .2s;
+}
+.btn-opnieuw:hover { border-color: var(--muted); color: var(--deep); }
+
+/* Vragen */
+.vraag-card {
+  background: var(--warm-white);
+  border-radius: 16px;
+  padding: 36px 32px;
+  margin-top: 32px;
+  border: 1px solid var(--sand);
+}
+
+.vraag-nr {
+  font-family: 'Raleway', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+}
+
+.vraag-tekst {
+  font-size: 1.1em;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--deep);
+  margin-bottom: 28px;
+}
+
+.opties {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.optie {
+  border: 1.5px solid var(--sand);
+  border-radius: 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: all .2s;
+  font-size: 0.95em;
+  line-height: 1.5;
+  color: var(--deep);
+  text-align: left;
+  background: var(--cream);
+  font-family: 'Lora', serif;
+}
+.optie:hover { border-color: var(--purple); background: rgba(123,63,160,.04); }
+.optie.selected { border-color: var(--purple); background: rgba(123,63,160,.08); color: var(--purple); }
+
+.voortgang {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.voortgang-balk {
+  flex: 1;
+  height: 3px;
+  background: var(--sand);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.voortgang-vulling {
+  height: 100%;
+  background: var(--gold);
+  border-radius: 2px;
+  transition: width .4s ease;
+}
+
+.voortgang-tekst {
+  font-family: 'Raleway', sans-serif;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+
+/* Verificatie */
+.verificatie-card {
+  background: var(--warm-white);
+  border-radius: 16px;
+  padding: 36px 32px;
+  margin-top: 32px;
+  border: 1px solid var(--sand);
+  border-left: 4px solid var(--sage);
+}
+
+.verificatie-laag {
+  font-family: 'Raleway', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 10px;
+}
+
+.verificatie-titel {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--purple);
+  margin-bottom: 16px;
+}
+
+.verificatie-tekst {
+  font-size: 0.97em;
+  line-height: 1.75;
+  color: var(--deep);
+  margin-bottom: 28px;
+}
+
+.verificatie-knoppen {
+  display: flex;
+  gap: 12px;
+}
+
+/* Email voor uitslag */
+.email-uitslag-card {
+  background: var(--warm-white);
+  border-radius: 16px;
+  padding: 36px 32px;
+  margin-top: 32px;
+  border: 1px solid var(--sand);
+}
+
+.email-uitslag-card p {
+  font-size: 1em;
+  line-height: 1.7;
+  color: var(--deep);
+  margin-bottom: 20px;
+}
+
+/* Uitslag */
+.uitslag-card {
+  background: var(--warm-white);
+  border-radius: 16px;
+  padding: 36px 32px;
+  margin-top: 32px;
+  border: 1px solid var(--sand);
+  border-left: 4px solid var(--purple);
+}
+
+.uitslag-label {
+  font-family: 'Raleway', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.uitslag-naam {
+  font-size: 1.4em;
+  font-weight: 600;
+  color: var(--purple);
+  margin-bottom: 20px;
+}
+
+.uitslag-omschrijving {
+  font-size: 0.97em;
+  line-height: 1.8;
+  color: var(--deep);
+  margin-bottom: 28px;
+}
+
+.uitslag-blok {
+  background: var(--cream);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.uitslag-blok-titel {
+  font-family: 'Raleway', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.uitslag-blok-titel.helpt { color: var(--sage); }
+.uitslag-blok-titel.niet { color: var(--muted); }
+
+.uitslag-blok ul {
+  padding-left: 18px;
+}
+
+.uitslag-blok li {
+  font-size: 0.93em;
+  line-height: 1.7;
+  color: var(--deep);
+  margin-bottom: 4px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--sand);
+  margin: 28px 0;
+}
+
+.uitslag-cta {
+  font-size: 0.97em;
+  line-height: 1.75;
+  color: var(--deep);
+  margin-bottom: 24px;
+}
+
+.uitslag-knoppen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-note {
+  text-align: center; font-size: 11px; color: var(--muted);
+  font-weight: 300; letter-spacing: .04em; margin-top: 52px;
+  padding-top: 24px; border-top: 1px solid var(--sand);
+  font-family: 'Raleway', sans-serif;
+}
+.footer-note a { color: var(--gold); text-decoration: none; }
+
+.error-tekst {
+  font-family: 'Raleway', sans-serif;
+  font-size: 11px;
+  color: #c0392b;
+  margin-top: 6px;
+  display: none;
+}
+
+/* Laad */
+.laad-wrapper {
+  text-align: center;
+  padding: 60px 0 40px;
+}
+.spiraal-spin {
+  width: 80px; height: 80px; display: block;
+  transform-origin: center center;
+  animation: spiraalDraaien 3s linear infinite;
+  margin: 0 auto 20px;
+}
+@keyframes spiraalDraaien { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+
+.laad-tekst {
+  font-family: 'Raleway', sans-serif;
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+@media (max-width: 480px) {
+  .verificatie-knoppen { flex-direction: column; }
+  .email-card, .vraag-card, .verificatie-card, .uitslag-card, .email-uitslag-card { padding: 28px 20px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div style="text-align:center;margin-bottom:40px;">
+    <img src="logo.png" alt="Timebending®" style="height:110px;width:auto;display:block;margin:0 auto 18px;">
+    <h1>Hoe sta jij <em>aan?</em></h1>
+    <div class="gold-line"></div>
+    <p class="subtitle">Iedereen zegt het — maar niet iedereen bedoelt hetzelfde.<br>Ontdek in welke laag jij aanstaat en wat jou echt helpt.</p>
+  </div>
+
+  <!-- STAP 0: Naam + Email -->
+  <div class="step active" id="stap-0">
+    <div class="email-card">
+      <p>Vul je naam en e-mailadres in en ontvang je persoonlijke uitslag ook in je inbox.</p>
+      <label class="field-label" for="naam">Jouw naam</label>
+      <input type="text" id="naam" placeholder="Voornaam">
+      <label class="field-label" for="email">E-mailadres</label>
+      <input type="email" id="email" placeholder="jouw@email.nl">
+      <div class="error-tekst" id="email-error">Vul een geldig e-mailadres in om verder te gaan.</div>
+      <button class="btn-dark" onclick="startScan()">Start de scan</button>
+    </div>
+  </div>
+
+  <!-- STAP 1-6: Vragen -->
+  <div class="step" id="stap-vragen">
+    <div class="vraag-card" id="vraag-kaart">
+      <div class="vraag-nr" id="vraag-nr">Vraag 1 van 6</div>
+      <div class="vraag-tekst" id="vraag-tekst"></div>
+      <div class="opties" id="opties-container"></div>
+      <div class="voortgang">
+        <div class="voortgang-balk"><div class="voortgang-vulling" id="voortgang-vulling"></div></div>
+        <div class="voortgang-tekst" id="voortgang-tekst">1 / 6</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAP: Laden -->
+  <div class="step" id="stap-laden">
+    <div class="laad-wrapper">
+      <img src="spiraal.png" alt="" class="spiraal-spin">
+      <div class="laad-tekst">Jouw patroon wordt herkend...</div>
+    </div>
+  </div>
+
+  <!-- STAP: Verificatie -->
+  <div class="step" id="stap-verificatie">
+    <div class="verificatie-card">
+      <div class="verificatie-laag" id="ver-laag"></div>
+      <div class="verificatie-titel" id="ver-titel"></div>
+      <div class="verificatie-tekst" id="ver-tekst"></div>
+      <div class="verificatie-knoppen">
+        <button class="btn-dark" onclick="bevestigVerificatie()">Ja, dit herken ik</button>
+        <button class="btn-ghost" onclick="twijfelVerificatie()">Niet helemaal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAP: Uitslag -->
+  <div class="step" id="stap-uitslag">
+    <div class="uitslag-card">
+      <div class="uitslag-label">Jouw laag</div>
+      <div class="uitslag-naam" id="uitslag-naam"></div>
+      <div class="uitslag-omschrijving" id="uitslag-omschrijving"></div>
+
+      <div class="uitslag-blok">
+        <div class="uitslag-blok-titel helpt">Dit helpt jou</div>
+        <ul id="uitslag-helpt"></ul>
+      </div>
+
+      <div class="uitslag-blok">
+        <div class="uitslag-blok-titel niet">Dit helpt juist niet</div>
+        <ul id="uitslag-niet"></ul>
+      </div>
+
+      <hr class="divider">
+
+      <div class="uitslag-cta" id="uitslag-cta"></div>
+
+      <div class="uitslag-knoppen">
+        <button class="btn-dark" onclick="naarGesprek()">Ik wil meer weten</button>
+        <button class="btn-opnieuw" onclick="opnieuw()">Opnieuw beginnen</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="footer-note">Timebending® door <a href="https://meavia.nu">meavia.nu</a></p>
+</div>
+
+<script>
+const vragen = [
+  {
+    tekst: "Als je 's avonds eindelijk tijd voor jezelf hebt, wat gebeurt er dan in je hoofd?",
+    opties: [
+      { tekst: "Ik blijf maar denken — aan wat ik nog moet doen, wat er gezegd is, wat er morgen komt.", laag: "hoofd" },
+      { tekst: "Ik voel me schuldig dat ik er even niet voor anderen ben.", laag: "verwachting" },
+      { tekst: "Mijn lichaam kan niet loslaten, ook al wil ik dat wel.", laag: "zenuwstelsel" },
+      { tekst: "Ik scroll, check berichten — ik kan niet echt landen.", laag: "verwachting" }
+    ]
+  },
+  {
+    tekst: "Wanneer voel jij je het meest uitgeput?",
+    opties: [
+      { tekst: "Als ik veel heb nagedacht, gepland of geanalyseerd.", laag: "hoofd" },
+      { tekst: "Als ik het gevoel heb dat ik iedereen tevreden heb moeten stellen.", laag: "verwachting" },
+      { tekst: "Na drukte, lawaaierige omgevingen of veel prikkels om me heen.", laag: "zenuwstelsel" },
+      { tekst: "Als ik het idee heb dat ik niet genoeg heb gedaan.", laag: "verwachting" }
+    ]
+  },
+  {
+    tekst: "Hoe ervaart jouw lichaam stress, als je eerlijk bent?",
+    opties: [
+      { tekst: "Mijn hoofd tolt, ik kan moeilijk focussen of afronden.", laag: "hoofd" },
+      { tekst: "Gespannen schouders, oppervlakkig ademen, strak gevoel.", laag: "zenuwstelsel" },
+      { tekst: "Ik voel me leeg of hollow — als een accu die maar niet oplaadt.", laag: "verwachting" },
+      { tekst: "Ik merk het eigenlijk pas als het echt te laat is.", laag: "zenuwstelsel" }
+    ]
+  },
+  {
+    tekst: "Wat zeg jij het vaakst tegen jezelf als je wil ontspannen maar het niet lukt?",
+    opties: [
+      { tekst: "Ik moet dit eerst nog even afmaken of uitdenken.", laag: "hoofd" },
+      { tekst: "Ik kan dit niet laten liggen, er rekenen mensen op mij.", laag: "verwachting" },
+      { tekst: "Ik wil ontspannen maar mijn lichaam werkt niet mee.", laag: "zenuwstelsel" },
+      { tekst: "Straks, als dit voorbij is.", laag: "hoofd" }
+    ]
+  },
+  {
+    tekst: "Wat helpt jou op dit moment het minst als je wil vertragen?",
+    opties: [
+      { tekst: "Meer to-do lijstjes of planningsystemen.", laag: "hoofd" },
+      { tekst: "Zeggen dat ik gewoon 'nee' moet leren zeggen.", laag: "verwachting" },
+      { tekst: "Harder proberen te ontspannen of jezelf ertoe dwingen.", laag: "zenuwstelsel" },
+      { tekst: "Tips die werken als je eerst even tijd hebt — die heb ik niet.", laag: "verwachting" }
+    ]
+  },
+  {
+    tekst: "Als je denkt aan 'rust' — wat voelt dan als de grootste blokkade?",
+    opties: [
+      { tekst: "Mijn gedachten gaan gewoon door, ook als ik stilzit.", laag: "hoofd" },
+      { tekst: "Het gevoel dat ik rust moet verdienen of dat het anderen kost.", laag: "verwachting" },
+      { tekst: "Mijn lijf kan het signaal 'veilig' gewoon niet ontvangen.", laag: "zenuwstelsel" },
+      { tekst: "Ik weet niet eens meer wat voor mij rust is.", laag: "zenuwstelsel" }
+    ]
+  }
+];
+
+const lagen = {
+  hoofd: {
+    naam: "Het actieve hoofd",
+    verificatieTitel: "Jouw hoofd staat nooit echt stil",
+    verificatieTekst: "Op basis van jouw antwoorden lijkt het erop dat jouw aanstaan vooral vanuit je hoofd komt. Jij bent een denker, planner, verwerker. Zelfs als jij 'niks doet', draait je hoofd op volle toeren. Je analyseert, herhaalt gesprekken, plant dingen die nog niet eens spelen. Herken je dit?",
+    omschrijving: "Jij staat aan omdat je hoofd constant bezig is. Gedachten, plannen, analyses, inzichten — ze houden niet op. Dit kost enorm veel energie, ook als je er van buiten niks van ziet. Het goede nieuws: jouw soort aanstaan vraagt om uitgang, niet om meer structuur.",
+    helpt: [
+      "Schrijven of journalen — gedachten van je hoofd naar papier brengen",
+      "Brain dumps: alles opschrijven wat er is, zonder oordeel",
+      "Mindmapping om gedachten te ordenen en los te laten",
+      "Creatieve bezigheid die je hoofd een andere richting geeft",
+      "Wandelen zonder telefoon of podcast"
+    ],
+    niet: [
+      "Nóg meer plannen maken of to-do lijsten bijhouden",
+      "Meditatie als je er nog niet aan gewend bent — je hoofd draait dan harder",
+      "Praten over je gedachten zonder dat het ergens naartoe gaat"
+    ],
+    cta: "Wil je weten hoe jij vanuit jouw hoofd weer kunt landen? Ik werk dagelijks met mensen die precies dit herkennen. Een gesprek kan het verschil maken."
+  },
+  verwachting: {
+    naam: "De druk van buiten",
+    verificatieTitel: "Jij staat aan voor en door anderen",
+    verificatieTekst: "Op basis van jouw antwoorden lijkt het erop dat jouw aanstaan gevoed wordt door verwachtingen — van anderen, van jouw rol, van wat jij denkt dat je moet zijn. Jij bent er voor iedereen, en dat kost meer dan je misschien zelf doorhebt. Herken je dit?",
+    omschrijving: "Jij staat aan omdat er altijd wel iemand of iets is dat iets van je vraagt — of vraagt te vragen. Je voelt de verwachtingen om je heen, ook als ze niet uitgesproken worden. Dit soort aanstaan gaat niet over wat je denkt of voelt in je lijf, maar over wie je bent voor de wereld om je heen.",
+    helpt: [
+      "Leren onderscheid maken tussen jouw behoeften en die van anderen",
+      "Oefenen met grenzen stellen — klein beginnen",
+      "Bewust tijd inplannen die echt alleen voor jou is",
+      "Onderzoeken welke verwachtingen echt van buiten komen en welke je zelf draagt",
+      "Iemand die je helpt terugkeren naar je eigen koers"
+    ],
+    niet: [
+      "Meer doen om het iedereen naar de zin te maken",
+      "Ademhalingsoefeningen als de kern het patroon niet aanraakt",
+      "Jezelf wegcijferen en hopen dat de druk vanzelf minder wordt"
+    ],
+    cta: "Herken jij hoe diep dit patroon gaat? In mijn begeleiding kijk ik samen met jou naar wat van jou is en wat je al te lang van anderen draagt. Neem gerust contact op."
+  },
+  zenuwstelsel: {
+    naam: "Het opgefokte zenuwstelsel",
+    verificatieTitel: "Jouw lichaam staat op stand-by voor gevaar",
+    verificatieTekst: "Op basis van jouw antwoorden lijkt het erop dat jouw aanstaan diep in je lijf zit. Je zenuwstelsel staat op 'aan' — ook als er objectief gezien niks aan de hand is. Je lichaam geeft het signaal 'veilig' niet door, ook al wil je dat zelf wel. Herken je dit?",
+    omschrijving: "Jij staat aan omdat jouw zenuwstelsel geleerd heeft altijd alert te zijn. Dit heeft niks te maken met wilskracht of discipline — het is een fysiologisch patroon. Je kunt nog zo hard willen ontspannen, als je zenuwstelsel het signaal 'veilig' niet ontvangt, lukt het gewoon niet.",
+    helpt: [
+      "Ademhalingsoefeningen — langzame uitademing activeert het parasympathische systeem",
+      "Tai chi, qigong of zachte yoga — bewegen dat je zenuwstelsel reset",
+      "Koude douche (kort) of natuur — zintuiglijke prikkels die verankeren",
+      "Regelmatig ritme in je dag — voorspelbaarheid kalmeert je systeem",
+      "Lichaamsgericht werken, niet alleen praten of denken"
+    ],
+    niet: [
+      "Je hoofd structureren of plannen — dat raakt de kern niet",
+      "Harder je best doen om te ontspannen — dat verhoogt de spanning",
+      "Koffie, alcohol of schermen als ontspanning"
+    ],
+    cta: "Een opgefokt zenuwstelsel vraagt om een specifieke aanpak. In mijn werk begeleid ik mensen die precies dit herkennen. Wil je weten wat voor jou werkt? Laten we een gesprek plannen."
+  }
+};
+
+let antwoorden = [];
+let huidigVraag = 0;
+let gekozenLaag = "";
+let naam = "";
+let emailAdres = "";
+
+function startScan() {
+  naam = document.getElementById("naam").value.trim();
+  emailAdres = document.getElementById("email").value.trim();
+  const err = document.getElementById("email-error");
+
+  if (!emailAdres || !emailAdres.includes("@") || !emailAdres.includes(".")) {
+    err.style.display = "block";
+    return;
+  }
+  err.style.display = "none";
+
+  toonStap("stap-vragen");
+  toonVraag(0);
+}
+
+function toonStap(id) {
+  document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function toonVraag(index) {
+  const v = vragen[index];
+  document.getElementById("vraag-nr").textContent = `Vraag ${index + 1} van ${vragen.length}`;
+  document.getElementById("vraag-tekst").textContent = v.tekst;
+  document.getElementById("voortgang-tekst").textContent = `${index + 1} / ${vragen.length}`;
+  document.getElementById("voortgang-vulling").style.width = `${((index) / vragen.length) * 100}%`;
+
+  const container = document.getElementById("opties-container");
+  container.innerHTML = "";
+  v.opties.forEach((o, i) => {
+    const btn = document.createElement("button");
+    btn.className = "optie";
+    btn.textContent = o.tekst;
+    btn.onclick = () => kiesOptie(i, o.laag, btn);
+    container.appendChild(btn);
+  });
+}
+
+function kiesOptie(index, laag, btn) {
+  document.querySelectorAll(".optie").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+
+  antwoorden.push(laag);
+
+  setTimeout(() => {
+    if (huidigVraag < vragen.length - 1) {
+      huidigVraag++;
+      toonVraag(huidigVraag);
+    } else {
+      bepaalLaag();
+    }
+  }, 400);
+}
+
+function bepaalLaag() {
+  toonStap("stap-laden");
+
+  const telling = { hoofd: 0, verwachting: 0, zenuwstelsel: 0 };
+  antwoorden.forEach(a => telling[a]++);
+  gekozenLaag = Object.keys(telling).reduce((a, b) => telling[a] >= telling[b] ? a : b);
+
+  setTimeout(() => {
+    toonVerificatie();
+  }, 2200);
+}
+
+function toonVerificatie() {
+  const laag = lagen[gekozenLaag];
+  document.getElementById("ver-laag").textContent = laag.naam;
+  document.getElementById("ver-titel").textContent = laag.verificatieTitel;
+  document.getElementById("ver-tekst").textContent = laag.verificatieTekst;
+  toonStap("stap-verificatie");
+}
+
+function bevestigVerificatie() {
+  toonUitslag();
+}
+
+function twijfelVerificatie() {
+  // Geef de op-één-na meest gescoorde laag
+  const telling = { hoofd: 0, verwachting: 0, zenuwstelsel: 0 };
+  antwoorden.forEach(a => telling[a]++);
+  const gesorteerd = Object.keys(telling).sort((a, b) => telling[b] - telling[a]);
+  gekozenLaag = gesorteerd[1] || gesorteerd[0];
+  toonVerificatie();
+}
+
+function toonUitslag() {
+  const laag = lagen[gekozenLaag];
+  document.getElementById("uitslag-naam").textContent = laag.naam;
+  document.getElementById("uitslag-omschrijving").textContent = laag.omschrijving;
+
+  const helptLijst = document.getElementById("uitslag-helpt");
+  helptLijst.innerHTML = "";
+  laag.helpt.forEach(h => {
+    const li = document.createElement("li");
+    li.textContent = h;
+    helptLijst.appendChild(li);
+  });
+
+  const nietLijst = document.getElementById("uitslag-niet");
+  nietLijst.innerHTML = "";
+  laag.niet.forEach(n => {
+    const li = document.createElement("li");
+    li.textContent = n;
+    nietLijst.appendChild(li);
+  });
+
+  document.getElementById("uitslag-cta").textContent = laag.cta;
+
+  toonStap("stap-uitslag");
+  stuurEmail();
+}
+
+function stuurEmail() {
+  // Placeholder voor email integratie (bijv. Mailchimp / EmailJS / Apps Script)
+  console.log("Email sturen naar:", emailAdres, "Naam:", naam, "Laag:", gekozenLaag);
+}
+
+function naarGesprek() {
+  window.open("https://meavia.nu", "_blank");
+}
+
+function opnieuw() {
+  antwoorden = [];
+  huidigVraag = 0;
+  gekozenLaag = "";
+  naam = "";
+  emailAdres = "";
+  document.getElementById("naam").value = "";
+  document.getElementById("email").value = "";
+  toonStap("stap-0");
+}
+</script>
+</body>
+</html>
