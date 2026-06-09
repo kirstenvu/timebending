@@ -122,10 +122,13 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
 @media print {
   body { background:#fff; }
   .stap-indicator, #stap1, #stap2, #stap3-weet, #stap3-ontdek, #stap-laden,
-  .gesprek-wrap, .btn-wrap, .footer-note { display:none !important; }
+  .btn-wrap, .footer-note, #feedback-knop, #gesprek-input-wrap { display:none !important; }
   .page { padding:0; max-width:100%; }
   #stap4 { display:block !important; }
-  .print-header { display:none !important; }
+  .print-header { display:flex !important; }
+  .gesprek-wrap { margin-top:16px; }
+  .gesprek-antwoord-blok { border:1px solid #E8DFD2; background:#fff; }
+  .gesprek-blok { border:1px solid #E8DFD2; border-left:3px solid #7B3FA0; background:#fff; box-shadow:none; page-break-inside:avoid; }
   .reflectie-blok { box-shadow:none; border:1px solid #E8DFD2; page-break-inside:avoid; }
   @page { margin:20mm 18mm; }
 }
@@ -312,11 +315,13 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
     <!-- Gesprek verdieping -->
     <div class="gesprek-wrap" id="gesprek-wrap">
       <div id="gesprek-geschiedenis"></div>
-      <label class="gesprek-invoer-label" for="gesprek-input">Wat roept dit bij je op?</label>
-      <p class="gesprek-hint">Reageer op wat je leest. Wat raakt je, wat herkent je, of wat wil je verder onderzoeken? Schrijf minimaal een zin zodat het gesprek ergens over kan gaan.</p>
-      <textarea id="gesprek-input" placeholder="Typ hier je reactie..." style="min-height:70px"></textarea>
-      <div class="btn-wrap">
-        <button class="btn-dark" id="btn-gesprek" onclick="stuurVerdieping()" disabled>Ga dieper</button>
+      <div id="gesprek-input-wrap">
+        <label class="gesprek-invoer-label" for="gesprek-input">Wat roept dit bij je op?</label>
+        <p class="gesprek-hint">Reageer op wat je leest. Wat raakt je, wat herkent je, of wat wil je verder onderzoeken? Schrijf minimaal een zin zodat het gesprek ergens over kan gaan.</p>
+        <textarea id="gesprek-input" placeholder="Typ hier je reactie..." style="min-height:70px"></textarea>
+        <div class="btn-wrap">
+          <button class="btn-dark" id="btn-gesprek" onclick="stuurVerdieping()" disabled>Ga dieper</button>
+        </div>
       </div>
     </div>
 
@@ -325,6 +330,7 @@ textarea::placeholder { color:var(--muted); font-style:italic; }
       <button class="btn-ghost" onclick="terug('uitkomst')">Terug</button>
       <button class="btn-opnieuw" onclick="opnieuw()">Opnieuw</button>
     </div>
+    <button id="feedback-knop" onclick="window.open('http://timebending.kennis.shop/watch/2100/43958','_blank')" style="margin-top:16px;width:100%;background:transparent;color:var(--sage);border:1.5px solid var(--sage);padding:12px 28px;font-family:'Raleway',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-radius:20px;transition:all .2s;" onmouseover="this.style.background='rgba(138,158,130,.1)'" onmouseout="this.style.background='transparent'">Feedback geven</button>
   </div>
 
   <p class="footer-note">Timebending® door <a href="https://meavia.nu">meavia.nu</a></p>
@@ -352,6 +358,14 @@ let uitkomstSleutel = null;
 
 document.getElementById('situatie').addEventListener('input', function() {
   document.getElementById('btn-naar-stap2').disabled = this.value.trim().length < 5;
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey && document.activeElement.id === 'gesprek-input') {
+    e.preventDefault();
+    const btn = document.getElementById('btn-gesprek');
+    if (!btn.disabled) stuurVerdieping();
+  }
 });
 
 let _pdfTekstAccu = '';
