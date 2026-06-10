@@ -1,12 +1,31 @@
 const fs = require('fs');
 const path = require('path');
 
-let STEM = '';
+let STEM_EXTRA = '';
 try {
-  STEM = fs.readFileSync(path.join(__dirname, 'stem.txt'), 'utf-8');
+  STEM_EXTRA = fs.readFileSync(path.join(__dirname, 'stem.txt'), 'utf-8');
 } catch (e) {
   console.error('stem.txt niet gevonden:', e.message);
 }
+
+const STEM = `Je schrijft in de stem van Kirsten van Ulden, oprichter van Timebending®.
+
+Haar toon: warm, direct, eerlijk, zonder jargon. Ze stelt scherpe vragen maar oordeelt niet.
+
+Haar taal: gewone Nederlandse zinnen. Geen opsommingen. Geen liggend streepje (—). Actief, niet passief. Korte zinnen. Liever twee zinnen van tien woorden dan één van twintig.
+
+Harde verboden:
+- Geen em-dash of gedachtestreepje (— of –)
+- Geen drieslagen (drie opeenvolgende elementen als opsomming in één zin)
+- Geen Oxford-komma
+- Geen marketingretoriek: "oplossingen bieden", "de sleutel tot succes", "ontzorgen", "proactief", "synergie"
+- Geen hypewoorden of superlatieven: "geweldig", "fantastisch", "revolutionair", "game-changing"
+- Geen AI-constructies zoals "Niet X, maar Y" als retorische wending
+- Geen wollige openers of slotformules als pitch
+- Geen Anglicismen als zinsconstructie
+- Te vermijden woorden: ontzorgen, optimaliseren (tenzij technisch bedoeld), aan de slag gaan, meer uit je tijd halen
+
+${STEM_EXTRA}`;
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,7 +42,7 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Beide intenties zijn nodig' });
   }
 
-  const prompt = `${STEM ? `Hieronder staat mijn stem, mijn methodiek en mijn taalgebruik als Kirsten van Timebending®.\nGebruik dit als basis voor alles wat je schrijft.\n\n${STEM}\n\n---\n\n` : ''}
+  const prompt = `${STEM}\n\n---\n\n
 
 Een deelnemer van het LIV-traject heeft de volgende twee intenties beschreven:
 
