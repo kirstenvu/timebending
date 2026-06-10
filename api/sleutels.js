@@ -48,10 +48,13 @@ async function callClaude(prompt, maxTokens) {
     })
   });
   const data = await response.json();
+  if (!response.ok || data.error) {
+    throw new Error(`Anthropic API fout (${response.status}): ${data.error?.message || JSON.stringify(data)}`);
+  }
   const tekst = data.content?.[0]?.text || '';
-  const match = tekst.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-  if (!match) throw new Error('Geen geldige JSON in respons');
-  return JSON.parse(match[0]);
+  const jsonStr = tekst.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+  if (!jsonStr) throw new Error('Geen geldige JSON in respons');
+  return JSON.parse(jsonStr[0]);
 }
 
 function stemPrefix() {
