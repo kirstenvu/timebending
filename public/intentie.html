@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jouw intenties · Timebending®</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #F9FFFA;
+      --warm-white: #ffffff;
+      --sand: #E8DFD2;
+      --gold: #C89A3C;
+      --purple: #7B3FA0;
+      --plum: #6B2F8E;
+      --sage: #8A9E82;
+      --muted: #8A7A9A;
+      --deep: #2A2438;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--deep);
+      font-family: 'Raleway', sans-serif;
+      min-height: 100vh;
+      padding: 48px 20px 80px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .header img {
+      height: 110px;
+      width: auto;
+      display: block;
+      margin: 0 auto 18px;
+    }
+
+    h1 {
+      font-family: 'Lora', serif;
+      font-size: 2rem;
+      font-weight: 500;
+      color: var(--deep);
+      line-height: 1.3;
+      margin-bottom: 14px;
+    }
+
+    h1 em {
+      color: var(--gold);
+      font-style: italic;
+    }
+
+    .gold-line {
+      width: 40px;
+      height: 2px;
+      background: var(--gold);
+      margin: 0 auto 16px;
+    }
+
+    .subtitle {
+      font-family: 'Lora', serif;
+      font-size: 1rem;
+      color: var(--muted);
+      font-style: italic;
+      line-height: 1.6;
+    }
+
+    .intentie-blok {
+      background: var(--warm-white);
+      border-left: 3px solid var(--sage);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+
+    .intentie-blok h2 {
+      font-family: 'Raleway', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+
+    .intentie-blok h3 {
+      font-family: 'Lora', serif;
+      font-size: 1.15rem;
+      font-weight: 500;
+      color: var(--deep);
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 110px;
+      border: 1.5px solid var(--sand);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: 'Lora', serif;
+      font-size: 0.95rem;
+      color: var(--deep);
+      background: var(--cream);
+      resize: vertical;
+      outline: none;
+      transition: border-color .2s;
+      line-height: 1.6;
+    }
+
+    textarea::placeholder {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    textarea:focus {
+      border-color: var(--purple);
+    }
+
+    .btn-dark {
+      background: var(--purple);
+      color: white;
+      border: none;
+      padding: 14px 36px;
+      font-family: 'Raleway', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 20px;
+      transition: all .2s;
+      display: block;
+      margin: 32px auto 0;
+    }
+
+    .btn-dark:hover { background: var(--plum); transform: translateY(-1px); }
+    .btn-dark:disabled { opacity: .4; cursor: default; transform: none; }
+
+    .laden {
+      display: none;
+      text-align: center;
+      padding: 48px 0;
+    }
+
+    .laden.zichtbaar { display: block; }
+
+    .spiraal-spin {
+      width: 80px;
+      height: 80px;
+      display: block;
+      margin: 0 auto 20px;
+      transform-origin: center center;
+      animation: spiraalDraaien 3s linear infinite;
+    }
+
+    @keyframes spiraalDraaien {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(-360deg); }
+    }
+
+    .laden p {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .resultaat {
+      display: none;
+    }
+
+    .resultaat.zichtbaar { display: block; }
+
+    .resultaat-intro {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .resultaat-intro p {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .intentie-kaart {
+      background: var(--warm-white);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 20px;
+      border-top: 2px solid var(--gold);
+    }
+
+    .intentie-kaart .label {
+      font-family: 'Raleway', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 14px;
+    }
+
+    .intentie-kaart p {
+      font-family: 'Lora', serif;
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: var(--deep);
+      font-style: italic;
+    }
+
+    .acties {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--purple);
+      border: 1.5px solid var(--purple);
+      padding: 12px 28px;
+      font-family: 'Raleway', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 20px;
+      transition: all .2s;
+    }
+
+    .btn-ghost:hover { border-color: var(--plum); background: rgba(123,63,160,.06); }
+
+    .btn-opnieuw {
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid var(--sand);
+      padding: 10px 22px;
+      font-family: 'Raleway', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 20px;
+      transition: all .2s;
+    }
+
+    .btn-opnieuw:hover { border-color: var(--muted); color: var(--deep); }
+
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 300;
+      letter-spacing: .04em;
+      margin-top: 52px;
+      padding-top: 24px;
+      border-top: 1px solid var(--sand);
+      font-family: 'Raleway', sans-serif;
+    }
+
+    .footer-note a { color: var(--gold); text-decoration: none; }
+
+    @media print {
+      .acties, .invoer-sectie, .footer-note { display: none !important; }
+      .resultaat { display: block !important; }
+      body { padding: 20px; background: white; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="header">
+      <img src="logo.png" alt="Timebending®">
+      <h1>Jouw <em>intenties</em> zetten</h1>
+      <div class="gold-line"></div>
+      <p class="subtitle">Twee ankerpunten voor deze reis. Één voor nu, één voor later.</p>
+    </div>
+
+    <!-- Invoer -->
+    <div class="invoer-sectie" id="invoerSectie">
+
+      <div class="intentie-blok">
+        <h2>Korte termijn</h2>
+        <h3>Wat wil jij bereiken of voelen vóór het einde van dit traject?</h3>
+        <textarea id="kortetermijn" placeholder="Schrijf hier in je eigen woorden. Het hoeft niet perfect te zijn."></textarea>
+      </div>
+
+      <div class="intentie-blok">
+        <h2>Lange termijn</h2>
+        <h3>Wat wil jij bereiken of voelen in je leven, voorbij dit traject?</h3>
+        <textarea id="langetermijn" placeholder="Schrijf hier in je eigen woorden. Wees zo concreet als je kunt."></textarea>
+      </div>
+
+      <button class="btn-dark" id="genBtn" onclick="genereerIntenties()">Schrijf mijn intenties →</button>
+
+    </div>
+
+    <!-- Laden -->
+    <div class="laden" id="ladenSectie">
+      <img src="spiraal.png" alt="" class="spiraal-spin">
+      <p>Jouw intenties worden gevormd&hellip;</p>
+    </div>
+
+    <!-- Resultaat -->
+    <div class="resultaat" id="resultaatSectie">
+
+      <div class="resultaat-intro">
+        <p>Dit zijn jouw intenties — geschreven vanuit de toekomst, alsof het al waar is.</p>
+      </div>
+
+      <div class="intentie-kaart">
+        <div class="label">Korte termijn · dit traject</div>
+        <p id="resultaatKort"></p>
+      </div>
+
+      <div class="intentie-kaart">
+        <div class="label">Lange termijn · de toekomst</div>
+        <p id="resultaatLang"></p>
+      </div>
+
+      <div class="acties">
+        <button class="btn-ghost" onclick="kopieer()">Kopieer tekst</button>
+        <button class="btn-ghost" onclick="window.print()">Afdrukken</button>
+        <button class="btn-opnieuw" onclick="opnieuw()">Opnieuw proberen</button>
+      </div>
+
+    </div>
+
+    <p class="footer-note">Timebending® door <a href="https://meavia.nu">meavia.nu</a></p>
+
+  </div>
+
+  <script>
+    async function genereerIntenties() {
+      const kortetermijn = document.getElementById('kortetermijn').value.trim();
+      const langetermijn = document.getElementById('langetermijn').value.trim();
+
+      if (!kortetermijn || !langetermijn) {
+        alert('Vul beide velden in om je intenties te laten schrijven.');
+        return;
+      }
+
+      document.getElementById('invoerSectie').style.display = 'none';
+      document.getElementById('ladenSectie').classList.add('zichtbaar');
+
+      try {
+        const res = await fetch('/api/intentie', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kortetermijn, langetermijn })
+        });
+
+        const data = await res.json();
+
+        if (data.error) throw new Error(data.error);
+
+        document.getElementById('resultaatKort').textContent = data.kortetermijn;
+        document.getElementById('resultaatLang').textContent = data.langetermijn;
+
+        document.getElementById('ladenSectie').classList.remove('zichtbaar');
+        document.getElementById('resultaatSectie').classList.add('zichtbaar');
+
+      } catch (err) {
+        document.getElementById('ladenSectie').classList.remove('zichtbaar');
+        document.getElementById('invoerSectie').style.display = 'block';
+        alert('Er ging iets mis. Probeer het opnieuw.');
+        console.error(err);
+      }
+    }
+
+    function opnieuw() {
+      document.getElementById('resultaatSectie').classList.remove('zichtbaar');
+      document.getElementById('invoerSectie').style.display = 'block';
+    }
+
+    function kopieer() {
+      const kort = document.getElementById('resultaatKort').textContent;
+      const lang = document.getElementById('resultaatLang').textContent;
+      const tekst = `KORTE TERMIJN · DIT TRAJECT\n${kort}\n\nLANGE TERMIJN · DE TOEKOMST\n${lang}`;
+      navigator.clipboard.writeText(tekst).then(() => {
+        alert('Gekopieerd naar klembord.');
+      });
+    }
+  </script>
+</body>
+</html>
