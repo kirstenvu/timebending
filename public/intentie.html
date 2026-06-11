@@ -407,9 +407,9 @@
       </div>
 
       <div class="acties">
-        <button class="btn-ghost" onclick="kopieer()">Kopieer tekst</button>
-        <button class="btn-ghost" onclick="window.print()">Afdrukken</button>
-        <button class="btn-green" onclick="window.open('http://timebending.kennis.shop/watch/2100/43958','_blank')">Feedback geven</button>
+        
+        <button class="btn-ghost" onclick="window.print()">Opslaan als PDF / Afdrukken</button>
+        <button class="btn-ghost" onclick="kopieer()">Kopiëren</button>
         <button class="btn-opnieuw" onclick="opnieuw()">Opnieuw proberen</button>
       </div>
 
@@ -421,6 +421,9 @@
         <input type="text" id="deelNaam" placeholder="Je naam">
         <button class="btn-dark" onclick="deelMetKirsten()" id="deelBtn" style="margin-top:0;width:100%;">Stuur naar Kirsten</button>
         <p class="deel-melding" id="deelMelding"></p>
+      </div>
+      <div class="feedback" id="feedback">
+        <button class="btn-green" onclick="window.open('http://timebending.kennis.shop/watch/2100/43958','_blank')">Feedback geven</button>
       </div>
 
     </div>
