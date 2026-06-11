@@ -262,6 +262,77 @@
 
     .btn-opnieuw:hover { border-color: var(--muted); color: var(--deep); }
 
+    .btn-green {
+      background: var(--sage);
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      font-family: 'Raleway', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 20px;
+      transition: all .2s;
+    }
+    .btn-green:hover { background: #6B8A72; transform: translateY(-1px); }
+
+    .deel-kaart {
+      display: none;
+      margin-top: 28px;
+      background: var(--warm-white);
+      border: 1.5px solid var(--sand);
+      border-left: 3px solid var(--purple);
+      border-radius: 12px;
+      padding: 24px 28px;
+      box-shadow: 0 4px 32px rgba(61,46,82,0.08);
+    }
+
+    .deel-kaart .label {
+      font-family: 'Raleway', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+
+    .deel-kaart h3 {
+      font-family: 'Lora', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--purple);
+      margin-bottom: 8px;
+    }
+
+    .deel-kaart p {
+      font-family: 'Lora', serif;
+      font-size: 0.9rem;
+      color: var(--deep);
+      line-height: 1.75;
+      margin-bottom: 16px;
+    }
+
+    .deel-kaart input[type="text"] {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--sand);
+      border-radius: 8px;
+      font-family: 'Raleway', sans-serif;
+      font-size: 13px;
+      color: var(--deep);
+      background: var(--cream);
+      margin-bottom: 12px;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .deel-kaart input[type="text"]:focus { border-color: var(--purple); }
+
+    .deel-melding { display: none; font-size: 11px; margin-top: 8px; font-family: 'Raleway', sans-serif; }
+
     .footer-note {
       text-align: center;
       font-size: 11px;
@@ -277,7 +348,7 @@
     .footer-note a { color: var(--gold); text-decoration: none; }
 
     @media print {
-      .acties, .invoer-sectie, .footer-note { display: none !important; }
+      .acties, .invoer-sectie, .footer-note, .deel-kaart { display: none !important; }
       .resultaat { display: block !important; }
       body { padding: 20px; background: white; }
     }
@@ -338,7 +409,18 @@
       <div class="acties">
         <button class="btn-ghost" onclick="kopieer()">Kopieer tekst</button>
         <button class="btn-ghost" onclick="window.print()">Afdrukken</button>
+        <button class="btn-green" onclick="window.open('http://timebending.kennis.shop/watch/2100/43958','_blank')">Feedback geven</button>
         <button class="btn-opnieuw" onclick="opnieuw()">Opnieuw proberen</button>
+      </div>
+
+      <!-- DEEL MET KIRSTEN -->
+      <div class="deel-kaart" id="deelKaart">
+        <div class="label">Intenties · Timebending®</div>
+        <h3>Deel je intenties met Kirsten</h3>
+        <p>Vul je naam in, dan stuurt de app jouw intenties rechtstreeks door.</p>
+        <input type="text" id="deelNaam" placeholder="Je naam">
+        <button class="btn-dark" onclick="deelMetKirsten()" id="deelBtn" style="margin-top:0;width:100%;">Stuur naar Kirsten</button>
+        <p class="deel-melding" id="deelMelding"></p>
       </div>
 
     </div>
@@ -376,6 +458,7 @@
 
         document.getElementById('ladenSectie').classList.remove('zichtbaar');
         document.getElementById('resultaatSectie').classList.add('zichtbaar');
+        document.getElementById('deelKaart').style.display = 'block';
 
       } catch (err) {
         document.getElementById('ladenSectie').classList.remove('zichtbaar');
@@ -387,7 +470,52 @@
 
     function opnieuw() {
       document.getElementById('resultaatSectie').classList.remove('zichtbaar');
+      document.getElementById('deelKaart').style.display = 'none';
+      document.getElementById('deelNaam').value = '';
+      document.getElementById('deelMelding').style.display = 'none';
+      document.getElementById('deelBtn').disabled = false;
+      document.getElementById('deelBtn').textContent = 'Stuur naar Kirsten';
       document.getElementById('invoerSectie').style.display = 'block';
+    }
+
+    async function deelMetKirsten() {
+      const naam = document.getElementById('deelNaam').value.trim();
+      const melding = document.getElementById('deelMelding');
+      const btn = document.getElementById('deelBtn');
+
+      if (!naam) {
+        melding.style.display = 'block';
+        melding.style.color = '#c0392b';
+        melding.textContent = 'Vul eerst je naam in.';
+        return;
+      }
+      melding.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Bezig…';
+
+      const kort = document.getElementById('resultaatKort').textContent;
+      const lang = document.getElementById('resultaatLang').textContent;
+
+      const formData = new FormData();
+      formData.append('entry.2055440521', naam);
+      formData.append('entry.426217357', kort);
+      formData.append('entry.520950987', lang);
+
+      try {
+        await fetch('https://docs.google.com/forms/d/e/1FAIpQLSctuvkcINjUiuof-DnZGiiUkxpKBCldcc428AuWax-W3G3W_Q/formResponse', {
+          method: 'POST', mode: 'no-cors', body: formData
+        });
+        btn.textContent = 'Verzonden ✓';
+        melding.style.display = 'block';
+        melding.style.color = '#5a7a5e';
+        melding.textContent = 'Jouw intenties zijn doorgestuurd naar Kirsten.';
+      } catch(e) {
+        btn.disabled = false;
+        btn.textContent = 'Stuur naar Kirsten';
+        melding.style.display = 'block';
+        melding.style.color = '#c0392b';
+        melding.textContent = 'Er ging iets mis. Probeer het opnieuw.';
+      }
     }
 
     function kopieer() {
