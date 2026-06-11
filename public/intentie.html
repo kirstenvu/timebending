@@ -194,6 +194,7 @@
       font-size: 0.95rem;
     }
 
+
     .intentie-kaart {
       background: var(--warm-white);
       border-radius: 12px;
@@ -460,6 +461,7 @@
 
         document.getElementById('ladenSectie').classList.remove('zichtbaar');
         document.getElementById('resultaatSectie').classList.add('zichtbaar');
+        document.getElementById('feedback').style.display = 'block';
         document.getElementById('deelKaart').style.display = 'block';
 
       } catch (err) {
@@ -472,6 +474,7 @@
 
     function opnieuw() {
       document.getElementById('resultaatSectie').classList.remove('zichtbaar');
+      document.getElementById('feedback').style.display = 'none';
       document.getElementById('deelKaart').style.display = 'none';
       document.getElementById('deelNaam').value = '';
       document.getElementById('deelMelding').style.display = 'none';
