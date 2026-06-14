@@ -1,11 +1,13 @@
 {
+  "buildCommand": "mkdir -p public/flow public/quiz && cd apps/flow && npm install && npm run build && cp -r dist/. ../../public/flow/ && cd ../../apps/quiz && npm install && npm run build && cp -r dist/. ../../public/quiz/",
   "outputDirectory": "public",
   "functions": {
     "api/analyse.js": { "maxDuration": 60 },
     "api/contact.js": { "maxDuration": 30 },
     "api/feedback.js": { "maxDuration": 30 },
     "api/sleutels.js": { "maxDuration": 60 },
-    "api/intentie.js": { "maxDuration": 60 }
+    "api/intentie.js": { "maxDuration": 60 },
+    "api/subscribe.js": { "maxDuration": 30 }
   },
   "rewrites": [
     { "source": "/wheel-of-life", "destination": "/wheel-of-life.html" },
@@ -13,7 +15,10 @@
     { "source": "/feedback", "destination": "/feedback.html" },
     { "source": "/sleutels", "destination": "/sleutels.html" },
     { "source": "/intentie", "destination": "/intentie.html" },
+    { "source": "/flow", "destination": "/flow/index.html" },
+    { "source": "/flow/(.*)", "destination": "/flow/index.html" },
+    { "source": "/quiz", "destination": "/quiz/index.html" },
+    { "source": "/quiz/(.*)", "destination": "/quiz/index.html" },
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ]
 }
-
