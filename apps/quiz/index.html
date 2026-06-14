@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Timebending® Quiz | Meavia</title>
+    <!-- Google tag (ga4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P3JFJPK71F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-P3JFJPK71F');
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&family=Great+Vibes&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                dark: '#1a0b2e',
+                primary: '#4c2a85',
+                accent: '#10b981',
+                gold: '#fbbf24',
+                light: '#f3e8ff',
+              }
+            },
+            fontFamily: {
+              serif: ['"Playfair Display"', 'serif'],
+              sans: ['"Lato"', 'sans-serif'],
+              script: ['"Great Vibes"', 'cursive'],
+            },
+            animation: {
+              'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
+              'fade-in-right': 'fadeInRight 0.4s ease-out forwards',
+              'pulse-gold': 'pulseGold 2s infinite',
+            },
+            keyframes: {
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              fadeInRight: {
+                '0%': { opacity: '0', transform: 'translateX(20px)' },
+                '100%': { opacity: '1', transform: 'translateX(0)' },
+              },
+              pulseGold: {
+                '0%, 100%': { boxShadow: '0 0 0 0 rgba(251, 191, 36, 0.4)' },
+                '50%': { boxShadow: '0 0 20px 0 rgba(251, 191, 36, 0.7)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #F8F5FA;
+        color: #1a0b2e;
+      }
+      .glass-panel {
+        background: radial-gradient(140% 140% at 50% 10%, #2e1065 0%, #1a0b2e 90%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.3);
+      }
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: #F8F5FA; }
+      ::-webkit-scrollbar-thumb { background: #4c2a85; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
