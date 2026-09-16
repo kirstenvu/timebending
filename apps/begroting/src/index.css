@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* ===== Meavia huisstijl (v2) =====
+     Vervangt Tailwind's standaard "emerald"-schaal (de hoofd-actiekleur van de app:
+     header, primaire knoppen, actieve tab, links, vinkjes) door Meavia's kernkleur paars.
+     Herkomst: het Meavia Brein (MASTER), sectie "Visuele huisstijl — verwijzing"
+     (toevoeging 24): skill meavia-branding, kernkleur paars #7B2FBE, i.c.m. zwart/wit/goud,
+     fonts Playfair Display + Inter. Dit is de leidende huisstijl voor app/website/brede
+     content (i.p.v. het ingetogen violet/plum/creme-palet van de weidesessie-handouts,
+     dat een eigen, apart doel dient). Functionaliteit/logica is niet aangeraakt, alleen de
+     kleurwaarden achter deze utility-klassen. Ramp berekend rond het exacte anker #7B2FBE
+     op de 600-stop (Tailwind's "hoofdkleur"-positie). */
+  --color-emerald-50: #f9f5fc;
+  --color-emerald-100: #f0e6f9;
+  --color-emerald-200: #dfcaf2;
+  --color-emerald-300: #c9a5e9;
+  --color-emerald-400: #ac74dd;
+  --color-emerald-500: #8f45d1;
+  --color-emerald-600: #7b2fbe;
+  --color-emerald-700: #602594;
+  --color-emerald-800: #4c1d76;
+  --color-emerald-900: #391657;
+  --color-emerald-950: #250e39;
+
+  /* Vervangt Tailwind's standaard "amber"-schaal (waarschuwingen/highlights) door
+     het goud-accent uit de Meavia huisstijl ("paars, zwart, wit en goud"). Het Brein
+     geeft voor goud geen exacte hexcode, dus hier is de eerder gedocumenteerde
+     Meavia-goudtint (--gold #C89A3C uit brand_guide.md) aangehouden als beste
+     benadering. Check dit tegen de meavia-branding skill zodra die gesynced is. */
+  --color-amber-50: #fbf7ef;
+  --color-amber-100: #f6efe0;
+  --color-amber-200: #eddfc1;
+  --color-amber-300: #e4cc9e;
+  --color-amber-400: #d6b36d;
+  --color-amber-500: #c89a3c;
+  --color-amber-600: #b08835;
+  --color-amber-700: #906f2b;
+  --color-amber-800: #745923;
+  --color-amber-900: #5a451b;
+  --color-amber-950: #403113;
+}
+

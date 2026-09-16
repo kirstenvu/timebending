@@ -1,5 +1,5 @@
 {
-  "buildCommand": "mkdir -p public/flow public/quiz && cd apps/flow && npm install && npm run build && cp -r dist/. ../../public/flow/ && cd ../../apps/quiz && npm install && npm run build && cp -r dist/. ../../public/quiz/",
+  "buildCommand": "mkdir -p public/flow public/quiz public/begroting && cd apps/flow && npm install && npm run build && cp -r dist/. ../../public/flow/ && cd ../../apps/quiz && npm install && npm run build && cp -r dist/. ../../public/quiz/ && cd ../../apps/begroting && npm install && npm run build && cp -r dist/. ../../public/begroting/",
   "outputDirectory": "public",
   "functions": {
     "api/analyse.js": { "maxDuration": 60 },
@@ -7,7 +7,8 @@
     "api/feedback.js": { "maxDuration": 30 },
     "api/sleutels.js": { "maxDuration": 60 },
     "api/intentie.js": { "maxDuration": 60 },
-    "api/subscribe.js": { "maxDuration": 30 }
+    "api/subscribe.js": { "maxDuration": 30 },
+    "api/begroting-subscribe.js": { "maxDuration": 30 }
   },
   "rewrites": [
     { "source": "/wheel-of-life", "destination": "/wheel-of-life.html" },
@@ -20,6 +21,8 @@
     { "source": "/flow/(.*)", "destination": "/flow/index.html" },
     { "source": "/quiz", "destination": "/quiz/index.html" },
     { "source": "/quiz/(.*)", "destination": "/quiz/index.html" },
+    { "source": "/begroting", "destination": "/begroting/index.html" },
+    { "source": "/begroting/(.*)", "destination": "/begroting/index.html" },
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ]
 }
