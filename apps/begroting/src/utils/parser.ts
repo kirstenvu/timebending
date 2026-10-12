@@ -74,7 +74,9 @@ export function parseBankStatementCSV(content: string, filename: string): Transa
   // 1. ING: "Datum","Naam / Omschrijving","Rekening","Tegenrekening","Code","Af Bij","Bedrag (EUR)","MutatieSoort","Mededelingen"
   const isING = headers.includes("af bij") && (headers.includes("bedrag (eur)") || headers.includes("bedrag"));
   // 2. Rabobank: "IBAN/BBAN","Munt","Datum","Rentedatum","Bedrag","Tegenrekening","Naam tegenpartij","Code","Omschrijving"
-  const isRabo = headers.includes("naam tegenpartij") && headers.includes("omschrijving") && headers.includes("bedrag");
+  // Nieuwere Rabobank-exports gebruiken "Omschrijving-1", "Omschrijving-2", "Omschrijving-3"
+  const isRabo = headers.includes("naam tegenpartij") && headers.includes("bedrag") &&
+    (headers.includes("omschrijving") || headers.includes("omschrijving-1"));
   // 3. ABN AMRO: Headers are often: "rekeningnummer", "munt", "transactiedatum", "rentebedrag", "beginsaldo", "eindsaldo", "boekdatum", "bedrag", "omschrijving"
   const isABN = headers.includes("transactiedatum") && headers.includes("bedrag") && headers.includes("omschrijving");
 
@@ -108,11 +110,13 @@ export function parseBankStatementCSV(content: string, filename: string): Transa
         const dateIdx = headers.indexOf("datum");
         const nameIdx = headers.indexOf("naam tegenpartij");
         const amountIdx = headers.indexOf("bedrag");
-        const descIdx = headers.indexOf("omschrijving");
+        const descIdxs = headers
+          .map((h, idx) => (h === "omschrijving" || /^omschrijving-\d$/.test(h) ? idx : -1))
+          .filter(idx => idx !== -1);
 
         date = cols[dateIdx] || "";
         const name = cols[nameIdx] || "";
-        const memo = cols[descIdx] || "";
+        const memo = descIdxs.map(idx => cols[idx] || "").filter(Boolean).join(" ");
         description = name + (memo ? ` - ${memo}` : "");
         
         const rawAmountStr = cols[amountIdx] || "0";
@@ -245,6 +249,11 @@ export function parseRawUnstructuredText(content: string): Transaction[] {
 function standardizeDate(rawDate: string): string {
   let dateStr = rawDate.trim().replace(/["']/g, "");
   if (!dateStr) return new Date().toISOString().split("T")[0];
+
+  // ING: YYYYMMDD
+  if (/^\d{8}$/.test(dateStr)) {
+    return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+  }
 
   // If already in YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {

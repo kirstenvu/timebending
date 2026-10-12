@@ -1,0 +1,7 @@
+"IBAN/BBAN","Munt","BIC","Volgnr","Datum","Rentedatum","Bedrag","Saldo na trn","Tegenrekening IBAN/BBAN","Naam tegenpartij","Naam uiteindelijke partij","Naam initiërende partij","BIC tegenpartij","Code","Batch ID","Transactiereferentie","Machtigingskenmerk","Incassant ID","Betalingskenmerk","Omschrijving-1","Omschrijving-2","Omschrijving-3"
+"NL00TEST0000000000","EUR","RABONL2U","000000000000000001","2026-01-03","2026-01-03","-450,00","0,00","","Stal De Eikenhorst","","","","bg","","","","","","Stalhuur januari 2026","",""
+"NL00TEST0000000000","EUR","RABONL2U","000000000000000002","2026-01-05","2026-01-05","+1250,00","0,00","","Klant Jansen","","","","bg","","","","","","Factuur 2026-001 coaching","",""
+"NL00TEST0000000000","EUR","RABONL2U","000000000000000003","2026-01-09","2026-01-09","-312,45","0,00","","Voerhandel Oost","","","","bg","","","","","","Hooi en krachtvoer, factuur 7781 levering week 2","",""
+"NL00TEST0000000000","EUR","RABONL2U","000000000000000004","2026-01-15","2026-01-15","-1840,00","0,00","","Belastingdienst","","","","bg","","","","","","Omzetbelasting 4e kwartaal 2025","",""
+"NL00TEST0000000000","EUR","RABONL2U","000000000000000005","2026-01-20","2026-01-20","-24,19","0,00","","Adobe Systems","","","","bg","","","","","","Abonnement Creative Cloud","",""
+"NL00TEST0000000000","EUR","RABONL2U","000000000000000006","2026-01-28","2026-01-28","+2450,00","0,00","","Klant de Vries","","","","bg","","","","","","Factuur 2026-002","",""

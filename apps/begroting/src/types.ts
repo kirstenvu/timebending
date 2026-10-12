@@ -9,6 +9,7 @@ export interface Transaction {
   isRecurring?: boolean;
   frequency?: string;
   cleanName?: string;
+  sourceFileId?: string; // koppeling met het geüploade bestand, zodat een import in één keer gewist kan worden
 }
 
 export interface BudgetCategory {
@@ -27,6 +28,8 @@ export interface BudgetPlanning {
 }
 
 export interface BankStatementFile {
+  id?: string;
+  format?: string;
   name: string;
   size: string;
   transactionCount: number;

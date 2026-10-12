@@ -272,8 +272,9 @@ export function classifyTransaction(
     };
   }
 
-  // 3. Search built-in keyword rules
+  // 3. Search built-in keyword rules (een uitgave kan nooit als omzet worden ingedeeld)
   for (const rule of BUILT_IN_RULES) {
+    if (rule.category === "Inkomsten (Omzet)") continue;
     for (const kw of rule.keywords) {
       if (descLower.includes(kw)) {
         return {

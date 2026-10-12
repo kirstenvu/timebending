@@ -47,7 +47,8 @@ import {
   Laptop
 } from "lucide-react";
 import { Transaction, BudgetPlanning, BankStatementFile, STANDARD_CATEGORIES, CATEGORY_COLORS, StorageMode, AppBackupData, CLOUD_STORAGE_ENABLED } from "./types";
-import { parseBankStatementCSV, parseRawUnstructuredText } from "./utils/parser";
+import { parseRawUnstructuredText } from "./utils/parser";
+import { parseBankFile, formatLabel } from "./utils/bankFormats";
 import { SECTOR_DEMO_DATA } from "./data";
 import { CustomRule, autoCategorizeAll, classifyTransaction } from "./utils/categorizer";
 import { generateForecastBudget } from "./utils/budgetEngine";
@@ -307,41 +308,58 @@ export default function App() {
     }
   };
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     setErrorMessage(null);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const text = event.target?.result as string;
-        const parsed = parseBankStatementCSV(text, file.name);
-        
-        if (parsed.length === 0) {
-          throw new Error("Geen geldige transacties gevonden. Controleer het bestand of probeer handmatig te plakken.");
-        }
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const { format, transactions: parsed, warnings } = await parseBankFile(bytes, file.name);
 
-        // Run instant rule-based categorization immediately
-        const categorized = autoCategorizeAll(parsed, customRules);
+      const fileId = `f-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+      const withSource = parsed.map(t => ({ ...t, sourceFileId: fileId }));
 
-        const updatedTxs = [...transactions, ...categorized];
-        const newFileMeta: BankStatementFile = {
-          name: file.name,
-          size: `${(file.size / 1024).toFixed(1)} KB`,
-          transactionCount: parsed.length,
-          uploadedAt: new Date().toLocaleDateString("nl-NL")
-        };
-        const updatedFiles = [...files, newFileMeta];
+      // Run instant rule-based categorization immediately
+      const categorized = autoCategorizeAll(withSource, customRules);
 
-        setTransactions(updatedTxs);
-        setFiles(updatedFiles);
-        saveToLocal(updatedTxs, budgetPlanning, updatedFiles);
-        setSuccessMessage(`${parsed.length} transacties succesvol ingeladen en automatisch gecategoriseerd!`);
-        setActiveTab("transactions");
-        setTimeout(() => setSuccessMessage(null), 5000);
-      } catch (err: any) {
-        setErrorMessage(err.message || "Fout bij verwerken van het bestand.");
-      }
-    };
-    reader.readAsText(file);
+      const updatedTxs = [...transactions, ...categorized];
+      const newFileMeta: BankStatementFile = {
+        id: fileId,
+        format: formatLabel(format),
+        name: file.name,
+        size: `${(file.size / 1024).toFixed(1)} KB`,
+        transactionCount: parsed.length,
+        uploadedAt: new Date().toLocaleDateString("nl-NL")
+      };
+      const updatedFiles = [...files, newFileMeta];
+
+      setTransactions(updatedTxs);
+      setFiles(updatedFiles);
+      saveToLocal(updatedTxs, budgetPlanning, updatedFiles);
+      const warningText = warnings.length ? ` Let op: ${warnings.join(" ")}` : "";
+      const msg = `${parsed.length} transacties ingeladen uit ${formatLabel(format)}-bestand en automatisch gecategoriseerd.${warningText}`;
+      setSuccessMessage(msg);
+      setActiveTab("transactions");
+      // Alleen deze melding wissen, niet een nieuwere van een volgende upload
+      setTimeout(() => setSuccessMessage(m => (m === msg ? null : m)), warnings.length ? 12000 : 5000);
+    } catch (err: any) {
+      setErrorMessage(err?.message || "Fout bij verwerken van het bestand.");
+    }
+  };
+
+  const removeFile = (idx: number) => {
+    const file = files[idx];
+    if (!file) return;
+    const hasLink = !!file.id;
+    const question = hasLink
+      ? `Wil je "${file.name}" en de ${file.transactionCount} transacties uit dit bestand verwijderen?`
+      : `"${file.name}" is ingeladen met een oudere versie van de app, waardoor de transacties niet aan dit bestand gekoppeld zijn. Alleen het bestand wordt uit de lijst gehaald. Gebruik "Wis alles" om ook de transacties te verwijderen. Doorgaan?`;
+    if (!window.confirm(question)) return;
+    const updatedTxs = hasLink ? transactions.filter(t => t.sourceFileId !== file.id) : transactions;
+    const updatedFiles = files.filter((_, i) => i !== idx);
+    setTransactions(updatedTxs);
+    setFiles(updatedFiles);
+    saveToLocal(updatedTxs, budgetPlanning, updatedFiles);
+    setSuccessMessage(hasLink ? `"${file.name}" en de bijbehorende transacties zijn verwijderd.` : `"${file.name}" is uit de lijst gehaald.`);
+    setTimeout(() => setSuccessMessage(null), 4000);
   };
 
   const handlePasteSubmit = () => {
@@ -1479,9 +1497,9 @@ export default function App() {
               {/* UPLOADER INTERFACE CARD */}
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
                 <div>
-                  <h3 className="text-lg font-bold font-display text-slate-900">3. Upload bankafschriften (CSV of Tekst)</h3>
+                  <h3 className="text-lg font-bold font-display text-slate-900">3. Upload bankafschriften</h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    Sleep de geëxporteerde CSV van Rabobank, ING of ABN AMRO hieronder naartoe, of plak een tekstkopie uit je bankapp.
+                    Download je afschrift in internetbankieren en sleep het hieronder naartoe. Het beste werkt CAMT.053 (.xml), daarna MT940 (.swi/.sta), CSV of PDF.
                   </p>
                 </div>
 
@@ -1499,7 +1517,7 @@ export default function App() {
                   <input
                     id="file-input"
                     type="file"
-                    accept=".csv, .txt, text/csv, text/plain"
+                    accept=".xml,.swi,.sta,.940,.mt940,.csv,.txt,.pdf,text/csv,text/plain,application/xml,text/xml,application/pdf"
                     className="hidden"
                     onChange={handleFileSelect}
                   />
@@ -1508,7 +1526,7 @@ export default function App() {
                   </div>
                   <h4 className="font-semibold text-sm text-slate-800">Klik of sleep een bestand hierheen</h4>
                   <p className="text-xs text-slate-400 mt-1 max-w-sm">
-                    Ondersteunt Rabobank, ING, ABN AMRO exports & generieke Excel CSV-bestanden. 100% lokaal in je browser.
+                    CAMT.053, MT940, CSV en PDF van Rabobank, ING, ABN AMRO en andere banken. 100% lokaal in je browser.
                   </p>
                 </div>
 
@@ -1584,7 +1602,7 @@ export default function App() {
                     <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-xs flex items-center justify-center shrink-0">1</div>
                     <div>
                       <h4 className="font-semibold text-xs text-slate-800">Bankbestanden laden</h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Upload een CSV export van je bank of kopieer tekstregels uit je bankoverzicht.</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Upload je afschrift als CAMT.053, MT940, CSV of PDF, of kopieer tekstregels uit je bankoverzicht.</p>
                     </div>
                   </div>
 
@@ -1624,11 +1642,20 @@ export default function App() {
                       <div key={idx} className="bg-slate-50 border border-slate-100 rounded-lg p-3 text-xs flex items-center justify-between">
                         <div className="min-w-0">
                           <p className="font-medium text-slate-700 truncate">{file.name}</p>
-                          <p className="text-[10px] text-slate-400 mt-0.5">{file.transactionCount} regels • {file.uploadedAt}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">{file.format ? `${file.format} • ` : ""}{file.transactionCount} regels • {file.uploadedAt}</p>
                         </div>
-                        <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-mono font-medium shrink-0">
-                          {file.size}
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-mono font-medium">
+                            {file.size}
+                          </span>
+                          <button
+                            onClick={() => removeFile(idx)}
+                            title="Verwijder dit bestand en de transacties eruit"
+                            className="text-slate-400 hover:text-red-600 p-1 rounded transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
