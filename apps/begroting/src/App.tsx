@@ -139,6 +139,24 @@ export default function App() {
     } catch {}
     return [];
   });
+  // Eigen jaarbedrag per kostenpost in de Kosten-Demper (overschrijft wat uit het afschrift komt)
+  const [demperOverrides, setDemperOverrides] = useState<Record<string, number>>(() => {
+    try {
+      const stored = localStorage.getItem("budget_planner_demper_overrides");
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+  const setDemperOverride = (key: string, value: number | null) => {
+    const next = { ...demperOverrides };
+    if (value === null || !isFinite(value)) delete next[key];
+    else next[key] = value;
+    setDemperOverrides(next);
+    try {
+      localStorage.setItem("budget_planner_demper_overrides", JSON.stringify(next));
+    } catch {}
+  };
   const [showAddIrregularForm, setShowAddIrregularForm] = useState(false);
   const [newIrregular, setNewIrregular] = useState({
     name: "",
@@ -1088,12 +1106,43 @@ export default function App() {
   const savingsBuffer = manualBuffer ?? (bufferFromStatements.accounts.length > 0 ? bufferFromStatements.total : 0);
   const bufferKnown = manualBuffer !== null || bufferFromStatements.accounts.length > 0;
 
+  // Kostenposten uit het afschrift (automatisch herkend, ook als je zelf niets hebt ingedeeld)
+  const demperRows = useMemo(() => {
+    const months = availableMonths.length || 0;
+    const posts: Array<{ key: string; label: string }> = [
+      { key: "Belastingen", label: "Belastingen" },
+      { key: "Verzekeringen & Advies", label: "Verzekeringen en advies" },
+      { key: "Huisvesting", label: "Huisvesting" },
+      { key: "Reiskosten", label: "Auto en reizen" },
+      { key: "Kantoor & IT", label: "Kantoor, software en IT" },
+      { key: "Marketing & Verkoop", label: "Marketing" },
+      { key: "Personeel & Inhuur", label: "Personeel en inhuur" },
+      { key: "Overige Bedrijfskosten", label: "Overige bedrijfskosten" },
+      { key: "Niet gecategoriseerd", label: "Nog niet herkend" },
+    ];
+    return posts
+      .map(p => {
+        const fromData = transactions
+          .filter(t => (t.category || "Niet gecategoriseerd") === p.key)
+          .reduce((a, t) => a + (p.key === "Niet gecategoriseerd" ? (t.type === "expense" ? t.amount : 0) : categoryAmount(t)), 0);
+        const own = demperOverrides[p.key];
+        // Belasting en verzekeringen komen meestal niet elke maand. Met minder dan een jaar aan gegevens
+        // rekenen we die niet maal 12, maar tellen we wat je betaald hebt als minimum per jaar.
+        const occasional = (p.key === "Belastingen" || p.key === "Verzekeringen & Advies") && months < 12;
+        const yearEstimate = fromData > 0 && months > 0 ? (occasional ? fromData : (fromData / months) * 12) : 0;
+        const perMonth = own !== undefined ? own / 12 : yearEstimate / 12;
+        return { ...p, fromData: Math.max(0, fromData), months, own, occasional, yearEstimate: Math.max(0, yearEstimate), perMonth: Math.max(0, perMonth) };
+      })
+      .filter(r => r.key !== "Niet gecategoriseerd" || r.fromData > 0);
+  }, [transactions, availableMonths, demperOverrides]);
+
   const totalMonthlyIrregularReservation = useMemo(() => {
-    return irregularExpenses.reduce((sum, exp) => {
+    const custom = irregularExpenses.reduce((sum, exp) => {
       const monthlyAmount = exp.interval === "quarterly" ? exp.amount / 3 : exp.amount / 12;
       return sum + monthlyAmount;
     }, 0);
-  }, [irregularExpenses]);
+    return custom + demperRows.reduce((a, r) => a + r.perMonth, 0);
+  }, [irregularExpenses, demperRows]);
 
   const runwayMonths = useMemo(() => {
     if (avgMonthlyExpenses <= 0 || !bufferKnown) return null;
@@ -3646,9 +3695,11 @@ export default function App() {
                     <div className="md:col-span-5 flex flex-col items-center justify-center p-6 bg-slate-50 border border-slate-100 rounded-2xl text-center relative overflow-hidden">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jouw Ademruimte</span>
                       <h4 className="text-4xl md:text-5xl font-extrabold font-mono text-slate-900 my-2">
-                        {runwayMonths === null ? "–" : runwayMonths.toFixed(1).replace(".", ",")}
+                        {runwayMonths === null ? "–" : runwayMonths >= 1 ? runwayMonths.toFixed(1).replace(".", ",") : Math.round(runwayMonths * 30)}
                       </h4>
-                      <span className="text-xs font-semibold text-slate-500">maanden</span>
+                      <span className="text-xs font-semibold text-slate-500">
+                        {runwayMonths !== null && runwayMonths < 1 ? (Math.round(runwayMonths * 30) === 1 ? "dag" : "dagen") : "maanden"}
+                      </span>
 
                       <span className={`mt-4 px-3 py-1 rounded-full text-[10px] font-bold border ${runwayFeedback.colorClass}`}>
                         {runwayFeedback.badge}
@@ -3741,14 +3792,14 @@ export default function App() {
                         De Grote Kosten-Demper
                       </h3>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        Spreid zware periodieke kosten uit over een gelijkmatig maandelijks spaarbedrag.
+                        Wat je per post kwijt bent, uit je afschrift. Zet je dit elke maand apart, dan ligt het geld klaar voor de grote rekeningen.
                       </p>
                     </div>
                     <button
                       onClick={() => setShowAddIrregularForm(!showAddIrregularForm)}
                       className="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg font-bold transition duration-150 flex items-center gap-1 self-start sm:self-center"
                     >
-                      <Plus className="w-3.5 h-3.5" /> Kostenpost toevoegen
+                      <Plus className="w-3.5 h-3.5" /> Eigen post toevoegen
                     </button>
                   </div>
 
@@ -3809,49 +3860,71 @@ export default function App() {
                     </form>
                   )}
 
-                  {/* Suggesties: alleen namen; een bedrag alleen als het uit een heel jaar afschriften komt */}
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="text-slate-500">Snel toevoegen:</span>
-                    {[
-                      { label: "Belasting", name: "Belasting (inkomsten-/vennootschapsbelasting)", cat: "Belastingen" },
-                      { label: "Verzekeringen", name: "Jaarlijkse verzekeringen", cat: "Verzekeringen & Advies" },
-                      { label: "Auto", name: "Auto (onderhoud, APK, wegenbelasting)", cat: "" },
-                      { label: "Software", name: "Software en abonnementen per jaar", cat: "" },
-                      { label: "Onderhoud", name: "Onderhoud gebouwen, inventaris of machines", cat: "" },
-                    ].map(sug => {
-                      const months = availableMonths.length || 0;
-                      const fromData = sug.cat
-                        ? transactions.filter(t => t.category === sug.cat).reduce((a, t) => a + categoryAmount(t), 0)
-                        : 0;
-                      return (
-                        <button
-                          key={sug.label}
-                          type="button"
-                          onClick={() => {
-                            setNewIrregular({
-                              name: sug.name,
-                              amount: fromData > 0 && months >= 12 ? String(Math.round(fromData)) : "",
-                              interval: "yearly"
-                            });
-                            setShowAddIrregularForm(true);
-                          }}
-                          className="px-2.5 py-1 rounded-full border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-200 text-slate-700"
-                          title={fromData > 0 ? `In je afschrift: €${Math.round(fromData).toLocaleString("nl-NL")} over ${months} ${months === 1 ? "maand" : "maanden"}` : "Vul zelf het bedrag in"}
-                        >
-                          + {sug.label}
-                          {fromData > 0 && <span className="text-slate-400"> · €{Math.round(fromData).toLocaleString("nl-NL")} in {months} mnd</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Irregular Expenses Table */}
+                  {/* Kostenposten uit het afschrift */}
                   <div className="border border-slate-100 rounded-xl overflow-hidden shadow-2xs">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
                           <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold">
-                            <th className="p-3">Grote Uitgave (Niet-maandelijks)</th>
+                            <th className="p-3">Post</th>
+                            <th className="p-3">Uit je afschrift</th>
+                            <th className="p-3">Eigen bedrag per jaar <span className="font-normal text-slate-400">(optioneel)</span></th>
+                            <th className="p-3 text-right text-rose-700 bg-rose-50/40">Per maand</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {demperRows.map(r => (
+                            <tr key={r.key} className="hover:bg-slate-50/50 transition">
+                              <td className="p-3 font-semibold text-slate-800">{r.label}</td>
+                              <td className="p-3">
+                                {r.fromData > 0 ? (
+                                  <span className="font-mono text-slate-700">
+                                    €{Math.round(r.fromData).toLocaleString("nl-NL")}{" "}
+                                    <span className="font-sans text-slate-400">in {r.months} {r.months === 1 ? "maand" : "maanden"}</span>
+                                    {r.occasional && (
+                                      <span className="block font-sans text-[10px] text-amber-700">komt niet elke maand: telt als minimum per jaar</span>
+                                    )}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400">geen gegevens in je afschrift</span>
+                                )}
+                              </td>
+                              <td className="p-3">
+                                <div className="relative w-32">
+                                  <span className="absolute left-2 top-1.5 text-slate-400 font-mono">€</span>
+                                  <input
+                                    type="number"
+                                    value={r.own ?? ""}
+                                    onChange={e => setDemperOverride(r.key, e.target.value === "" ? null : parseFloat(e.target.value))}
+                                    placeholder={r.yearEstimate > 0 ? `${r.occasional ? "min." : "≈"} ${Math.round(r.yearEstimate).toLocaleString("nl-NL")}` : "schatting"}
+                                    className="w-full pl-5 pr-2 py-1 border border-slate-200 rounded-lg font-mono focus:ring-1 focus:ring-rose-500 bg-white"
+                                  />
+                                </div>
+                              </td>
+                              <td className="p-3 text-right font-mono font-bold text-rose-700 bg-rose-50/10">
+                                {r.perMonth > 0 ? `€${Math.round(r.perMonth).toLocaleString("nl-NL")}` : <span className="font-sans font-normal text-slate-400">–</span>}
+                                {r.own !== undefined && <div className="text-[10px] font-sans font-normal text-slate-400">jouw bedrag</div>}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-500 -mt-3">
+                    {availableMonths.length > 0
+                      ? `De app haalt dit uit je afschrift (${availableMonths.length} ${availableMonths.length === 1 ? "maand" : "maanden"}), ook als je zelf niets hebt ingedeeld. Kosten die maar een paar keer per jaar komen, zoals belasting of een jaarverzekering, kunnen in deze periode ontbreken. Vul dan zelf een bedrag per jaar in.`
+                      : "Laad eerst een afschrift in bij 1. Importeer Bank. Of vul per post zelf een bedrag per jaar in."}
+                  </p>
+
+                  {/* Eigen posten */}
+                  {irregularExpenses.length > 0 && (
+                  <div className="border border-slate-100 rounded-xl overflow-hidden shadow-2xs">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold">
+                            <th className="p-3">Eigen post</th>
                             <th className="p-3 text-right">Bedrag</th>
                             <th className="p-3 text-center">Interval</th>
                             <th className="p-3 text-right text-rose-700 bg-rose-50/40">Maandelijkse Spaarbehoefte</th>
@@ -3887,24 +3960,18 @@ export default function App() {
                               </tr>
                             );
                           })}
-                          {irregularExpenses.length === 0 && (
-                            <tr>
-                              <td colSpan={5} className="p-4 text-center text-slate-400">
-                                Nog geen grote kosten toegevoegd. Kies hierboven een onderwerp of klik op "Kostenpost toevoegen" en vul je eigen bedrag in.
-                              </td>
-                            </tr>
-                          )}
                         </tbody>
                       </table>
                     </div>
                   </div>
+                  )}
 
                   {/* Summary Ribbon */}
                   <div className="bg-gradient-to-r from-rose-900 to-slate-800 text-rose-100 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
                     <div className="space-y-1 text-center sm:text-left">
-                      <h4 className="font-bold text-sm text-white">Totaal maandelijks apart te zetten buffer</h4>
+                      <h4 className="font-bold text-sm text-white">Per maand apart zetten voor je kosten</h4>
                       <p className="text-xs text-rose-200/80">
-                        Zet je dit bedrag elke maand apart, dan ligt het geld klaar als deze grote kosten komen.
+                        Uit je afschrift en je eigen bedragen. Posten zonder gegevens tellen pas mee als je zelf een bedrag invult.
                       </p>
                     </div>
                     <div className="text-center sm:text-right shrink-0">
@@ -3922,57 +3989,6 @@ export default function App() {
               {/* RIGHT COLUMN - QUICK ADD WIDGET & STEADY INCOME RULES */}
               <div className="space-y-6">
                 
-                {/* 3. QUICK STATEMENT ADDER FOR EASY OPERATION (Makkelijk afschrift erbij) */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-                  <div className="pb-3 border-b border-slate-100">
-                    <h3 className="font-bold text-slate-900 font-display text-sm flex items-center gap-2">
-                      <Plus className="w-4.5 h-4.5 text-rose-500" />
-                      Boeking toevoegen
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Een los bedrag erbij zetten. Afschriften laad je in bij{" "}
-                      <button onClick={() => setActiveTab("import")} className="underline font-semibold text-slate-700">1. Importeer Bank</button>.
-                    </p>
-                  </div>
-
-                  <div className="space-y-3 text-xs">
-                    
-
-                    {/* Quick navigation links for fast access */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => {
-                          setActiveTab("import");
-                          setShowPasteArea(true);
-                        }}
-                        className="p-3 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-semibold text-slate-700 transition flex flex-col items-center justify-center text-center gap-1"
-                      >
-                        <FileText className="w-4 h-4 text-rose-500" />
-                        <span>Kopie plakken</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setActiveTab("transactions");
-                          setShowAddForm(true);
-                        }}
-                        className="p-3 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl font-semibold text-slate-700 transition flex flex-col items-center justify-center text-center gap-1"
-                      >
-                        <Plus className="w-4 h-4 text-rose-500" />
-                        <span>Handmatig boeken</span>
-                      </button>
-                    </div>
-
-                    {files.length > 0 && (
-                      <div className="pt-2 border-t border-slate-100 space-y-1 text-[10px] text-slate-400">
-                        <p className="font-semibold text-slate-500">Laatste upload:</p>
-                        <p className="truncate">📄 {files[files.length - 1].name} ({files[files.length - 1].transactionCount} regels)</p>
-                      </div>
-                    )}
-
-                  </div>
-                </div>
-
                 {/* 4. FOUR PEACEMAKING ADVICE RULES FOR INCOME FLUCTUATION */}
                 <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
                   <h3 className="font-bold text-slate-900 font-display text-sm pb-3 border-b border-slate-100 flex items-center gap-2">
