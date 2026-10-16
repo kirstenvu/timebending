@@ -117,20 +117,27 @@ export default function App() {
   const [revenueGrowthPct, setRevenueGrowthPct] = useState<number>(5);
 
   // Gemoedsrust (Buffer & Stress-Free Volatility Manager) State
-  const [savingsBuffer, setSavingsBuffer] = useState<number>(() => {
-    const stored = localStorage.getItem("budget_planner_savings_buffer");
-    return stored ? parseFloat(stored) : 7500;
+  // Eigen schatting van het geld op je rekeningen. Leeg (null) = de app gebruikt de eindsaldo's uit je afschriften.
+  const [manualBuffer, setManualBuffer] = useState<number | null>(() => {
+    try {
+      const stored = localStorage.getItem("budget_planner_buffer_manual");
+      return stored !== null && stored !== "" && isFinite(parseFloat(stored)) ? parseFloat(stored) : null;
+    } catch {
+      return null;
+    }
   });
+  const setSavingsBuffer = (v: number | null) => setManualBuffer(v);
   const [irregularExpenses, setIrregularExpenses] = useState<Array<{ id: string; name: string; amount: number; interval: "quarterly" | "yearly" }>>(() => {
     const stored = localStorage.getItem("budget_planner_irregular_expenses");
-    if (stored) return JSON.parse(stored);
-    return [
-      { id: "irr-1", name: "Inkomstenbelasting / Vennootschapsbelasting", amount: 2400, interval: "yearly" },
-      { id: "irr-2", name: "Jaarlijkse Bedrijfsverzekeringen", amount: 1200, interval: "yearly" },
-      { id: "irr-3", name: "Auto-onderhoud & APK / Wegenbelasting", amount: 900, interval: "yearly" },
-      { id: "irr-4", name: "Software Licenties & Cloud-hosting", amount: 600, interval: "yearly" },
-      { id: "irr-5", name: "Onderhoud kantoor, inventaris of machines", amount: 800, interval: "yearly" },
-    ];
+    // Oudere versies vulden hier vaste voorbeeldbedragen in (irr-1 t/m irr-5). Die halen we weg; eigen regels blijven.
+    const oldExamples: Record<string, number> = { "irr-1": 2400, "irr-2": 1200, "irr-3": 900, "irr-4": 600, "irr-5": 800 };
+    try {
+      if (stored) {
+        const list = JSON.parse(stored) as Array<{ id: string; name: string; amount: number; interval: "quarterly" | "yearly" }>;
+        return list.filter(x => !(x.id in oldExamples && oldExamples[x.id] === x.amount));
+      }
+    } catch {}
+    return [];
   });
   const [showAddIrregularForm, setShowAddIrregularForm] = useState(false);
   const [newIrregular, setNewIrregular] = useState({
@@ -141,8 +148,11 @@ export default function App() {
 
   // Local effect to persist savingsBuffer and irregularExpenses
   useEffect(() => {
-    localStorage.setItem("budget_planner_savings_buffer", savingsBuffer.toString());
-  }, [savingsBuffer]);
+    try {
+      if (manualBuffer === null) localStorage.removeItem("budget_planner_buffer_manual");
+      else localStorage.setItem("budget_planner_buffer_manual", String(manualBuffer));
+    } catch {}
+  }, [manualBuffer]);
 
   useEffect(() => {
     localStorage.setItem("budget_planner_irregular_expenses", JSON.stringify(irregularExpenses));
@@ -166,7 +176,7 @@ export default function App() {
     version: "1.1",
     exportedAt: new Date().toISOString(),
     selectedSector,
-    savingsBuffer,
+    savingsBuffer: manualBuffer ?? 0,
     irregularExpenses,
     customRules,
     transactions,
@@ -174,7 +184,7 @@ export default function App() {
     files,
     inflationPct,
     revenueGrowthPct
-  }), [selectedSector, savingsBuffer, irregularExpenses, customRules, transactions, budgetPlanning, files, inflationPct, revenueGrowthPct]);
+  }), [selectedSector, manualBuffer, irregularExpenses, customRules, transactions, budgetPlanning, files, inflationPct, revenueGrowthPct]);
 
   const handleRestoreData = (data: AppBackupData, sourceName: string) => {
     if (data.transactions && Array.isArray(data.transactions)) {
@@ -193,7 +203,7 @@ export default function App() {
       handleSectorChange(data.selectedSector);
     }
     if (data.savingsBuffer !== undefined) {
-      setSavingsBuffer(data.savingsBuffer);
+      setSavingsBuffer(data.savingsBuffer || null);
     }
     if (data.irregularExpenses && Array.isArray(data.irregularExpenses)) {
       setIrregularExpenses(data.irregularExpenses);
@@ -253,7 +263,7 @@ export default function App() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [selectedMonthlyDetail, setSelectedMonthlyDetail] = useState<string | null>(null);
-  const [monthlyViewType, setMonthlyViewType] = useState<"projected" | "historical">("projected");
+  const [monthlyViewType, setMonthlyViewType] = useState<"projected" | "historical">("historical");
   const [selectedDetailCategory, setSelectedDetailCategory] = useState<string | null>(null);
   
   // Pagination
@@ -1021,7 +1031,7 @@ export default function App() {
     csvContent += expLine.map(v => typeof v === "number" ? Math.round(v) : `"${v}"`).join(",") + "\n";
 
     const netLine = [
-      "Netto Bedrijfsresultaat (W&V)",
+      "Wat je overhoudt (omzet min kosten)",
       ...netValues,
       totalNetSum
     ];
@@ -1045,11 +1055,38 @@ export default function App() {
   const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
 
   // Gemoedsrust helper formulas and handlers
+  // Gemiddelde bedrijfskosten per maand: alleen uit je eigen gegevens, geen standaardschatting
   const avgMonthlyExpenses = useMemo(() => {
-    if (transactions.length === 0) return 2500;
+    if (transactions.length === 0) return 0;
     const uniqueMonthsCount = availableMonths.length || 1;
-    return Math.max(stats.totalExpenses / uniqueMonthsCount, 500); // at least €500
+    return stats.totalExpenses / uniqueMonthsCount;
   }, [transactions, stats.totalExpenses, availableMonths]);
+
+  // Geld op je rekeningen volgens de afschriften: per rekening het eindsaldo van het laatste afschrift
+  const bufferFromStatements = useMemo(() => {
+    const perAccount = new Map<string, { label: string; closing: number; lastDate: string }>();
+    let unsure = 0;
+    for (const f of files) {
+      if (!f.id || f.check?.closing === undefined) continue;
+      if (f.check.unsignedBalances) {
+        unsure++;
+        continue;
+      }
+      const txs = transactions.filter(t => t.sourceFileId === f.id);
+      if (txs.length === 0) continue;
+      const account = txs.find(t => t.ownAccount)?.ownAccount || f.id;
+      const lastDate = txs.reduce((m, t) => (t.date > m ? t.date : m), "");
+      const prev = perAccount.get(account);
+      if (!prev || lastDate > prev.lastDate) {
+        perAccount.set(account, { label: account.startsWith("f-") ? f.name : account, closing: f.check.closing, lastDate });
+      }
+    }
+    const accounts = [...perAccount.values()];
+    return { accounts, total: accounts.reduce((a, x) => a + x.closing, 0), unsure };
+  }, [files, transactions]);
+
+  const savingsBuffer = manualBuffer ?? (bufferFromStatements.accounts.length > 0 ? bufferFromStatements.total : 0);
+  const bufferKnown = manualBuffer !== null || bufferFromStatements.accounts.length > 0;
 
   const totalMonthlyIrregularReservation = useMemo(() => {
     return irregularExpenses.reduce((sum, exp) => {
@@ -1059,12 +1096,22 @@ export default function App() {
   }, [irregularExpenses]);
 
   const runwayMonths = useMemo(() => {
-    if (avgMonthlyExpenses <= 0) return 0;
-    return savingsBuffer / avgMonthlyExpenses;
-  }, [savingsBuffer, avgMonthlyExpenses]);
+    if (avgMonthlyExpenses <= 0 || !bufferKnown) return null;
+    return Math.max(0, savingsBuffer) / avgMonthlyExpenses;
+  }, [savingsBuffer, avgMonthlyExpenses, bufferKnown]);
 
   // Determine Runway Feedback
   const runwayFeedback = useMemo(() => {
+    if (runwayMonths === null) {
+      return {
+        badge: "Onvoldoende gegevens",
+        colorClass: "bg-slate-100 text-slate-600 border-slate-200",
+        barColorClass: "bg-slate-400",
+        message: !bufferKnown
+          ? "Je afschrift bevat geen eindsaldo dat de app zeker kan lezen. Vul hierboven zelf in hoeveel geld je op je rekeningen hebt, dan rekent de app je ademruimte uit."
+          : "Er zijn nog geen bedrijfskosten bekend. Laad een afschrift in (bij 1. Importeer Bank), dan rekent de app je ademruimte uit."
+      };
+    }
     if (runwayMonths < 1) {
       return {
         badge: "Opbouwend",
@@ -1094,7 +1141,7 @@ export default function App() {
         message: "Geweldig gedaan! Je hebt een buitengewone buffer opgebouwd. Schommelingen in je omzet of plotselinge grote rekeningen kunnen jou absoluut niet uit je rust brengen."
       };
     }
-  }, [runwayMonths, avgMonthlyExpenses]);
+  }, [runwayMonths, avgMonthlyExpenses, bufferKnown]);
 
   const handleAddIrregularExpense = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1246,7 +1293,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0 md:mr-16">
+          <div className="flex items-center gap-2 overflow-x-auto md:overflow-visible md:flex-wrap pb-2 md:pb-0 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0 md:mr-16">
             <button
               onClick={() => setActiveTab("import")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shrink-0 ${
@@ -1873,11 +1920,11 @@ export default function App() {
                       €{Math.round(totalExpensesSum).toLocaleString("nl-NL")}
                     </span>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Exclusief privé-onttrekkingen</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Zonder privé en eigen rekeningen</p>
                 </div>
 
                 <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Netto Resultaat (W&V)</span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Wat je overhoudt</span>
                   <div className="flex items-baseline gap-1.5 mt-1">
                     <span className={`text-xl font-bold font-mono ${totalNetSum >= 0 ? "text-emerald-700" : "text-rose-700 animate-pulse"}`}>
                       €{Math.round(totalNetSum).toLocaleString("nl-NL")}
@@ -1986,7 +2033,7 @@ export default function App() {
                       {/* TOTAL OPERATING EXPENSES ROW */}
                       <tr className="bg-rose-50/20 border-t-2 border-slate-300 border-b border-slate-200">
                         <td className="p-2.5 pl-4 border-r border-slate-200 font-bold text-slate-800 text-xs sticky left-0 bg-rose-50/10 z-10 shadow-xs">
-                          Totaal Bedrijfskosten (Overhead)
+                          Totaal bedrijfskosten
                         </td>
                         {expenseValues.map((val, cIdx) => (
                           <td key={cIdx} className="p-2.5 text-right border-r border-slate-200 font-mono text-xs font-bold text-rose-700">
@@ -2001,7 +2048,7 @@ export default function App() {
                       {/* NET RESULT ROW (DOUBLE BORDER EXCEL EFFECT) */}
                       <tr className="bg-slate-50 font-bold border-t border-slate-300 border-b-4 border-double border-slate-400">
                         <td className="p-3 pl-4 border-r border-slate-200 text-slate-900 text-xs sticky left-0 bg-slate-50 z-10 shadow-xs">
-                          Netto Bedrijfsresultaat (W&V)
+                          Wat je overhoudt (omzet min kosten)
                         </td>
                         {netValues.map((val, cIdx) => {
                           const isLoss = val < 0;
@@ -2159,7 +2206,7 @@ export default function App() {
                         : 0
                     ).toLocaleString("nl-NL")}
                   </h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Gemiddelde overhead per maand</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Gemiddelde bedrijfskosten per maand</p>
                 </div>
               </div>
             </div>
@@ -2404,7 +2451,7 @@ export default function App() {
                       )}
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Gebudgetteerde Overhead</p>
+                      <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Begrote bedrijfskosten</p>
                       <p className="text-xl font-bold font-mono text-rose-400">
                         €{Math.round(selectedMonth.expenses).toLocaleString("nl-NL")}
                       </p>
@@ -2415,7 +2462,7 @@ export default function App() {
                       )}
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Operationeel Resultaat (W&V)</p>
+                      <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Wat je overhoudt</p>
                       <div className="flex items-center gap-1.5">
                         <span className={`text-xl font-bold font-mono ${selectedMonth.net >= 0 ? "text-emerald-400" : "text-rose-500"}`}>
                           {selectedMonth.net >= 0 ? "+" : "-"} €{Math.abs(Math.round(selectedMonth.net)).toLocaleString("nl-NL")}
@@ -2529,7 +2576,7 @@ export default function App() {
                                     </span>
                                   ) : catData.projected > catData.histActual ? (
                                     <span className="text-slate-500 font-semibold">
-                                      +€{(catData.projected - catData.histActual).toLocaleString("nl-NL")} overhead verhoging
+                                      +€{(catData.projected - catData.histActual).toLocaleString("nl-NL")} meer kosten
                                     </span>
                                   ) : (
                                     <span className="text-slate-500">Stabiel budget</span>
@@ -2691,8 +2738,8 @@ export default function App() {
                     <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold select-none">
                       <th className="p-4">Maand</th>
                       <th className="p-4">Inkomsten (Prognose/Omzet)</th>
-                      <th className="p-4">Uitgaven (Overhead)</th>
-                      <th className="p-4">Resultaat (W&V)</th>
+                      <th className="p-4">Bedrijfskosten</th>
+                      <th className="p-4">Overgehouden</th>
                       <th className="p-4">Status & Bijzonderheden</th>
                       <th className="p-4 text-center w-36">Actie</th>
                     </tr>
@@ -3418,7 +3465,7 @@ export default function App() {
                     
                     <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
                       
-                      {budgetPlanning.categories.map((item, idx) => {
+                      {budgetPlanning.categories.filter(c => c.category !== TRANSFER_CATEGORY).map((item, idx) => {
                         const isIncome = item.category === "Inkomsten (Omzet)";
                         const themeColor = CATEGORY_COLORS[item.category] || CATEGORY_COLORS["Niet gecategoriseerd"];
 
@@ -3599,7 +3646,7 @@ export default function App() {
                     <div className="md:col-span-5 flex flex-col items-center justify-center p-6 bg-slate-50 border border-slate-100 rounded-2xl text-center relative overflow-hidden">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jouw Ademruimte</span>
                       <h4 className="text-4xl md:text-5xl font-extrabold font-mono text-slate-900 my-2">
-                        {runwayMonths.toFixed(1)}
+                        {runwayMonths === null ? "–" : runwayMonths.toFixed(1).replace(".", ",")}
                       </h4>
                       <span className="text-xs font-semibold text-slate-500">maanden</span>
 
@@ -3614,53 +3661,61 @@ export default function App() {
                       {/* Input for Savings Buffer */}
                       <div className="space-y-2">
                         <div className="flex justify-between items-center text-xs">
-                          <label htmlFor="buffer-input" className="font-bold text-slate-700">Huidige Zakelijke Spaarbuffer:</label>
+                          <span className="font-bold text-slate-700">Geld op je rekeningen:</span>
                           <span className="font-mono font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded text-xs">
-                            €{Math.round(savingsBuffer).toLocaleString("nl-NL")}
+                            {bufferKnown ? `${savingsBuffer < 0 ? "−" : ""}€${Math.round(Math.abs(savingsBuffer)).toLocaleString("nl-NL")}` : "onbekend"}
                           </span>
                         </div>
-                        <div className="flex gap-2">
+                        {manualBuffer === null && bufferFromStatements.accounts.length > 0 && (
+                          <div className="text-[11px] text-slate-500 space-y-0.5">
+                            <p>✓ Uit je afschriften (eindsaldo):</p>
+                            {bufferFromStatements.accounts.map(a => (
+                              <p key={a.label} className="flex justify-between gap-2 font-mono">
+                                <span className="truncate">{a.label}</span>
+                                <span>{a.closing < 0 ? "−" : ""}€{Math.round(Math.abs(a.closing)).toLocaleString("nl-NL")}</span>
+                              </p>
+                            ))}
+                            <p className="text-slate-400">Heb je nog een spaarrekening? Laad dat afschrift ook in, of vul hieronder zelf een totaal in.</p>
+                          </div>
+                        )}
+                        {manualBuffer === null && bufferFromStatements.accounts.length === 0 && (
+                          <p className="text-[11px] text-amber-700">
+                            Onvoldoende gegevens: {bufferFromStatements.unsure > 0 ? "het saldo op je PDF-afschrift is niet met zekerheid te lezen (plus of min)." : "je afschrift bevat geen eindsaldo."} Vul hieronder zelf een schatting in.
+                          </p>
+                        )}
+                        <div className="flex gap-2 items-center">
                           <div className="relative flex-1">
                             <span className="absolute left-3 top-2.5 text-slate-400 font-mono text-sm">€</span>
                             <input
                               type="number"
                               id="buffer-input"
-                              value={savingsBuffer || ""}
-                              onChange={(e) => setSavingsBuffer(Math.max(0, parseFloat(e.target.value) || 0))}
+                              value={manualBuffer ?? ""}
+                              onChange={(e) => setSavingsBuffer(e.target.value === "" ? null : parseFloat(e.target.value) || 0)}
                               className="w-full pl-7 pr-3 py-2 border border-slate-200 rounded-xl text-sm font-mono font-bold focus:outline-hidden focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition"
-                              placeholder="Vul je spaarsaldo in"
+                              placeholder="Eigen schatting (optioneel)"
                             />
                           </div>
+                          {manualBuffer !== null && bufferFromStatements.accounts.length > 0 && (
+                            <button onClick={() => setSavingsBuffer(null)} className="text-[11px] font-semibold text-rose-700 hover:underline shrink-0">
+                              Gebruik afschrift
+                            </button>
+                          )}
                         </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={100000}
-                          step={500}
-                          value={savingsBuffer}
-                          onChange={(e) => setSavingsBuffer(parseFloat(e.target.value))}
-                          className="w-full accent-rose-500 h-1.5 rounded-lg cursor-pointer bg-slate-100"
-                        />
-                        <div className="flex justify-between text-[10px] text-slate-400">
-                          <span>€0</span>
-                          <span>€25.000</span>
-                          <span>€50.000</span>
-                          <span>€100.000+</span>
-                        </div>
+                        {manualBuffer !== null && <p className="text-[11px] text-slate-400">Je eigen schatting wordt gebruikt.</p>}
                       </div>
 
                       {/* Info lines */}
                       <div className="space-y-2.5 text-xs pt-2 border-t border-slate-100">
                         <div className="flex justify-between">
-                          <span className="text-slate-500">Gemiddelde vaste bedrijfslasten:</span>
+                          <span className="text-slate-500">Gemiddelde bedrijfskosten:</span>
                           <span className="font-mono font-bold text-slate-700">
-                            €{Math.round(avgMonthlyExpenses).toLocaleString("nl-NL")} / mnd
+                            {transactions.length > 0 ? `€${Math.round(avgMonthlyExpenses).toLocaleString("nl-NL")} / mnd` : "onbekend"}
                           </span>
                         </div>
                         <p className="text-[10px] text-slate-400 leading-tight">
-                          {transactions.length > 0 
-                            ? "✓ Automatisch berekend op basis van je geïmporteerde bankgegevens over de afgelopen " + (availableMonths.length || 1) + " actieve maanden."
-                            : "⚠️ Standaard schatting van €2.500/mnd gebruikt omdat er nog geen bankbestand is geüpload."}
+                          {transactions.length > 0
+                            ? `✓ Uit je afschrift, over ${availableMonths.length || 1} ${(availableMonths.length || 1) === 1 ? "maand" : "maanden"}. Zonder privé en eigen rekeningen.${(availableMonths.length || 1) < 3 ? " Met minder dan 3 maanden is dit nog een grove indicatie." : ""}`
+                            : "Onvoldoende gegevens: laad eerst een afschrift in bij 1. Importeer Bank."}
                         </p>
                       </div>
 
@@ -3754,6 +3809,42 @@ export default function App() {
                     </form>
                   )}
 
+                  {/* Suggesties: alleen namen; een bedrag alleen als het uit een heel jaar afschriften komt */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="text-slate-500">Snel toevoegen:</span>
+                    {[
+                      { label: "Belasting", name: "Belasting (inkomsten-/vennootschapsbelasting)", cat: "Belastingen" },
+                      { label: "Verzekeringen", name: "Jaarlijkse verzekeringen", cat: "Verzekeringen & Advies" },
+                      { label: "Auto", name: "Auto (onderhoud, APK, wegenbelasting)", cat: "" },
+                      { label: "Software", name: "Software en abonnementen per jaar", cat: "" },
+                      { label: "Onderhoud", name: "Onderhoud gebouwen, inventaris of machines", cat: "" },
+                    ].map(sug => {
+                      const months = availableMonths.length || 0;
+                      const fromData = sug.cat
+                        ? transactions.filter(t => t.category === sug.cat).reduce((a, t) => a + categoryAmount(t), 0)
+                        : 0;
+                      return (
+                        <button
+                          key={sug.label}
+                          type="button"
+                          onClick={() => {
+                            setNewIrregular({
+                              name: sug.name,
+                              amount: fromData > 0 && months >= 12 ? String(Math.round(fromData)) : "",
+                              interval: "yearly"
+                            });
+                            setShowAddIrregularForm(true);
+                          }}
+                          className="px-2.5 py-1 rounded-full border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-200 text-slate-700"
+                          title={fromData > 0 ? `In je afschrift: €${Math.round(fromData).toLocaleString("nl-NL")} over ${months} ${months === 1 ? "maand" : "maanden"}` : "Vul zelf het bedrag in"}
+                        >
+                          + {sug.label}
+                          {fromData > 0 && <span className="text-slate-400"> · €{Math.round(fromData).toLocaleString("nl-NL")} in {months} mnd</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   {/* Irregular Expenses Table */}
                   <div className="border border-slate-100 rounded-xl overflow-hidden shadow-2xs">
                     <div className="overflow-x-auto">
@@ -3796,6 +3887,13 @@ export default function App() {
                               </tr>
                             );
                           })}
+                          {irregularExpenses.length === 0 && (
+                            <tr>
+                              <td colSpan={5} className="p-4 text-center text-slate-400">
+                                Nog geen grote kosten toegevoegd. Kies hierboven een onderwerp of klik op "Kostenpost toevoegen" en vul je eigen bedrag in.
+                              </td>
+                            </tr>
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -3806,7 +3904,7 @@ export default function App() {
                     <div className="space-y-1 text-center sm:text-left">
                       <h4 className="font-bold text-sm text-white">Totaal maandelijks apart te zetten buffer</h4>
                       <p className="text-xs text-rose-200/80">
-                        Als je dit totale bedrag elke maand reserveert op een aparte rekening, ben je gegarandeerd ontspannen als de rekeningen vallen!
+                        Zet je dit bedrag elke maand apart, dan ligt het geld klaar als deze grote kosten komen.
                       </p>
                     </div>
                     <div className="text-center sm:text-right shrink-0">
@@ -3828,25 +3926,17 @@ export default function App() {
                 <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
                   <div className="pb-3 border-b border-slate-100">
                     <h3 className="font-bold text-slate-900 font-display text-sm flex items-center gap-2">
-                      <Upload className="w-4.5 h-4.5 text-rose-500 animate-bounce" />
-                      Afschrift of boeking toevoegen
+                      <Plus className="w-4.5 h-4.5 text-rose-500" />
+                      Boeking toevoegen
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Snel je administratie bijwerken vanaf je telefoon of laptop.
+                      Een los bedrag erbij zetten. Afschriften laad je in bij{" "}
+                      <button onClick={() => setActiveTab("import")} className="underline font-semibold text-slate-700">1. Importeer Bank</button>.
                     </p>
                   </div>
 
                   <div className="space-y-3 text-xs">
                     
-                    {/* CSV Upload box mini */}
-                    <div 
-                      onClick={() => document.getElementById("file-input")?.click()}
-                      className="border border-dashed border-slate-200 hover:border-rose-400 bg-slate-50/50 hover:bg-rose-50/10 p-4.5 rounded-xl text-center cursor-pointer transition flex flex-col items-center justify-center gap-1.5"
-                    >
-                      <Upload className="w-5 h-5 text-rose-500" />
-                      <span className="font-bold text-slate-700">Kies bankbestand (CSV)</span>
-                      <span className="text-[10px] text-slate-400">Rabobank, ING, ABN AMRO etc.</span>
-                    </div>
 
                     {/* Quick navigation links for fast access */}
                     <div className="grid grid-cols-2 gap-2">

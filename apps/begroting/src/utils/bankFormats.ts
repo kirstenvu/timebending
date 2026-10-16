@@ -307,12 +307,22 @@ export function parseMT940(text: string): Transaction[] {
         // YYMMDD [MMDD] [R]C|D [funds code] bedrag,cc ...
         const m = rest.match(/^(\d{2})(\d{2})(\d{2})(\d{4})?(R?[CD])[A-Z]?(\d+,\d{0,2})/);
         if (m) {
-          const [, yy, mm, dd, , mark, amt] = m;
+          const [, yy, mm, dd, booking, mark, amt] = m;
           const amount = parseFloat(amt.replace(",", "."));
+          // Eerst staat de valutadatum, daarna (optioneel) de boekdatum MMDD. Het afschrift en de
+          // saldo's gaan uit van de boekdatum: bv. kosten geboekt op 1 juni met valutadatum 31 mei.
+          let year = 2000 + Number(yy), month = mm, day = dd;
+          if (booking) {
+            const bm = booking.slice(0, 2), bd = booking.slice(2, 4);
+            if (bm === "01" && mm === "12") year++;
+            else if (bm === "12" && mm === "01") year--;
+            month = bm;
+            day = bd;
+          }
           // RC = terugboeking van een bijschrijving (dus geld eruit), RD = andersom
           const income = mark === "C" || mark === "RD";
           // Na het bedrag kan (bij oudere exports) de tegenrekening staan
-          current = { date: `20${yy}-${mm}-${dd}`, amount, income, info: [], extra: rest.slice(m[0].length) };
+          current = { date: `${year}-${month}-${day}`, amount, income, info: [], extra: rest.slice(m[0].length) };
         }
       } else if (code === "25") {
         ownAccount = normalizeIban(rest.split(/\s/)[0]) || normalizeIban(rest);

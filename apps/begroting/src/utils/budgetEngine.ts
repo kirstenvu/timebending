@@ -159,7 +159,8 @@ export function generateForecastBudget(
   });
 
   // Calculate allocated forecast
-  const categories: BudgetCategory[] = STANDARD_CATEGORIES.map(cat => {
+  // Eigen rekeningen (sparen/buffer) horen niet in een begroting: geen omzet en geen kosten
+  const categories: BudgetCategory[] = STANDARD_CATEGORIES.filter(cat => cat !== TRANSFER_CATEGORY).map(cat => {
     const spent = Math.max(0, Math.round(actualsByCategory[cat] || 0));
     const isIncome = cat === "Inkomsten (Omzet)";
     const isPrivate = cat === "Privé (Onttrekkingen/Stortingen)";
