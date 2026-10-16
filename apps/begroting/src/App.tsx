@@ -338,59 +338,85 @@ export default function App() {
   const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      processFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(Array.from(e.dataTransfer.files));
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      processFile(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0) {
+      processFiles(Array.from(e.target.files));
     }
+    // Zelfde bestand opnieuw kunnen kiezen
+    e.target.value = "";
   };
 
-  const processFile = async (file: File) => {
+  // Eén of meer bestanden tegelijk inlezen (bv. drie kwartaalafschriften)
+  const processFiles = async (fileList: File[]) => {
     setErrorMessage(null);
-    try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      const { format, transactions: parsed, warnings, check } = await parseBankFile(bytes, file.name);
+    let allTxs = transactions;
+    let allFiles = files;
+    const okLines: string[] = [];
+    const errorLines: string[] = [];
+    const warningLines: string[] = [];
+    // Oud naar nieuw op bestandsnaam, zodat de volgorde in de lijst logisch is
+    const sorted = [...fileList].sort((a, b) => a.name.localeCompare(b.name, "nl", { numeric: true }));
+    for (const file of sorted) {
+      try {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const { format, transactions: parsed, warnings, check } = await parseBankFile(bytes, file.name);
 
-      const fileId = `f-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
-      const withSource = parsed.map(t => ({ ...t, sourceFileId: fileId }));
+        const fileId = `f-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+        const withSource = parsed.map(t => ({ ...t, sourceFileId: fileId }));
+        const categorized = autoCategorizeAll(withSource, customRules);
 
-      // Run instant rule-based categorization immediately
-      const categorized = autoCategorizeAll(withSource, customRules);
+        // Dubbel ingeladen? (bv. hetzelfde afschrift als PDF én als MT940)
+        const existingKeys = new Set(allTxs.map(t => `${t.date}|${t.type}|${t.amount.toFixed(2)}`));
+        const dupes = parsed.filter(t => existingKeys.has(`${t.date}|${t.type}|${t.amount.toFixed(2)}`)).length;
+        if (allTxs.length > 0 && dupes >= Math.max(3, parsed.length * 0.5)) {
+          warnings.push(`${dupes} van de ${parsed.length} boekingen in "${file.name}" stonden er al in (zelfde datum en bedrag). Heb je dit afschrift al eerder ingeladen? Dan tellen ze dubbel; verwijder er één bij "Geüploade bestanden".`);
+        }
 
-      // Overboekingen naar/van een eigen rekening (waarvan ook een afschrift is ingeladen) apart zetten
-      const updatedTxs = applyCounterpartyGroups(markOwnAccountTransfers([...transactions, ...categorized]), counterpartyGroups);
-      const newFileMeta: BankStatementFile = {
-        id: fileId,
-        format: formatLabel(format),
-        name: file.name,
-        size: `${(file.size / 1024).toFixed(1)} KB`,
-        transactionCount: parsed.length,
-        uploadedAt: new Date().toLocaleDateString("nl-NL"),
-        check
-      };
-      const updatedFiles = [...files, newFileMeta];
-
-      setTransactions(updatedTxs);
-      setFiles(updatedFiles);
-      saveToLocal(updatedTxs, budgetPlanning, updatedFiles);
-      // Dubbel ingeladen? (bv. hetzelfde afschrift als PDF én als MT940)
-      const existingKeys = new Set(transactions.map(t => `${t.date}|${t.type}|${t.amount.toFixed(2)}`));
-      const dupes = parsed.filter(t => existingKeys.has(`${t.date}|${t.type}|${t.amount.toFixed(2)}`)).length;
-      if (transactions.length > 0 && dupes >= Math.max(3, parsed.length * 0.5)) {
-        warnings.push(`${dupes} van deze ${parsed.length} transacties stonden er al in (zelfde datum en bedrag). Heb je dit afschrift al eerder ingeladen, bijvoorbeeld als PDF én als MT940? Dan tellen ze dubbel; verwijder één van beide bij "Geüploade bestanden".`);
+        allTxs = [...allTxs, ...categorized];
+        allFiles = [
+          ...allFiles,
+          {
+            id: fileId,
+            format: formatLabel(format),
+            name: file.name,
+            size: `${(file.size / 1024).toFixed(1)} KB`,
+            transactionCount: parsed.length,
+            uploadedAt: new Date().toLocaleDateString("nl-NL"),
+            check
+          }
+        ];
+        okLines.push(`${parsed.length} boekingen uit ${file.name}`);
+        warningLines.push(...warnings);
+      } catch (err: any) {
+        errorLines.push(`${file.name}: ${err?.message || "kon niet worden ingelezen."}`);
       }
-      const warningText = warnings.length ? ` Let op: ${warnings.join(" ")}` : "";
-      const msg = `${parsed.length} transacties ingeladen uit ${formatLabel(format)}-bestand. Hieronder zie je direct wat er binnenkwam en wat eruit ging.${warningText}`;
+    }
+
+    if (okLines.length > 0) {
+      // Overboekingen tussen eigen rekeningen pas markeren als alle bestanden binnen zijn
+      const updatedTxs = applyCounterpartyGroups(markOwnAccountTransfers(allTxs), counterpartyGroups);
+      setTransactions(updatedTxs);
+      setFiles(allFiles);
+      saveToLocal(updatedTxs, budgetPlanning, allFiles);
+      const warningText = warningLines.length ? ` Let op: ${warningLines.join(" ")}` : "";
+      const msg =
+        (okLines.length === 1
+          ? `${okLines[0]} ingeladen.`
+          : `${okLines.length} bestanden ingeladen: ${okLines.join(", ")}.`) +
+        ` Hieronder zie je direct wat er binnenkwam en wat eruit ging.${warningText}`;
       setSuccessMessage(msg);
       setActiveTab("tegenpartijen");
-      // Alleen deze melding wissen, niet een nieuwere van een volgende upload
-      setTimeout(() => setSuccessMessage(m => (m === msg ? null : m)), warnings.length ? 12000 : 5000);
-    } catch (err: any) {
-      setErrorMessage(err?.message || "Fout bij verwerken van het bestand.");
+      setTimeout(() => setSuccessMessage(m => (m === msg ? null : m)), warningLines.length ? 12000 : 6000);
+    }
+    if (errorLines.length > 0) {
+      setErrorMessage(
+        (errorLines.length === 1 ? "Dit bestand is niet ingeladen: " : "Deze bestanden zijn niet ingeladen: ") + errorLines.join(" · ")
+      );
     }
   };
 
@@ -1709,7 +1735,7 @@ export default function App() {
                 <div>
                   <h3 className="text-lg font-bold font-display text-slate-900">3. Upload bankafschriften</h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    Download je afschrift in internetbankieren en sleep het hieronder naartoe. Het beste werkt CAMT.053 (.xml), daarna MT940 (.swi/.sta), CSV of PDF.
+                    Download je afschrift in internetbankieren en sleep het hieronder naartoe. Meerdere bestanden tegelijk mag ook (bijvoorbeeld vier kwartalen). Het beste werkt CAMT.053 (.xml), daarna MT940 (.swi/.sta), CSV of PDF.
                   </p>
                 </div>
 
@@ -1727,6 +1753,7 @@ export default function App() {
                   <input
                     id="file-input"
                     type="file"
+                    multiple
                     accept=".xml,.swi,.sta,.940,.mt940,.csv,.txt,.pdf,text/csv,text/plain,application/xml,text/xml,application/pdf"
                     className="hidden"
                     onChange={handleFileSelect}
@@ -3722,7 +3749,7 @@ export default function App() {
                             <p>✓ Uit je afschriften (eindsaldo):</p>
                             {bufferFromStatements.accounts.map(a => (
                               <p key={a.label} className="flex justify-between gap-2 font-mono">
-                                <span className="truncate">{a.label}</span>
+                                <span className="truncate">{a.label} <span className="font-sans text-slate-400">op {a.lastDate.split("-").reverse().join("-")}</span></span>
                                 <span>{a.closing < 0 ? "−" : ""}€{Math.round(Math.abs(a.closing)).toLocaleString("nl-NL")}</span>
                               </p>
                             ))}
