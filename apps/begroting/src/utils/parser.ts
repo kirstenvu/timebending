@@ -200,6 +200,65 @@ export function parseBankStatementCSV(content: string, filename: string): Transa
   return transactions;
 }
 
+/**
+ * Controlegegevens uit een CSV: aantal regels en (als er een saldokolom is, zoals
+ * "Saldo na trn" bij Rabobank) begin- en eindsaldo. De volgorde (oud→nieuw of
+ * nieuw→oud) wordt bepaald door te kijken welke kant de saldo's sluitend maakt.
+ */
+export function csvCheck(content: string): import("./bankFormats").StatementCheck {
+  const lines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) return {};
+  const first = lines[0];
+  const delimiter = first.includes(";") ? ";" : first.includes("\t") ? "\t" : first.includes(",") ? "," : "";
+  if (!delimiter) return {};
+  const split = (line: string) => {
+    const r: string[] = []; let cur = ""; let q = false;
+    for (const ch of line) {
+      if (ch === '"') q = !q;
+      else if (ch === delimiter && !q) { r.push(cur.trim()); cur = ""; }
+      else cur += ch;
+    }
+    r.push(cur.trim());
+    return r;
+  };
+  const headers = split(first).map(h => h.toLowerCase().replace(/["']/g, ""));
+  const amountIdx = headers.findIndex(h => h === "bedrag" || h === "bedrag (eur)" || h === "amount");
+  const saldoIdx = headers.findIndex(h => h.startsWith("saldo na") || h === "saldo");
+  const afBijIdx = headers.findIndex(h => h === "af bij" || h === "af/bij");
+  const rows = lines.slice(1).map(split).filter(c => c.length >= 3);
+  const check: import("./bankFormats").StatementCheck = { rawCount: rows.filter(c => amountIdx === -1 || cleanAmount(c[amountIdx]) > 0).length };
+  if (amountIdx === -1 || saldoIdx === -1) return check;
+
+  const signedNum = (v: string) => {
+    const n = cleanAmount(v);
+    return (v || "").trim().startsWith("-") ? -n : n;
+  };
+  const data = rows.map(c => {
+    let amt = signedNum(c[amountIdx]);
+    if (afBijIdx !== -1) {
+      const d = (c[afBijIdx] || "").toLowerCase();
+      amt = d === "af" || d === "debit" ? -Math.abs(amt) : Math.abs(amt);
+    }
+    return { amt, saldo: signedNum(c[saldoIdx]) };
+  });
+  if (data.every(d => d.saldo === 0)) return check; // saldokolom niet gevuld
+  const near = (a: number, b: number) => Math.abs(a - b) < 0.015;
+  let ascBad = 0, descBad = 0;
+  for (let i = 1; i < data.length; i++) {
+    if (!near(data[i - 1].saldo + data[i].amt, data[i].saldo)) ascBad++;
+    if (!near(data[i].saldo + data[i - 1].amt, data[i - 1].saldo)) descBad++;
+  }
+  const n = data.length - 1;
+  if (ascBad <= descBad) {
+    check.opening = Math.round((data[0].saldo - data[0].amt) * 100) / 100;
+    check.closing = data[n].saldo;
+  } else {
+    check.opening = Math.round((data[n].saldo - data[n].amt) * 100) / 100;
+    check.closing = data[0].saldo;
+  }
+  return check;
+}
+
 // Intelligent fallback parser for unstructured text (like a copy-pasted bank list or bank overview)
 export function parseRawUnstructuredText(content: string): Transaction[] {
   const lines = content.split(/\r?\n/).map(line => line.trim()).filter(Boolean);

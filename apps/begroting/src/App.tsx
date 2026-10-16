@@ -325,7 +325,7 @@ export default function App() {
     setErrorMessage(null);
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
-      const { format, transactions: parsed, warnings } = await parseBankFile(bytes, file.name);
+      const { format, transactions: parsed, warnings, check } = await parseBankFile(bytes, file.name);
 
       const fileId = `f-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
       const withSource = parsed.map(t => ({ ...t, sourceFileId: fileId }));
@@ -341,7 +341,8 @@ export default function App() {
         name: file.name,
         size: `${(file.size / 1024).toFixed(1)} KB`,
         transactionCount: parsed.length,
-        uploadedAt: new Date().toLocaleDateString("nl-NL")
+        uploadedAt: new Date().toLocaleDateString("nl-NL"),
+        check
       };
       const updatedFiles = [...files, newFileMeta];
 
@@ -564,6 +565,24 @@ export default function App() {
     }
     setTransactions(updated);
     saveToLocal(updated, budgetPlanning, files);
+  };
+
+  // Alle zelf gekozen groepen weghalen en alles weer automatisch laten indelen
+  const handleResetCounterpartyGroups = () => {
+    const count = Object.keys(counterpartyGroups).length;
+    if (count === 0) return;
+    if (!window.confirm(`Wil je alle ${count} groepen die je zelf hebt gekozen weghalen? De boekingen worden dan weer automatisch ingedeeld.`)) return;
+    const keys = new Set(Object.keys(counterpartyGroups));
+    setCounterpartyGroups({});
+    try {
+      localStorage.removeItem("budget_planner_counterparty_groups");
+    } catch {}
+    const reset = transactions.map(t => (keys.has(counterpartyKey(t)) ? { ...t, category: "Niet gecategoriseerd" } : t));
+    const updated = markOwnAccountTransfers(autoCategorizeAll(reset, customRules));
+    setTransactions(updated);
+    saveToLocal(updated, budgetPlanning, files);
+    setSuccessMessage("Alle zelf gekozen groepen zijn weggehaald.");
+    setTimeout(() => setSuccessMessage(null), 4000);
   };
 
   // Fast, deterministic rule-based categorizer (100% local, no AI)
@@ -1767,8 +1786,10 @@ export default function App() {
         {activeTab === "tegenpartijen" && (
           <CounterpartyView
             transactions={transactions}
+            files={files}
             groups={counterpartyGroups}
             onAssignGroup={handleAssignCounterpartyGroup}
+            onResetGroups={handleResetCounterpartyGroups}
           />
         )}
 

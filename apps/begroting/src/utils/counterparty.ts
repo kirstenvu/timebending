@@ -48,11 +48,9 @@ const normalize = (name: string) =>
     .trim();
 
 /** Sleutel waarop transacties gebundeld worden: rekeningnummer als dat er is, anders de naam. */
-export function counterpartyKey(t: Pick<Transaction, "counterparty" | "description" | "counterAccount" | "category">): string {
+export function counterpartyKey(t: Pick<Transaction, "counterparty" | "description" | "counterAccount">): string {
   if (t.counterAccount) return `iban:${t.counterAccount}`;
-  const base = `naam:${normalize(counterpartyName(t)) || "onbekend"}`;
-  // Zonder rekeningnummer (bv. PDF) sparen/buffer apart houden van andere boekingen met dezelfde naam
-  return t.category === TRANSFER_CATEGORY ? `${base}|eigen` : base;
+  return `naam:${normalize(counterpartyName(t)) || "onbekend"}`;
 }
 
 export interface CounterpartySummary {

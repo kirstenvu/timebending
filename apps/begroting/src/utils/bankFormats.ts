@@ -1,5 +1,5 @@
 import { Transaction } from "../types";
-import { parseBankStatementCSV } from "./parser";
+import { parseBankStatementCSV, csvCheck } from "./parser";
 
 /**
  * Herkent het formaat van een bankbestand en leest het in.
@@ -13,7 +13,23 @@ export interface ParseResult {
   format: BankFormat;
   transactions: Transaction[];
   warnings: string[];
+  check: StatementCheck;
 }
+
+/**
+ * Wat het bankbestand zelf zegt, los van onze verwerking. Hiermee kan de gebruiker
+ * (en de app) nagaan of er niets gemist of dubbel geteld is.
+ */
+export interface StatementCheck {
+  rawCount?: number; // aantal boekingen dat in het bestand staat
+  opening?: number; // beginsaldo volgens de bank (negatief = rood)
+  closing?: number; // eindsaldo volgens de bank
+  totalIn?: number; // totaal bij volgens de bank (alleen als de bank dat vermeldt)
+  totalOut?: number; // totaal af volgens de bank
+  unsignedBalances?: boolean; // saldo's zonder +/- (PDF): alleen de grootte is te vergelijken
+}
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export class BankFileError extends Error {}
 
@@ -143,6 +159,31 @@ function allTags(xml: string, name: string): string[] {
   return [...xml.matchAll(re)].map((m) => xmlDecode(m[1].trim()));
 }
 
+export function camtCheck(xml: string): StatementCheck {
+  const statements = allTags(xml, "Stmt");
+  const list = statements.length ? statements : [xml];
+  let rawCount = 0;
+  const accounts = new Set<string>();
+  let opening: number | undefined;
+  let closing: number | undefined;
+  for (const stmt of list) {
+    accounts.add(tag(tag(tag(stmt, "Acct"), "Id"), "IBAN"));
+    for (const e of allTags(stmt, "Ntry")) {
+      const a = parseFloat(tag(e, "Amt"));
+      if (isFinite(a) && a !== 0) rawCount++;
+    }
+    for (const b of allTags(stmt, "Bal")) {
+      const code = tag(tag(tag(b, "Tp"), "CdOrPrtry"), "Cd");
+      const v = parseFloat(tag(b, "Amt"));
+      if (!isFinite(v)) continue;
+      const signed = tag(b, "CdtDbtInd") === "DBIT" ? -v : v;
+      if ((code === "OPBD" || code === "PRCD") && opening === undefined) opening = signed;
+      if (code === "CLBD") closing = signed;
+    }
+  }
+  return accounts.size <= 1 ? { rawCount, opening, closing } : { rawCount };
+}
+
 export function parseCamt053(xml: string): Transaction[] {
   const txs: Transaction[] = [];
   // Een bestand kan meerdere afschriften (Stmt) bevatten, elk voor een eigen rekening
@@ -206,6 +247,31 @@ function mt940Description(info: string): { desc: string; counter: string; name: 
     if (desc) return { desc, counter, name };
   }
   return { desc: flat.replace(/\/[A-Z]{2,4}\//g, " ").replace(/\s+/g, " ").trim(), counter, name: "" };
+}
+
+export function mt940Check(text: string): StatementCheck {
+  const lines = text.replace(/\r/g, "").split("\n");
+  const accounts = new Set<string>();
+  let rawCount = 0;
+  let opening: number | undefined;
+  let closing: number | undefined;
+  const bal = (rest: string) => {
+    const m = rest.match(/^([CD])\d{6}[A-Z]{3}(\d+,\d{0,2})/);
+    if (!m) return undefined;
+    const v = parseFloat(m[2].replace(",", "."));
+    return m[1] === "D" ? -v : v;
+  };
+  for (const raw of lines) {
+    const m = raw.trimEnd().match(/^:(\d{2}[A-Z]?):(.*)$/);
+    if (!m) continue;
+    const [, code, rest] = m;
+    if (code === "25") accounts.add(normalizeIban(rest.split(/\s/)[0]) || rest.trim());
+    else if (code === "61" && !/^\d{6}(\d{4})?R?[CD][A-Z]?0+,0*(\D|$)/.test(rest)) rawCount++;
+    else if (code.startsWith("60") && opening === undefined) opening = bal(rest);
+    else if (code.startsWith("62")) closing = bal(rest);
+  }
+  // Saldo's alleen gebruiken als het bestand over één rekening gaat
+  return accounts.size <= 1 ? { rawCount, opening, closing } : { rawCount };
 }
 
 export function parseMT940(text: string): Transaction[] {
@@ -395,6 +461,31 @@ function isHeaderLine(lower: string[]): boolean {
   return lower.some((s) => HEADER_DATE_RE.test(s)) && lower.some((s) => HEADER_OTHER_RE.test(s));
 }
 
+/** Beginsaldo, eindsaldo en totalen zoals ze op het PDF-afschrift staan (als ze er staan). */
+export function pdfCheck(lines: PdfLine[]): StatementCheck {
+  const check: StatementCheck = {};
+  const amountIn = (cs: PdfTextItem[]) => {
+    for (const c of cs) {
+      const a = parseAmountToken(c.str);
+      if (a) return a.sign < 0 ? -a.value : a.value;
+    }
+    return undefined;
+  };
+  for (const l of lines) {
+    const cs = cells(l);
+    if (!cs.length) continue;
+    const label = cs.map((c) => c.str).join(" ").toLowerCase();
+    const v = amountIn(cs.slice(1)) ?? amountIn(cs);
+    if (v === undefined) continue;
+    if (check.opening === undefined && /\b(beginsaldo|oud saldo|vorig saldo|saldo begin|openingssaldo)\b/.test(label)) check.opening = v;
+    else if (/\b(eindsaldo|nieuw saldo|saldo eind|slotsaldo)\b/.test(label)) check.closing = v;
+    else if (check.totalOut === undefined && /\btotaal (af|debet|uitgaven)\b/.test(label)) check.totalOut = Math.abs(v);
+    else if (check.totalIn === undefined && /\btotaal (bij|credit|inkomsten)\b/.test(label)) check.totalIn = Math.abs(v);
+  }
+  check.unsignedBalances = true;
+  return check;
+}
+
 export function parsePdfLines(lines: PdfLine[]): { transactions: Transaction[]; warnings: string[] } {
   const warnings: string[] = [];
   const allText = lines.map((l) => l.items.map((i) => i.str).join(" ")).join("\n");
@@ -572,17 +663,27 @@ export async function parseBankFile(bytes: Uint8Array, filename: string): Promis
   const format = detectFormat(bytes, filename);
   const warnings: string[] = [];
   let transactions: Transaction[] = [];
+  let check: StatementCheck = {};
 
   switch (format) {
-    case "camt053":
-      transactions = parseCamt053(decodeText(bytes));
+    case "camt053": {
+      const text = decodeText(bytes);
+      transactions = parseCamt053(text);
+      check = camtCheck(text);
       break;
-    case "mt940":
-      transactions = parseMT940(decodeText(bytes));
+    }
+    case "mt940": {
+      const text = decodeText(bytes);
+      transactions = parseMT940(text);
+      check = mt940Check(text);
       break;
-    case "csv":
-      transactions = parseBankStatementCSV(decodeText(bytes), filename);
+    }
+    case "csv": {
+      const text = decodeText(bytes);
+      transactions = parseBankStatementCSV(text, filename);
+      check = csvCheck(text);
       break;
+    }
     case "pdf": {
       let pages: PdfTextItem[][];
       try {
@@ -595,8 +696,10 @@ export async function parseBankFile(bytes: Uint8Array, filename: string): Promis
           "Deze PDF bevat geen leesbare tekst, waarschijnlijk is het een scan of foto. Download het afschrift liever als CAMT.053, MT940 of CSV in je internetbankieren."
         );
       }
-      const res = parsePdfLines(groupIntoLines(pages));
+      const pdfLines = groupIntoLines(pages);
+      const res = parsePdfLines(pdfLines);
       transactions = res.transactions;
+      check = pdfCheck(pdfLines);
       warnings.push(...res.warnings, "PDF-afschriften zijn minder betrouwbaar dan CAMT.053 of MT940. Loop de transacties even na.");
       break;
     }
@@ -611,5 +714,36 @@ export async function parseBankFile(bytes: Uint8Array, filename: string): Promis
       `Er zijn geen transacties gevonden in dit ${formatLabel(format)}-bestand. Controleer of het een bankafschrift is, of probeer een ander formaat (CAMT.053 werkt het betrouwbaarst).`
     );
   }
-  return { format, transactions, warnings };
+  return { format, transactions, warnings, check };
+}
+
+/**
+ * Vergelijkt onze verwerking met wat het bestand zelf zegt.
+ * Geeft per controle "ok", "fout" of niets (als het bestand die informatie niet bevat).
+ */
+export interface CheckOutcome {
+  count?: { ok: boolean; expected: number; got: number };
+  totals?: { ok: boolean; expectedIn?: number; expectedOut?: number; gotIn: number; gotOut: number };
+  balance?: { ok: boolean; opening: number; closing: number; computed: number };
+}
+
+export function evaluateCheck(check: StatementCheck | undefined, txs: Pick<Transaction, "amount" | "type">[]): CheckOutcome {
+  const out: CheckOutcome = {};
+  if (!check) return out;
+  const gotIn = round2(txs.filter((t) => t.type === "income").reduce((a, t) => a + t.amount, 0));
+  const gotOut = round2(txs.filter((t) => t.type === "expense").reduce((a, t) => a + t.amount, 0));
+  const near = (a: number, b: number) => Math.abs(a - b) < 0.015;
+  if (check.rawCount !== undefined) out.count = { ok: check.rawCount === txs.length, expected: check.rawCount, got: txs.length };
+  if (check.totalIn !== undefined || check.totalOut !== undefined) {
+    const ok = (check.totalIn === undefined || near(check.totalIn, gotIn)) && (check.totalOut === undefined || near(check.totalOut, gotOut));
+    out.totals = { ok, expectedIn: check.totalIn, expectedOut: check.totalOut, gotIn, gotOut };
+  }
+  if (check.opening !== undefined && check.closing !== undefined) {
+    const computed = round2(check.opening + gotIn - gotOut);
+    const ok = check.unsignedBalances
+      ? near(Math.abs(computed), Math.abs(check.closing)) || near(Math.abs(check.opening) + gotIn - gotOut, Math.abs(check.closing)) || near(-Math.abs(check.opening) + gotIn - gotOut, Math.abs(check.closing))
+      : near(computed, check.closing);
+    out.balance = { ok, opening: check.opening, closing: check.closing, computed };
+  }
+  return out;
 }

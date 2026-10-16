@@ -37,6 +37,15 @@ export interface BankStatementFile {
   size: string;
   transactionCount: number;
   uploadedAt: string;
+  // Wat het bestand zelf zegt (aantal boekingen, saldo's, totalen), om mee te controleren
+  check?: {
+    rawCount?: number;
+    opening?: number;
+    closing?: number;
+    totalIn?: number;
+    totalOut?: number;
+    unsignedBalances?: boolean;
+  };
 }
 
 export const STANDARD_CATEGORIES = [
