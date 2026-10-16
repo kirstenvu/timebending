@@ -44,15 +44,18 @@ import {
   Cloud,
   Key,
   FolderSync,
-  Laptop
+  Laptop,
+  Users
 } from "lucide-react";
-import { Transaction, BudgetPlanning, BankStatementFile, STANDARD_CATEGORIES, CATEGORY_COLORS, StorageMode, AppBackupData, CLOUD_STORAGE_ENABLED } from "./types";
+import { Transaction, BudgetPlanning, BankStatementFile, STANDARD_CATEGORIES, CATEGORY_COLORS, StorageMode, AppBackupData, CLOUD_STORAGE_ENABLED, INCOME_CATEGORY, TRANSFER_CATEGORY, isNonBusiness, categoryAmount, businessEffect } from "./types";
 import { parseRawUnstructuredText } from "./utils/parser";
 import { parseBankFile, formatLabel } from "./utils/bankFormats";
 import { SECTOR_DEMO_DATA } from "./data";
-import { CustomRule, autoCategorizeAll, classifyTransaction } from "./utils/categorizer";
+import { CustomRule, autoCategorizeAll, classifyTransaction, markOwnAccountTransfers } from "./utils/categorizer";
 import { generateForecastBudget } from "./utils/budgetEngine";
 import StorageModal from "./components/StorageModal";
+import CounterpartyView from "./components/CounterpartyView";
+import { applyCounterpartyGroups, counterpartyKey } from "./utils/counterparty";
 import {
   getStoredStorageMode,
   saveStorageMode,
@@ -71,7 +74,7 @@ export default function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [budgetPlanning, setBudgetPlanning] = useState<BudgetPlanning | null>(null);
   const [files, setFiles] = useState<BankStatementFile[]>([]);
-  const [activeTab, setActiveTab] = useState<"import" | "jaaroverzicht" | "monthly" | "transactions" | "budget" | "gemoedsrust">("import");
+  const [activeTab, setActiveTab] = useState<"import" | "tegenpartijen" | "jaaroverzicht" | "monthly" | "transactions" | "budget" | "gemoedsrust">("import");
   const [monthFilter, setMonthFilter] = useState<string>("all");
 
   // Storage & Synchronization State
@@ -92,6 +95,16 @@ export default function App() {
     return stored ? JSON.parse(stored) : [];
   });
   const [showRulesModal, setShowRulesModal] = useState(false);
+
+  // Optionele vaste groep per tegenpartij (sleutel uit counterpartyKey -> categorie)
+  const [counterpartyGroups, setCounterpartyGroups] = useState<Record<string, string>>(() => {
+    try {
+      const stored = localStorage.getItem("budget_planner_counterparty_groups");
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
   const [newRule, setNewRule] = useState<{ keyword: string; category: string; cleanName: string; targetType: "all" | "income" | "expense" }>({
     keyword: "",
     category: "Kantoor & IT",
@@ -320,7 +333,8 @@ export default function App() {
       // Run instant rule-based categorization immediately
       const categorized = autoCategorizeAll(withSource, customRules);
 
-      const updatedTxs = [...transactions, ...categorized];
+      // Overboekingen naar/van een eigen rekening (waarvan ook een afschrift is ingeladen) apart zetten
+      const updatedTxs = applyCounterpartyGroups(markOwnAccountTransfers([...transactions, ...categorized]), counterpartyGroups);
       const newFileMeta: BankStatementFile = {
         id: fileId,
         format: formatLabel(format),
@@ -334,10 +348,16 @@ export default function App() {
       setTransactions(updatedTxs);
       setFiles(updatedFiles);
       saveToLocal(updatedTxs, budgetPlanning, updatedFiles);
+      // Dubbel ingeladen? (bv. hetzelfde afschrift als PDF én als MT940)
+      const existingKeys = new Set(transactions.map(t => `${t.date}|${t.type}|${t.amount.toFixed(2)}`));
+      const dupes = parsed.filter(t => existingKeys.has(`${t.date}|${t.type}|${t.amount.toFixed(2)}`)).length;
+      if (transactions.length > 0 && dupes >= Math.max(3, parsed.length * 0.5)) {
+        warnings.push(`${dupes} van deze ${parsed.length} transacties stonden er al in (zelfde datum en bedrag). Heb je dit afschrift al eerder ingeladen, bijvoorbeeld als PDF én als MT940? Dan tellen ze dubbel; verwijder één van beide bij "Geüploade bestanden".`);
+      }
       const warningText = warnings.length ? ` Let op: ${warnings.join(" ")}` : "";
-      const msg = `${parsed.length} transacties ingeladen uit ${formatLabel(format)}-bestand en automatisch gecategoriseerd.${warningText}`;
+      const msg = `${parsed.length} transacties ingeladen uit ${formatLabel(format)}-bestand. Hieronder zie je direct wat er binnenkwam en wat eruit ging.${warningText}`;
       setSuccessMessage(msg);
-      setActiveTab("transactions");
+      setActiveTab("tegenpartijen");
       // Alleen deze melding wissen, niet een nieuwere van een volgende upload
       setTimeout(() => setSuccessMessage(m => (m === msg ? null : m)), warnings.length ? 12000 : 5000);
     } catch (err: any) {
@@ -378,7 +398,7 @@ export default function App() {
       // Run instant rule-based categorization immediately
       const categorized = autoCategorizeAll(parsed, customRules);
 
-      const updatedTxs = [...transactions, ...categorized];
+      const updatedTxs = applyCounterpartyGroups([...transactions, ...categorized], counterpartyGroups);
       const newFileMeta: BankStatementFile = {
         name: "Gekopieerd Klembord",
         size: "Handmatig geplakt",
@@ -390,10 +410,10 @@ export default function App() {
       setTransactions(updatedTxs);
       setFiles(updatedFiles);
       saveToLocal(updatedTxs, budgetPlanning, updatedFiles);
-      setSuccessMessage(`${parsed.length} transacties succesvol herkend en automatisch gecategoriseerd!`);
+      setSuccessMessage(`${parsed.length} transacties herkend. Hieronder zie je direct wat er binnenkwam en wat eruit ging.`);
       setPastedText("");
       setShowPasteArea(false);
-      setActiveTab("transactions");
+      setActiveTab("tegenpartijen");
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err: any) {
       setErrorMessage(err.message);
@@ -430,7 +450,7 @@ export default function App() {
     setBudgetPlanning(defaultBudget);
     saveToLocal(demoTxs, defaultBudget, updatedFiles);
     setSuccessMessage(`Voorbeelddata (${sectorData.companyName}) succesvol ingeladen met jaarbegroting!`);
-    setActiveTab("transactions");
+    setActiveTab("tegenpartijen");
     setTimeout(() => setSuccessMessage(null), 5000);
   };
 
@@ -501,12 +521,47 @@ export default function App() {
 
   // Edit category of a single transaction
   const handleUpdateCategory = (id: string, category: string) => {
+    const changed = transactions.find(t => t.id === id);
+    // Zelfde tegenrekening? Dan aanbieden om al die boekingen in één keer mee te nemen
+    let applyToSameAccount = false;
+    if (changed?.counterAccount) {
+      const others = transactions.filter(t => t.id !== id && t.counterAccount === changed.counterAccount && t.category !== category);
+      if (others.length > 0) {
+        applyToSameAccount = window.confirm(
+          `Er zijn nog ${others.length} boekingen van of naar dezelfde rekening (${changed.counterAccount}). Wil je die ook indelen als "${category}"?`
+        );
+      }
+    }
     const updated = transactions.map(t => {
-      if (t.id === id) {
+      if (t.id === id || (applyToSameAccount && t.counterAccount === changed?.counterAccount)) {
         return { ...t, category };
       }
       return t;
     });
+    setTransactions(updated);
+    saveToLocal(updated, budgetPlanning, files);
+  };
+
+  // Vaste groep voor één tegenpartij kiezen (of weghalen). Helemaal optioneel.
+  const handleAssignCounterpartyGroup = (key: string, category: string) => {
+    const updatedGroups = { ...counterpartyGroups };
+    if (category) updatedGroups[key] = category;
+    else delete updatedGroups[key];
+    setCounterpartyGroups(updatedGroups);
+    try {
+      localStorage.setItem("budget_planner_counterparty_groups", JSON.stringify(updatedGroups));
+    } catch (e) {
+      console.error("Fout bij opslaan van groepen:", e);
+    }
+
+    let updated: Transaction[];
+    if (category) {
+      updated = applyCounterpartyGroups(transactions, { [key]: category });
+    } else {
+      // Groep weggehaald: deze boekingen weer automatisch laten indelen
+      const reset = transactions.map(t => (counterpartyKey(t) === key ? { ...t, category: "Niet gecategoriseerd" } : t));
+      updated = markOwnAccountTransfers(autoCategorizeAll(reset, customRules));
+    }
     setTransactions(updated);
     saveToLocal(updated, budgetPlanning, files);
   };
@@ -517,7 +572,7 @@ export default function App() {
     setIsAnalyzing(true);
     
     setTimeout(() => {
-      const updated = autoCategorizeAll(transactions, customRules);
+      const updated = applyCounterpartyGroups(markOwnAccountTransfers(autoCategorizeAll(transactions, customRules)), counterpartyGroups);
       const newlyCategorized = updated.filter((t, i) => transactions[i].category === "Niet gecategoriseerd" && t.category !== "Niet gecategoriseerd").length;
       
       setTransactions(updated);
@@ -550,7 +605,7 @@ export default function App() {
     setNewRule({ keyword: "", category: "Kantoor & IT", cleanName: "", targetType: "all" });
 
     // Apply immediately to current transactions
-    const updatedTxs = autoCategorizeAll(transactions, updatedRules);
+    const updatedTxs = applyCounterpartyGroups(markOwnAccountTransfers(autoCategorizeAll(transactions, updatedRules)), counterpartyGroups);
     setTransactions(updatedTxs);
     saveToLocal(updatedTxs, budgetPlanning, files);
     setSuccessMessage(`Regel voor "${created.keyword}" toegevoegd en direct toegepast op ${updatedTxs.length} transacties!`);
@@ -615,18 +670,31 @@ export default function App() {
   const stats = useMemo(() => {
     let income = 0;
     let expenses = 0;
+    let excludedCount = 0;
+    let excludedIn = 0;
+    let excludedOut = 0;
     const byCategory: Record<string, number> = {};
 
+    // Alleen omzet en bedrijfskosten tellen mee. Privé en overboekingen tussen
+    // eigen rekeningen worden apart bijgehouden en niet als omzet/kosten gezien.
     transactions.forEach(t => {
-      if (t.type === "income") {
-        income += t.amount;
-      } else {
-        expenses += t.amount;
-        byCategory[t.category] = (byCategory[t.category] || 0) + t.amount;
+      const effect = businessEffect(t);
+      if (effect.excluded) {
+        excludedCount++;
+        if (t.type === "income") excludedIn += t.amount; else excludedOut += t.amount;
+        return;
+      }
+      income += effect.income;
+      expenses += effect.expense;
+      if (effect.expense !== 0) {
+        byCategory[t.category] = (byCategory[t.category] || 0) + effect.expense;
       }
     });
 
     return {
+      excludedCount,
+      excludedIn,
+      excludedOut,
       totalIncome: income,
       totalExpenses: expenses,
       netProfit: income - expenses,
@@ -685,11 +753,9 @@ export default function App() {
         months[mKey] = { income: 0, expenses: 0, transactionsCount: 0 };
       }
       months[mKey].transactionsCount += 1;
-      if (t.type === "income") {
-        months[mKey].income += t.amount;
-      } else {
-        months[mKey].expenses += t.amount;
-      }
+      const effect = businessEffect(t);
+      months[mKey].income += effect.income;
+      months[mKey].expenses += effect.expense;
     });
 
     const monthList = Object.entries(months)
@@ -736,7 +802,7 @@ export default function App() {
     transactions.forEach(t => {
       const cat = t.category || "Niet gecategoriseerd";
       if (!histTotalByCategory[cat]) histTotalByCategory[cat] = 0;
-      histTotalByCategory[cat] += t.amount;
+      histTotalByCategory[cat] += categoryAmount(t);
 
       if (t.date) {
         const monthPart = parseInt(t.date.split("-")[1], 10); // 1 to 12
@@ -744,7 +810,7 @@ export default function App() {
           const mIdx = monthPart - 1;
           if (!histMonthlyByCategory[cat]) histMonthlyByCategory[cat] = {};
           if (!histMonthlyByCategory[cat][mIdx]) histMonthlyByCategory[cat][mIdx] = 0;
-          histMonthlyByCategory[cat][mIdx] += t.amount;
+          histMonthlyByCategory[cat][mIdx] += categoryAmount(t);
         }
       }
     });
@@ -758,7 +824,8 @@ export default function App() {
       }
       return {
         category: c,
-        allocated: allocated || 1200,
+        // Geen historie = geen verzonnen bedrag; privé en eigen rekeningen worden niet begroot
+        allocated: isNonBusiness(c) ? 0 : Math.max(0, allocated),
         spent: histSpent
       };
     });
@@ -781,15 +848,17 @@ export default function App() {
         let ratio = 1 / 12;
         const totalHist = histTotalByCategory[cat] || 0;
         const histForMonth = histMonthlyByCategory[cat]?.[mIdx] || 0;
-        if (totalHist > 0) {
+        if (totalHist > 0 && histForMonth >= 0) {
           ratio = histForMonth / totalHist;
+        } else if (totalHist > 0) {
+          ratio = 0;
         }
 
         const projectedAmount = yearlyAllocated * ratio;
 
         if (cat === "Inkomsten (Omzet)") {
           income += projectedAmount;
-        } else if (cat !== "Privé (Onttrekkingen/Stortingen)") { // Privé is typically excluded from company operational overhead
+        } else if (!isNonBusiness(cat)) { // Privé en eigen rekeningen tellen niet mee als bedrijfskosten
           expenses += projectedAmount;
         }
 
@@ -837,13 +906,15 @@ export default function App() {
 
     const categoriesToShow = [
       "Inkomsten (Omzet)",
-      ...STANDARD_CATEGORIES.filter(c => c !== "Inkomsten (Omzet)" && c !== "Privé (Onttrekkingen/Stortingen)"),
-      "Privé (Onttrekkingen/Stortingen)"
+      ...STANDARD_CATEGORIES.filter(c => c !== "Inkomsten (Omzet)" && !isNonBusiness(c)),
+      "Niet gecategoriseerd",
+      "Privé (Onttrekkingen/Stortingen)",
+      TRANSFER_CATEGORY
     ];
 
     categoriesToShow.forEach(cat => {
       const isIncome = cat === "Inkomsten (Omzet)";
-      const isPrivate = cat === "Privé (Onttrekkingen/Stortingen)";
+      const isPrivate = isNonBusiness(cat);
       const isExpense = !isIncome && !isPrivate;
 
       const values = activeMonths.map(m => {
@@ -852,9 +923,19 @@ export default function App() {
           return found ? found.projected : 0;
         } else {
           const monthKey = m.key; // "YYYY-MM"
+          if (isIncome) {
+            // Omzetregel: alles wat als omzet meetelt (ook nog niet ingedeelde ontvangsten)
+            return transactions
+              .filter(t => t.date && t.date.startsWith(monthKey))
+              .reduce((sum, t) => sum + businessEffect(t).income, 0);
+          }
           return transactions
             .filter(t => t.category === cat && t.date && t.date.startsWith(monthKey))
-            .reduce((sum, t) => sum + t.amount, 0);
+            .reduce((sum, t) => {
+              // Niet-ingedeelde ontvangsten tellen in de jaarsheet als omzet mee (zie businessEffect), niet als kosten
+              if (cat === "Niet gecategoriseerd") return t.type === "expense" ? sum + t.amount : sum;
+              return sum + categoryAmount(t);
+            }, 0);
         }
       });
 
@@ -1146,7 +1227,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0 md:mr-16">
             <button
               onClick={() => setActiveTab("import")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shrink-0 ${
@@ -1157,6 +1238,20 @@ export default function App() {
             >
               <Upload className="w-4 h-4" />
               1. Importeer Bank
+            </button>
+            <button
+              onClick={() => setActiveTab("tegenpartijen")}
+              disabled={transactions.length === 0}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shrink-0 ${
+                transactions.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+              } ${
+                activeTab === "tegenpartijen"
+                  ? "bg-emerald-50 text-emerald-700 font-semibold"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              2. Geld in &amp; uit
             </button>
             <button
               onClick={() => setActiveTab("jaaroverzicht")}
@@ -1170,7 +1265,7 @@ export default function App() {
               }`}
             >
               <FileSpreadsheet className="w-4 h-4" />
-              2. Excel Jaaroverzicht
+              3. Jaaroverzicht
             </button>
             <button
               onClick={() => setActiveTab("monthly")}
@@ -1184,7 +1279,7 @@ export default function App() {
               }`}
             >
               <BarChart3 className="w-4 h-4" />
-              3. Maandoverzicht (Details)
+              4. Maandoverzicht
             </button>
             <button
               onClick={() => setActiveTab("transactions")}
@@ -1198,7 +1293,7 @@ export default function App() {
               }`}
             >
               <FileSpreadsheet className="w-4 h-4" />
-              4. Transacties ({transactions.length})
+              5. Transacties ({transactions.length})
             </button>
             <button
               onClick={() => setActiveTab("budget")}
@@ -1212,7 +1307,7 @@ export default function App() {
               }`}
             >
               <TrendingUp className="w-4 h-4" />
-              5. Jaarbegroting Planning
+              6. Begroting
             </button>
             <button
               onClick={() => setActiveTab("gemoedsrust")}
@@ -1223,7 +1318,7 @@ export default function App() {
               }`}
             >
               <Heart className={`w-4 h-4 ${activeTab === "gemoedsrust" ? "text-rose-600 fill-rose-600 animate-pulse" : "text-rose-500"}`} />
-              6. Gemoedsrust & Buffer
+              7. Gemoedsrust
             </button>
 
             {/* QUICK STORAGE BUTTON */}
@@ -1609,8 +1704,8 @@ export default function App() {
                   <div className="flex gap-3">
                     <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-xs flex items-center justify-center shrink-0">2</div>
                     <div>
-                      <h4 className="font-semibold text-xs text-slate-800">Automatisch indelen (100% Lokaal)</h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Onze ingebouwde snelle regelmotor categoriseert direct inkomsten, vaste lasten en leveranciers zonder externe servers.</p>
+                      <h4 className="font-semibold text-xs text-slate-800">Direct zien: geld in &amp; uit</h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Je ziet meteen wie jou betaalde en wie jij betaalde, per tegenpartij. Indelen in groepen kan, maar hoeft niet.</p>
                     </div>
                   </div>
 
@@ -1669,6 +1764,14 @@ export default function App() {
         {/* ========================================================================= */}
         {/* TAB 2: EXCEL-STYLE 12-MONTH OVERVIEW */}
         {/* ========================================================================= */}
+        {activeTab === "tegenpartijen" && (
+          <CounterpartyView
+            transactions={transactions}
+            groups={counterpartyGroups}
+            onAssignGroup={handleAssignCounterpartyGroup}
+          />
+        )}
+
         {activeTab === "jaaroverzicht" && (() => {
           const { months, categoryRows, expenseValues, totalExpensesSum, netValues, totalNetSum } = excelMatrix;
           
@@ -1932,7 +2035,7 @@ export default function App() {
                 </h4>
                 <p className="text-xs text-emerald-800 mt-1 max-w-3xl leading-relaxed">
                   Zit er een maand met hoge incidentele bedrijfskosten of een dip in je inkomsten tussen? 
-                  Gebruik onze <strong className="cursor-pointer underline hover:text-emerald-950" onClick={() => setActiveTab("gemoedsrust")}>Gemoedsrust & Buffer Calculator (Tab 6)</strong> om deze schommelingen risicoloos op te vangen met een seizoensbuffer of spreidingsplan.
+                  Gebruik onze <strong className="cursor-pointer underline hover:text-emerald-950" onClick={() => setActiveTab("gemoedsrust")}>Gemoedsrust & Buffer Calculator (Tab 7)</strong> om deze schommelingen risicoloos op te vangen met een seizoensbuffer of spreidingsplan.
                 </p>
               </div>
 
@@ -2496,7 +2599,7 @@ export default function App() {
                           <p className="font-semibold text-[10px] text-slate-400 uppercase tracking-wider">Hoge uitgavenposten deze maand:</p>
                           <ul className="list-disc pl-4 space-y-1 text-[10px] text-slate-400">
                             {selectedMonth.categoryBreakdown
-                              ?.filter(c => c.category !== "Inkomsten (Omzet)" && c.projected > 0)
+                              ?.filter(c => c.category !== "Inkomsten (Omzet)" && !isNonBusiness(c.category) && c.projected > 0)
                               ?.sort((a, b) => b.projected - a.projected)
                               ?.slice(0, 2)
                               ?.map((item, idx) => (
@@ -2658,7 +2761,7 @@ export default function App() {
               
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
                 <div className="flex items-center justify-between text-slate-400">
-                  <span className="text-xs font-semibold">Totaal Inkomsten</span>
+                  <span className="text-xs font-semibold">Omzet</span>
                   <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
                     <Coins className="w-4 h-4" />
                   </div>
@@ -2667,13 +2770,13 @@ export default function App() {
                   <h3 className="text-2xl font-bold font-mono text-slate-900">
                     €{stats.totalIncome.toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Uit geüploade overzichten</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Zonder privé en eigen rekeningen</p>
                 </div>
               </div>
 
               <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
                 <div className="flex items-center justify-between text-slate-400">
-                  <span className="text-xs font-semibold">Totaal Uitgaven</span>
+                  <span className="text-xs font-semibold">Bedrijfskosten</span>
                   <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
                     <TrendingUp className="w-4 h-4 rotate-180" />
                   </div>
@@ -2699,7 +2802,13 @@ export default function App() {
                   <h3 className={`text-2xl font-bold font-mono ${stats.netProfit >= 0 ? "text-emerald-700" : "text-red-700"}`}>
                     €{stats.netProfit.toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Vrij besteedbaar saldo</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Omzet min bedrijfskosten</p>
+                  {stats.excludedCount > 0 && (
+                    <p className="text-[10px] text-slate-400 mt-1" title="Privé en overboekingen tussen je eigen rekeningen tellen niet mee als omzet of kosten">
+                      Niet meegeteld: {stats.excludedCount} privé/eigen-rekening-boekingen
+                      (in €{stats.excludedIn.toLocaleString("nl-NL", { maximumFractionDigits: 0 })}, uit €{stats.excludedOut.toLocaleString("nl-NL", { maximumFractionDigits: 0 })})
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -3249,13 +3358,13 @@ export default function App() {
                       <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Begrote Jaarkosten</p>
                       <p className="text-xl font-bold text-rose-700 font-mono mt-1">
                         €{budgetPlanning.categories
-                          .filter(c => c.category !== "Inkomsten (Omzet)")
+                          .filter(c => c.category !== "Inkomsten (Omzet)" && !isNonBusiness(c.category))
                           .reduce((sum, c) => sum + c.allocated, 0)
                           .toLocaleString("nl-NL")}
                       </p>
                       <p className="text-[10px] text-slate-400 mt-0.5">
                         Werkelijk afgelopen jaar: €{budgetPlanning.categories
-                          .filter(c => c.category !== "Inkomsten (Omzet)")
+                          .filter(c => c.category !== "Inkomsten (Omzet)" && !isNonBusiness(c.category))
                           .reduce((sum, c) => sum + c.spent, 0)
                           .toLocaleString("nl-NL")}
                       </p>
@@ -3266,7 +3375,7 @@ export default function App() {
                       {(() => {
                         const recIncome = budgetPlanning.categories.find(c => c.category === "Inkomsten (Omzet)")?.allocated || 0;
                         const recExpenses = budgetPlanning.categories
-                          .filter(c => c.category !== "Inkomsten (Omzet)")
+                          .filter(c => c.category !== "Inkomsten (Omzet)" && !isNonBusiness(c.category))
                           .reduce((sum, c) => sum + c.allocated, 0);
                         const result = recIncome - recExpenses;
 

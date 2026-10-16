@@ -1,4 +1,4 @@
-import { Transaction, BudgetPlanning, BudgetCategory, STANDARD_CATEGORIES } from "../types";
+import { Transaction, BudgetPlanning, BudgetCategory, STANDARD_CATEGORIES, TRANSFER_CATEGORY, categoryAmount } from "../types";
 
 export interface BudgetForecastOptions {
   revenueGrowthPct?: number; // e.g. +5%
@@ -155,14 +155,25 @@ export function generateForecastBudget(
     if (actualsByCategory[cat] === undefined) {
       actualsByCategory[cat] = 0;
     }
-    actualsByCategory[cat] += t.amount;
+    actualsByCategory[cat] += categoryAmount(t);
   });
 
   // Calculate allocated forecast
   const categories: BudgetCategory[] = STANDARD_CATEGORIES.map(cat => {
-    const spent = Math.round(actualsByCategory[cat] || 0);
+    const spent = Math.max(0, Math.round(actualsByCategory[cat] || 0));
     const isIncome = cat === "Inkomsten (Omzet)";
     const isPrivate = cat === "Privé (Onttrekkingen/Stortingen)";
+
+    // Geld schuiven tussen eigen rekeningen is geen kostenpost en wordt niet begroot
+    if (cat === TRANSFER_CATEGORY) {
+      return {
+        category: cat,
+        allocated: 0,
+        spent,
+        justification: "Overboekingen tussen je eigen rekeningen (sparen, buffer). Dit is geen omzet en geen kosten, dus het telt niet mee in de begroting.",
+        savingTips: "Een vaste maandelijkse overboeking naar je buffer is een goede gewoonte. Plan die bewust in, los van je kosten."
+      };
+    }
 
     let multiplier = 1 + (inflationPct / 100);
     if (isIncome) {
@@ -173,9 +184,8 @@ export function generateForecastBudget(
 
     // Default allocated
     let allocated = Math.round(spent * multiplier);
-    if (allocated === 0) {
-      allocated = isIncome ? 25000 : 600;
-    }
+    // Geen historie in deze categorie: geen verzonnen bedrag (zelf in te vullen in de begroting)
+    if (isPrivate) allocated = Math.max(0, allocated);
 
     const tip = benchmark.categoryTips[cat] || "Houd maandelijks grip op deze kosten door vaste contracten jaarlijks te vergelijken.";
     const just = benchmark.categoryJustifications[cat] || `Gebaseerd op €${spent.toLocaleString("nl-NL")} aan historische boekingen met ${multiplier >= 1 ? "+" : ""}${Math.round((multiplier - 1) * 100)}% begrotingsindexatie.`;

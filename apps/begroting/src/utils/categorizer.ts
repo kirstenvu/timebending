@@ -1,4 +1,17 @@
-import { Transaction, STANDARD_CATEGORIES } from "../types";
+import { Transaction, STANDARD_CATEGORIES, TRANSFER_CATEGORY, PRIVATE_CATEGORY } from "../types";
+
+// Overboekingen tussen eigen rekeningen (sparen, buffer): geen omzet en geen kosten
+const TRANSFER_KEYWORDS = [
+  "spaarrekening", "spaarrek", "bedrijfsspaar", "bonusspaar", "doelspaar", "vermogensspaar", "spaardeposito",
+  "spaardoel", "sparen", "naar spaar", "van spaar", "eigen rekening", "naar eigen", "van eigen",
+  "interne overboeking", "overboeking eigen", "bufferrekening", "buffer rekening", "naar buffer", "van buffer", "reservering btw", "btw-reservering", "btw reservering",
+];
+
+// Geld tussen zakelijke en privérekening: geen omzet en geen kosten
+const PRIVATE_KEYWORDS = [
+  "privé", "prive ", "prive-", "priverekening", "privérekening", "privéopname", "prive opname",
+  "eigen loon", "ondernemersloon", "storting eigen", "privestorting", "privéstorting",
+];
 
 export interface CustomRule {
   id: string;
@@ -250,7 +263,15 @@ export function classifyTransaction(
     }
   }
 
-  // 2. If it's pure income and contains clear income indicators
+  // 2. Geld schuiven tussen eigen rekeningen of van/naar privé: in beide richtingen herkennen
+  if (TRANSFER_KEYWORDS.some(kw => descLower.includes(kw))) {
+    return { category: TRANSFER_CATEGORY, cleanName, isRecurring: false, frequency: "none", confidence: 0.85 };
+  }
+  if (PRIVATE_KEYWORDS.some(kw => descLower.includes(kw)) || descLower.endsWith(" prive")) {
+    return { category: PRIVATE_CATEGORY, cleanName, isRecurring: false, frequency: "none", confidence: 0.85 };
+  }
+
+  // 3. If it's pure income and contains clear income indicators
   if (t.type === "income") {
     // Check if it's private deposit
     if (descLower.includes("prive") || descLower.includes("privé") || descLower.includes("storting eigen")) {
@@ -313,11 +334,32 @@ export function autoCategorizeAll(
 
     return {
       ...t,
-      category: t.category !== "Niet gecategoriseerd" && t.category ? t.category : classification.category,
+      // Een eigen regel van de gebruiker (confidence 1) gaat altijd voor; anders blijft een bestaande indeling staan
+      category:
+        classification.confidence === 1.0
+          ? classification.category
+          : t.category !== "Niet gecategoriseerd" && t.category
+          ? t.category
+          : classification.category,
       cleanName: t.cleanName || classification.cleanName,
       isRecurring: t.isRecurring !== undefined ? t.isRecurring : classification.isRecurring,
       frequency: t.frequency || classification.frequency,
       confidence: classification.confidence
     };
   });
+}
+
+/**
+ * Markeert overboekingen tussen eigen rekeningen op basis van rekeningnummers:
+ * als de tegenrekening een rekening is waarvan ook een afschrift is ingeladen (of die
+ * de gebruiker zelf als eigen rekening heeft opgegeven), is het geen omzet en geen kosten.
+ */
+export function markOwnAccountTransfers(transactions: Transaction[], extraOwnAccounts: string[] = []): Transaction[] {
+  const own = new Set<string>([...extraOwnAccounts, ...transactions.map(t => t.ownAccount).filter((a): a is string => !!a)]);
+  if (own.size === 0) return transactions;
+  return transactions.map(t =>
+    t.counterAccount && own.has(t.counterAccount) && t.category !== TRANSFER_CATEGORY
+      ? { ...t, category: TRANSFER_CATEGORY, confidence: 1 }
+      : t
+  );
 }

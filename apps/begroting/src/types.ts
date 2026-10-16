@@ -10,6 +10,9 @@ export interface Transaction {
   frequency?: string;
   cleanName?: string;
   sourceFileId?: string; // koppeling met het geüploade bestand, zodat een import in één keer gewist kan worden
+  ownAccount?: string;     // IBAN van de eigen rekening waar dit afschrift bij hoort
+  counterAccount?: string; // IBAN van de tegenpartij (als de bank die meelevert)
+  counterparty?: string;   // naam van de tegenpartij (als de bank die meelevert)
 }
 
 export interface BudgetCategory {
@@ -46,8 +49,38 @@ export const STANDARD_CATEGORIES = [
   "Verzekeringen & Advies",
   "Belastingen",
   "Overige Bedrijfskosten",
-  "Privé (Onttrekkingen/Stortingen)"
+  "Privé (Onttrekkingen/Stortingen)",
+  "Eigen rekeningen (sparen/buffer)"
 ];
+
+export const INCOME_CATEGORY = "Inkomsten (Omzet)";
+export const PRIVATE_CATEGORY = "Privé (Onttrekkingen/Stortingen)";
+export const TRANSFER_CATEGORY = "Eigen rekeningen (sparen/buffer)";
+export const UNCATEGORIZED = "Niet gecategoriseerd";
+
+/** Categorieën die geen omzet en geen bedrijfskosten zijn: die tellen niet mee in resultaat en begroting. */
+export const NON_BUSINESS_CATEGORIES = [PRIVATE_CATEGORY, TRANSFER_CATEGORY];
+export const isNonBusiness = (category: string) => NON_BUSINESS_CATEGORIES.includes(category);
+
+/**
+ * Bedrag van een transactie zoals het in zijn categorie meetelt.
+ * - Omzet: geld erin telt op, geld eruit (bv. een terugbetaling aan een klant) telt af.
+ * - Kosten- en privécategorieën: geld eruit telt op, geld erin (bv. een terugbetaling of storting) telt af.
+ */
+export function categoryAmount(t: Pick<Transaction, "amount" | "type" | "category">): number {
+  if (t.category === INCOME_CATEGORY) return t.type === "income" ? t.amount : -t.amount;
+  return t.type === "expense" ? t.amount : -t.amount;
+}
+
+/** Hoe een transactie meetelt in het bedrijfsresultaat. */
+export function businessEffect(t: Pick<Transaction, "amount" | "type" | "category">): { income: number; expense: number; excluded: boolean } {
+  if (isNonBusiness(t.category)) return { income: 0, expense: 0, excluded: true };
+  if (t.category === INCOME_CATEGORY) return { income: categoryAmount(t), expense: 0, excluded: false };
+  if (t.category === UNCATEGORIZED || !t.category) {
+    return t.type === "income" ? { income: t.amount, expense: 0, excluded: false } : { income: 0, expense: t.amount, excluded: false };
+  }
+  return { income: 0, expense: categoryAmount(t), excluded: false };
+}
 
 export const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string; hex: string }> = {
   "Inkomsten (Omzet)": { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", hex: "#10b981" },
@@ -60,6 +93,7 @@ export const CATEGORY_COLORS: Record<string, { bg: string; text: string; border:
   "Belastingen": { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", hex: "#f97316" },
   "Overige Bedrijfskosten": { bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-200", hex: "#64748b" },
   "Privé (Onttrekkingen/Stortingen)": { bg: "bg-fuchsia-50", text: "text-fuchsia-700", border: "border-fuchsia-200", hex: "#d946ef" },
+  "Eigen rekeningen (sparen/buffer)": { bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200", hex: "#14b8a6" },
   "Niet gecategoriseerd": { bg: "bg-gray-100", text: "text-gray-500", border: "border-gray-200", hex: "#94a3b8" }
 };
 

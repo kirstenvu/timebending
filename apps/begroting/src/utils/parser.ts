@@ -1,4 +1,5 @@
 import { Transaction } from "../types";
+import { normalizeIban } from "./bankFormats";
 
 // Generate a random ID
 function generateId() {
@@ -89,6 +90,17 @@ export function parseBankStatementCSV(content: string, filename: string): Transa
       let description = "";
       let amount = 0;
       let type: "income" | "expense" = "expense";
+      let counterparty = "";
+      // Eigen rekening en tegenrekening (nodig om overboekingen tussen eigen rekeningen te herkennen)
+      const colOf = (...names: string[]) => {
+        for (const n of names) {
+          const idx = headers.indexOf(n);
+          if (idx !== -1) return cols[idx] || "";
+        }
+        return "";
+      };
+      const ownAccount = normalizeIban(colOf("iban/bban", "rekening", "rekeningnummer", "iban"));
+      const counterAccount = normalizeIban(colOf("tegenrekening iban/bban", "tegenrekening", "tegenrekening iban", "tegenrekeningnummer"));
 
       if (isING) {
         const dateIdx = headers.indexOf("datum");
@@ -99,6 +111,7 @@ export function parseBankStatementCSV(content: string, filename: string): Transa
 
         date = cols[dateIdx] || "";
         const name = cols[nameIdx] || "";
+        counterparty = name.trim();
         const memo = cols[descIdx] || "";
         description = name + (memo ? ` - ${memo}` : "");
         amount = cleanAmount(cols[amountIdx]);
@@ -116,6 +129,7 @@ export function parseBankStatementCSV(content: string, filename: string): Transa
 
         date = cols[dateIdx] || "";
         const name = cols[nameIdx] || "";
+        counterparty = name.trim();
         const memo = descIdxs.map(idx => cols[idx] || "").filter(Boolean).join(" ");
         description = name + (memo ? ` - ${memo}` : "");
         
@@ -162,6 +176,9 @@ export function parseBankStatementCSV(content: string, filename: string): Transa
 
       if (description.trim() && amount > 0) {
         transactions.push({
+          ...(ownAccount ? { ownAccount } : {}),
+          ...(counterAccount && counterAccount !== ownAccount ? { counterAccount } : {}),
+          ...(counterparty ? { counterparty: counterparty.substring(0, 80) } : {}),
           id: generateId(),
           date,
           description: description.substring(0, 200),

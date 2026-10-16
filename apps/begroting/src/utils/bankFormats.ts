@@ -30,8 +30,45 @@ function generateId() {
   return Math.random().toString(36).substring(2, 11);
 }
 
-function makeTx(date: string, description: string, amount: number, type: "income" | "expense"): Transaction {
+/** Normaliseert een rekeningnummer (IBAN) naar hoofdletters zonder spaties, of "" als het er niet op lijkt. */
+export function normalizeIban(raw: string | undefined | null): string {
+  if (!raw) return "";
+  const compact = raw.toUpperCase().replace(/\s+/g, "");
+  for (const m of compact.matchAll(/[A-Z]{2}\d{2}[A-Z0-9]{8,30}/g)) {
+    let cand = m[0];
+    // Soms plakt de valuta erachter (bv. "NL..1234EUR"): probeer korter tot het controlegetal klopt
+    for (let cut = 0; cut <= 3 && cand.length - cut >= 12; cut++) {
+      const c = cand.slice(0, cand.length - cut);
+      if (ibanValid(c)) return c;
+    }
+  }
+  return "";
+}
+
+function ibanValid(iban: string): boolean {
+  const rearranged = iban.slice(4) + iban.slice(0, 4);
+  let rem = 0;
+  for (const ch of rearranged) {
+    const v = /[A-Z]/.test(ch) ? String(ch.charCodeAt(0) - 55) : ch;
+    for (const d of v) rem = (rem * 10 + Number(d)) % 97;
+  }
+  return rem === 1;
+}
+
+function makeTx(
+  date: string,
+  description: string,
+  amount: number,
+  type: "income" | "expense",
+  accounts: { own?: string; counter?: string; name?: string } = {}
+): Transaction {
+  const own = normalizeIban(accounts.own);
+  const counter = normalizeIban(accounts.counter);
+  const name = (accounts.name || "").replace(/\s+/g, " ").replace(/^[\s/]+|[\s/]+$/g, "").trim().substring(0, 80);
   return {
+    ...(own ? { ownAccount: own } : {}),
+    ...(counter ? { counterAccount: counter } : {}),
+    ...(name ? { counterparty: name } : {}),
     id: generateId(),
     date,
     description: description.replace(/\s+/g, " ").trim().substring(0, 200) || "Banktransactie",
@@ -107,8 +144,12 @@ function allTags(xml: string, name: string): string[] {
 }
 
 export function parseCamt053(xml: string): Transaction[] {
-  const entries = allTags(xml, "Ntry");
   const txs: Transaction[] = [];
+  // Een bestand kan meerdere afschriften (Stmt) bevatten, elk voor een eigen rekening
+  const statements = allTags(xml, "Stmt");
+  for (const stmt of statements.length ? statements : [xml]) {
+  const ownIban = tag(tag(tag(stmt, "Acct"), "Id"), "IBAN");
+  const entries = allTags(stmt, "Ntry");
   for (const e of entries) {
     const amount = parseFloat(tag(e, "Amt"));
     if (!isFinite(amount) || amount === 0) continue;
@@ -128,8 +169,17 @@ export function parseCamt053(xml: string): Transaction[] {
     const remittance = allTags(e, "Ustrd").join(" ");
     const extra = tag(e, "AddtlNtryInf") || tag(e, "AddtlTxInf");
 
+    const counterIban = tag(tag(tag(parties, isCredit ? "DbtrAcct" : "CdtrAcct"), "Id"), "IBAN");
+
     const parts = [name, remittance || extra].filter(Boolean);
-    txs.push(makeTx(date, parts.join(" - ") || extra || "Banktransactie", amount, income ? "income" : "expense"));
+    txs.push(
+      makeTx(date, parts.join(" - ") || extra || "Banktransactie", amount, income ? "income" : "expense", {
+        own: ownIban,
+        counter: counterIban,
+        name,
+      })
+    );
+  }
   }
   return txs;
 }
@@ -137,33 +187,45 @@ export function parseCamt053(xml: string): Transaction[] {
 // ---------------------------------------------------------------------------
 // MT940 (SWIFT)
 // ---------------------------------------------------------------------------
-function mt940Description(info: string): string {
+function mt940Description(info: string): { desc: string; counter: string; name: string } {
   const flat = info.replace(/\r?\n/g, "");
+  // Tegenrekening: /CNTP/IBAN/BIC/Naam/Plaats/ (Rabobank, ING) of een los IBAN in de tekst
+  const cntp = flat.match(/\/CNTP\/([^/]*)\/([^/]*)\/([^/]*)\//);
+  const counter = normalizeIban(cntp?.[1]) || normalizeIban((flat.match(/\b[A-Z]{2}\d{2}\s?[A-Z]{4}\s?\d{4}\s?\d{4}\s?\d{2,4}\b/) || [""])[0]);
   if (flat.includes("/")) {
     // Gestructureerde :86: (Rabobank, ING, ABN AMRO): /NAME/.../REMI/.../
     const field = (code: string) => {
       const m = flat.match(new RegExp(`/${code}/(.*?)(?=/(?:[A-Z]{2,4})/|$)`));
       return m ? m[1].trim() : "";
     };
-    const name = field("NAME");
+    const name = field("NAME") || (cntp?.[3] || "").trim();
     let remi = field("REMI");
     if (remi.startsWith("USTD//")) remi = remi.slice(6);
     remi = remi.replace(/^(USTD|STRD)\/+/, "").replace(/\/+$/, "");
     const desc = [name, remi].filter(Boolean).join(" - ");
-    if (desc) return desc;
+    if (desc) return { desc, counter, name };
   }
-  return flat.replace(/\/[A-Z]{2,4}\//g, " ").replace(/\s+/g, " ").trim();
+  return { desc: flat.replace(/\/[A-Z]{2,4}\//g, " ").replace(/\s+/g, " ").trim(), counter, name: "" };
 }
 
 export function parseMT940(text: string): Transaction[] {
   const lines = text.replace(/\r/g, "").split("\n");
   const txs: Transaction[] = [];
-  let current: { date: string; amount: number; income: boolean; info: string[] } | null = null;
+  let current: { date: string; amount: number; income: boolean; info: string[]; extra: string } | null = null;
   let inInfo = false;
+  let ownAccount = "";
 
   const flush = () => {
     if (current) {
-      txs.push(makeTx(current.date, mt940Description(current.info.join("\n")), current.amount, current.income ? "income" : "expense"));
+      const { desc, counter, name } = mt940Description(current.info.join("\n"));
+      const counterIban = counter || normalizeIban(current.extra);
+      txs.push(
+        makeTx(current.date, desc, current.amount, current.income ? "income" : "expense", {
+          own: ownAccount,
+          counter: counterIban !== ownAccount ? counterIban : "",
+          name,
+        })
+      );
     }
     current = null;
   };
@@ -183,8 +245,11 @@ export function parseMT940(text: string): Transaction[] {
           const amount = parseFloat(amt.replace(",", "."));
           // RC = terugboeking van een bijschrijving (dus geld eruit), RD = andersom
           const income = mark === "C" || mark === "RD";
-          current = { date: `20${yy}-${mm}-${dd}`, amount, income, info: [] };
+          // Na het bedrag kan (bij oudere exports) de tegenrekening staan
+          current = { date: `20${yy}-${mm}-${dd}`, amount, income, info: [], extra: rest.slice(m[0].length) };
         }
+      } else if (code === "25") {
+        ownAccount = normalizeIban(rest.split(/\s/)[0]) || normalizeIban(rest);
       } else if (code === "86" && current) {
         current.info.push(rest);
         inInfo = true;
@@ -196,6 +261,9 @@ export function parseMT940(text: string): Transaction[] {
       inInfo = false;
     } else if (inInfo && current) {
       current.info.push(line);
+    } else if (current && current.info.length === 0) {
+      // Vervolgregel van :61: (bv. tegenrekening bij oudere Rabobank-exports)
+      current.extra += " " + line;
     }
   }
   flush();
@@ -236,33 +304,60 @@ export function groupIntoLines(pages: PdfTextItem[][]): PdfLine[] {
 }
 
 const MONTHS: Record<string, string> = {
-  jan: "01", feb: "02", mrt: "03", maa: "03", apr: "04", mei: "05", jun: "06",
+  jan: "01", feb: "02", mrt: "03", maa: "03", mar: "03", apr: "04", mei: "05", may: "05", jun: "06",
   jul: "07", aug: "08", sep: "09", okt: "10", oct: "10", nov: "11", dec: "12",
 };
 
 const DATE_RE = /^(\d{1,2})[-/.](\d{1,2})(?:[-/.](\d{2,4}))?$|^(\d{4})-(\d{2})-(\d{2})$|^(\d{1,2})\s+([a-z]{3})[a-z]*\.?(?:\s+(\d{4}))?$/i;
-const AMOUNT_RE = /^([+-])?\s*(?:€|EUR)?\s*([+-])?\s*(\d{1,3}(?:\.\d{3})*|\d+),(\d{2})\s*([+-]|af|bij|cr|db|d|c)?$/i;
+const AMOUNT_RE = /^([+\-−])?\s*(?:€|EUR)?\s*([+\-−])?\s*(\d{1,3}(?:\.\d{3})*|\d+),(\d{2})\s*([+\-−]|af|bij|cr|db|d|c)?$/i;
+const FULL_DATE_RE = /\b(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})\b|\b(\d{4})-(\d{2})-(\d{2})\b|\b(\d{1,2})\s+(jan|feb|mrt|maa|apr|mei|jun|jul|aug|sep|okt|nov|dec)[a-z]*\.?\s+(\d{4})\b/gi;
 
-function parseDateToken(s: string, fallbackYear: string): string | null {
+interface DateParts { y?: number; m: number; d: number }
+
+function parseDateParts(s: string): DateParts | null {
   const m = s.trim().match(DATE_RE);
   if (!m) return null;
-  let y: string, mo: string, d: string;
+  let y: string | undefined, mo: string, d: string;
   if (m[4]) {
     [y, mo, d] = [m[4], m[5], m[6]];
   } else if (m[1]) {
     d = m[1];
     mo = m[2];
-    y = m[3] || fallbackYear;
+    y = m[3];
   } else {
     d = m[7];
     mo = MONTHS[m[8].toLowerCase().slice(0, 3)];
     if (!mo) return null;
-    y = m[9] || fallbackYear;
+    y = m[9];
   }
-  if (y.length === 2) y = "20" + y;
+  if (y && y.length === 2) y = "20" + y;
   const mon = Number(mo), day = Number(d);
   if (mon < 1 || mon > 12 || day < 1 || day > 31) return null;
-  return `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  return { y: y ? Number(y) : undefined, m: mon, d: day };
+}
+
+const toKey = (y: number, m: number, d: number) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+const toTime = (y: number, m: number, d: number) => Date.UTC(y, m - 1, d);
+
+function fullDatesIn(text: string): number[] {
+  const out: number[] = [];
+  for (const m of text.matchAll(FULL_DATE_RE)) {
+    if (m[3]) out.push(toTime(+m[3], +m[2], +m[1]));
+    else if (m[4]) out.push(toTime(+m[4], +m[5], +m[6]));
+    else if (m[9]) out.push(toTime(+m[9], +MONTHS[m[8].toLowerCase().slice(0, 3)], +m[7]));
+  }
+  return out.filter((t) => !isNaN(t));
+}
+
+/** Zoekt de periode van het afschrift, bv. "Periode 01-07-2025 t/m 30-06-2026". */
+function findPeriod(text: string): { start: number; end: number } | null {
+  const range = /(\d{1,2}[-/.]\d{1,2}[-/.]\d{4}|\d{1,2}\s+[a-z]{3,9}\.?\s+\d{4})\s*(?:t\/m|tot en met|tot|-|–|—)\s*(\d{1,2}[-/.]\d{1,2}[-/.]\d{4}|\d{1,2}\s+[a-z]{3,9}\.?\s+\d{4})/i;
+  const m = text.match(range);
+  if (!m) return null;
+  const a = fullDatesIn(m[1])[0];
+  const b = fullDatesIn(m[2])[0];
+  if (a === undefined || b === undefined || b < a) return null;
+  return { start: a, end: b };
 }
 
 function parseAmountToken(s: string): { value: number; sign: 1 | -1 | 0 } | null {
@@ -272,7 +367,7 @@ function parseAmountToken(s: string): { value: number; sign: 1 | -1 | 0 } | null
   const signChar = m[1] || m[2] || m[5] || "";
   let sign: 1 | -1 | 0 = 0;
   if (/^(\+|bij|cr|c)$/i.test(signChar)) sign = 1;
-  if (/^(-|af|db|d)$/i.test(signChar)) sign = -1;
+  if (/^(-|−|af|db|d)$/i.test(signChar)) sign = -1;
   return { value, sign };
 }
 
@@ -292,24 +387,67 @@ function cells(line: PdfLine): PdfTextItem[] {
   return out.map((c) => ({ ...c, str: c.str.trim() })).filter((c) => c.str);
 }
 
-const SKIP_LINE_RE = /\b(saldo|pagina|blad|totaal|overgebracht|transport|rekeningafschrift|rekeningoverzicht|periode)\b/i;
+const SKIP_LINE_RE = /\b(saldo|pagina|blad|totaal|totalen|overgebracht|transport|rekeningafschrift|rekeningoverzicht|periode|afgedrukt|aangemaakt)\b/i;
+const HEADER_DATE_RE = /^(datum|boekdatum|transactiedatum|rentedatum|boekingsdatum|date)\b/;
+const HEADER_OTHER_RE = /(\baf\b|\bbij\b|bedrag|debet|credit|omschrijving|naam|saldo)/;
+
+function isHeaderLine(lower: string[]): boolean {
+  return lower.some((s) => HEADER_DATE_RE.test(s)) && lower.some((s) => HEADER_OTHER_RE.test(s));
+}
 
 export function parsePdfLines(lines: PdfLine[]): { transactions: Transaction[]; warnings: string[] } {
   const warnings: string[] = [];
   const allText = lines.map((l) => l.items.map((i) => i.str).join(" ")).join("\n");
 
-  // Jaar voor datums zonder jaartal (bv. "03-01"): neem het eerste volledige jaartal uit het document
-  const yearMatch = allText.match(/\b\d{1,2}[-/.]\d{1,2}[-/.](20\d{2})\b|\b(20\d{2})-\d{2}-\d{2}\b|\b\d{1,2}\s+[a-z]{3,9}\s+(20\d{2})\b/i);
-  const fallbackYear = yearMatch ? yearMatch[1] || yearMatch[2] || yearMatch[3] : String(new Date().getFullYear());
+  // Jaartal voor datums zonder jaar ("03-01"): bij voorkeur binnen de periode van het afschrift
+  const period = findPeriod(allText);
+  const docDates = fullDatesIn(allText);
+  const baseYear = period
+    ? new Date(period.start).getUTCFullYear()
+    : docDates.length
+    ? Math.min(...docDates.map((t) => new Date(t).getUTCFullYear()))
+    : new Date().getFullYear();
+  let prevTime: number | null = null;
 
-  // Kolomposities uit de koptekst (bv. "Datum | Omschrijving | Af | Bij | Saldo")
+  const resolveDate = (p: DateParts): string => {
+    if (p.y) return toKey(p.y, p.m, p.d);
+    let years: number[];
+    if (period) {
+      const y1 = new Date(period.start).getUTCFullYear(), y2 = new Date(period.end).getUTCFullYear();
+      years = [];
+      for (let y = y1 - 1; y <= y2 + 1; y++) years.push(y);
+      const margin = 7 * 86400000;
+      const inside = years.filter((y) => {
+        const t = toTime(y, p.m, p.d);
+        return t >= period.start - margin && t <= period.end + margin;
+      });
+      if (inside.length === 1) return toKey(inside[0], p.m, p.d);
+      if (inside.length > 1) years = inside;
+    } else {
+      years = prevTime !== null
+        ? [-1, 0, 1].map((k) => new Date(prevTime as number).getUTCFullYear() + k)
+        : [baseYear];
+    }
+    const ref = prevTime ?? (period ? period.start : toTime(baseYear, 1, 1));
+    const best = years.reduce((a, b) => (Math.abs(toTime(b, p.m, p.d) - ref) < Math.abs(toTime(a, p.m, p.d) - ref) ? b : a));
+    return toKey(best, p.m, p.d);
+  };
+
+  // Pagina's met een kolomkop: alles daarboven (samenvatting, saldo's, adres) wordt overgeslagen
+  const headerPages = new Set<number>();
+  for (const l of lines) {
+    if (isHeaderLine(cells(l).map((c) => c.str.toLowerCase()))) headerPages.add(l.page);
+  }
+  const anyHeader = headerPages.size > 0;
+  let headerSeenOnPage = 0;
+
   type Cols = { af?: number; bij?: number; saldo?: number; bedrag?: number };
   let cols: Cols = {};
   const center = (c: PdfTextItem) => c.x + c.width / 2;
 
   const txs: Transaction[] = [];
   let guessed = 0;
-  let current: { date: string; desc: string[]; value: number; income: boolean | null } | null = null;
+  let current: { date: string; desc: string[]; value: number; income: boolean | null; firstLineCells: number } | null = null;
   const flush = () => {
     if (current && current.value > 0) {
       let income = current.income;
@@ -318,7 +456,14 @@ export function parsePdfLines(lines: PdfLine[]): { transactions: Transaction[]; 
         const d = current.desc.join(" ").toLowerCase();
         income = /\b(bijschrijving|ontvangen|storting|creditering|terugbetaling)\b/.test(d);
       }
-      txs.push(makeTx(current.date, current.desc.join(" "), current.value, income ? "income" : "expense"));
+      // Naam tegenpartij: de eerste cel als de regel uit meerdere kolommen bestaat,
+      // of de eerste regel als de omschrijving over meerdere regels doorloopt
+      const name = current.firstLineCells >= 2 || current.desc.length >= 2 ? current.desc[0] : "";
+      const counterIban = normalizeIban(current.desc.join(" "));
+      txs.push(makeTx(current.date, current.desc.join(" "), current.value, income ? "income" : "expense", {
+        name: name.replace(/\b[A-Z]{2}\d{2}\s?[A-Z]{4}[\s\d]{10,16}\b/g, "").trim(),
+        counter: counterIban,
+      }));
     }
     current = null;
   };
@@ -328,43 +473,50 @@ export function parsePdfLines(lines: PdfLine[]): { transactions: Transaction[]; 
     if (cs.length === 0) continue;
     const lower = cs.map((c) => c.str.toLowerCase());
 
-    // Koptekst herkennen
-    if (lower.some((s) => /^(datum|boekdatum|transactiedatum)$/.test(s))) {
+    // Koptekst herkennen (en de kolomposities onthouden)
+    if (isHeaderLine(lower)) {
       const next: Cols = {};
       cs.forEach((c, i) => {
         const s = lower[i];
-        if (/^(af|bedrag af|debet|uitgaven?|af \(eur\))$/.test(s)) next.af = center(c);
-        else if (/^(bij|bedrag bij|credit|inkomsten|bij \(eur\))$/.test(s)) next.bij = center(c);
-        else if (/saldo/.test(s)) next.saldo = center(c);
-        else if (/^bedrag( \(eur\)| eur)?$/.test(s)) next.bedrag = center(c);
+        if (/saldo/.test(s)) next.saldo = center(c);
+        else if (/(\baf\b|debet|debit|uitgave)/.test(s)) next.af = center(c);
+        else if (/(\bbij\b|credit|inkomst|ontvangst)/.test(s)) next.bij = center(c);
+        else if (/bedrag/.test(s)) next.bedrag = center(c);
       });
       if (next.af !== undefined || next.bij !== undefined || next.bedrag !== undefined) cols = next;
+      headerSeenOnPage = line.page;
       flush();
       continue;
     }
+    // Boven de kolomkop van deze pagina staat geen transactie
+    if (anyHeader && headerPages.has(line.page) && headerSeenOnPage !== line.page) continue;
+    // Pagina's vóór de eerste kolomkop (voorblad/samenvatting) overslaan
+    if (anyHeader && headerSeenOnPage === 0) continue;
 
-    const date = parseDateToken(cs[0].str, fallbackYear);
+    const dateParts = parseDateParts(cs[0].str);
     const amounts = cs
-      .map((c) => ({ c, a: parseAmountToken(c.str) }))
-      .filter((x): x is { c: PdfTextItem; a: { value: number; sign: 1 | -1 | 0 } } => !!x.a);
+      .map((c, i) => ({ c, i, a: parseAmountToken(c.str) }))
+      .filter((x): x is { c: PdfTextItem; i: number; a: { value: number; sign: 1 | -1 | 0 } } => !!x.a);
 
-    if (date && amounts.length > 0 && !SKIP_LINE_RE.test(lower.join(" "))) {
+    if (dateParts && amounts.length > 0 && !SKIP_LINE_RE.test(lower.join(" "))) {
       flush();
-      // Kies het bedrag dat niet in de saldokolom staat
       const nearest = (x: number) => {
         const options: [string, number][] = (Object.entries(cols) as [string, number | undefined][])
           .filter((e): e is [string, number] => e[1] !== undefined);
         if (!options.length) return null;
         return options.reduce((best, cur) => (Math.abs(cur[1] - x) < Math.abs(best[1] - x) ? cur : best))[0];
       };
+      // Kies het bedrag dat niet in de saldokolom staat
       const candidates = amounts.filter((x) => nearest(center(x.c)) !== "saldo");
       const pick = (candidates.length ? candidates : amounts)[0];
       const col = nearest(center(pick.c));
       let income: boolean | null = null;
       if (pick.a.sign !== 0) income = pick.a.sign > 0;
-      else if (col === "af") income = false;
-      else if (col === "bij") income = true;
-      // Losse "Af"/"Bij"-cel op de regel (zoals bij ING/Rabo-overzichten)
+      // Los +/−-teken vlak voor het bedrag
+      if (income === null && pick.i > 0 && /^[+\-−]$/.test(cs[pick.i - 1].str)) income = cs[pick.i - 1].str === "+";
+      if (income === null && col === "af") income = false;
+      if (income === null && col === "bij") income = true;
+      // Losse "Af"/"Bij"-cel op de regel
       if (income === null) {
         if (lower.includes("bij") || lower.includes("cr")) income = true;
         else if (lower.includes("af") || lower.includes("db")) income = false;
@@ -372,8 +524,10 @@ export function parsePdfLines(lines: PdfLine[]): { transactions: Transaction[]; 
       const amountCells = new Set(amounts.map((x) => x.c));
       const descParts = cs
         .slice(1)
-        .filter((c) => !amountCells.has(c) && !/^(af|bij|cr|db|d|c)$/i.test(c.str) && !parseDateToken(c.str, fallbackYear));
-      current = { date, desc: descParts.map((c) => c.str), value: pick.a.value, income };
+        .filter((c) => !amountCells.has(c) && !/^(af|bij|cr|db|d|c|[+\-−])$/i.test(c.str) && !parseDateParts(c.str));
+      const date = resolveDate(dateParts);
+      prevTime = toTime(+date.slice(0, 4), +date.slice(5, 7), +date.slice(8, 10));
+      current = { date, desc: descParts.map((c) => c.str), value: pick.a.value, income, firstLineCells: descParts.length };
       continue;
     }
 
