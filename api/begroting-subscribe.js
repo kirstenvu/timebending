@@ -7,7 +7,7 @@
 // nooit in de code of git zetten):
 //   MAILERLITE_API_KEY    te vinden in MailerLite onder
 //                         Integrations -> API (Bearer token)
-//   MAILERLITE_GROUP_ID   (optioneel) ID van de groep waar nieuwe
+//   MAILERLITE_BEGROTING_GROUP_ID   ID van de groep "Begrotingstool" waar nieuwe
 //                         aanmeldingen aan toegevoegd moeten worden
 
 module.exports = async function handler(req, res) {
@@ -26,7 +26,7 @@ module.exports = async function handler(req, res) {
   }
 
   const apiKey = process.env.MAILERLITE_API_KEY;
-  const groupId = process.env.MAILERLITE_GROUP_ID;
+  const groupId = process.env.MAILERLITE_BEGROTING_GROUP_ID;
 
   if (!apiKey) {
     console.warn('MailerLite niet geconfigureerd (MAILERLITE_API_KEY ontbreekt).');
