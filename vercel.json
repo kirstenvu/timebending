@@ -8,7 +8,6 @@
     "api/sleutels.js": { "maxDuration": 60 },
     "api/intentie.js": { "maxDuration": 60 },
     "api/subscribe.js": { "maxDuration": 30 },
-    "api/rust-subscribe.js": { "maxDuration": 30 },
     "api/begroting-subscribe.js": { "maxDuration": 30 }
   },
   "rewrites": [
@@ -16,7 +15,6 @@
     { "source": "/wheel-of-business", "destination": "/wheel-of-business.html" },
     { "source": "/feedback", "destination": "/feedback.html" },
     { "source": "/essentials", "destination": "/essentials.html" },
-    { "source": "/rust", "destination": "/rust.html" },
     { "source": "/sleutels", "destination": "/sleutels.html" },
     { "source": "/intentie", "destination": "/intentie.html" },
     { "source": "/flow", "destination": "/flow/index.html" },
